@@ -1,9 +1,9 @@
 import re
 
-from constants import BIT_TRANS, ITEM_MOD_PROPS
-from helpers import DiceBag, cp437_to_unicode
-from qudobject import QudObject
-from svalue import sValue
+from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
+from hagadias.helpers import DiceBag, cp437_to_unicode
+from hagadias.qudobject import QudObject
+from hagadias.svalue import sValue
 
 
 def strip_qud_color_codes(text: str):

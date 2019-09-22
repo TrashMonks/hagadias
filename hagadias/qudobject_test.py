@@ -2,7 +2,7 @@
 
 import os
 
-import gameroot
+from hagadias import gameroot
 
 qindex = gameroot.qindex
 

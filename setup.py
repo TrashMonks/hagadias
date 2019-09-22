@@ -9,6 +9,7 @@ setuptools.setup(
     author="syntaxaire",
     author_email="syntaxaire@gmail.com",
     description="Data extractors for the Caves of Qud roguelike",
+    license="AGPLv3",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/syntaxaire/hagadias",

@@ -8,8 +8,8 @@ from pathlib import Path
 sys.modules['_elementtree'] = None
 from xml.etree import ElementTree as ET  # noqa E402
 
-from character_codes import read_gamedata  # noqa E402
-from qudobject import QudObject  # noqa E402
+from hagadias.character_codes import read_gamedata  # noqa E402
+from hagadias.qudobject import QudObject  # noqa E402
 
 
 class LineNumberingParser(ET.XMLParser):
