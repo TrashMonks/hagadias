@@ -29,6 +29,11 @@ root = GameRoot(GAMEPATH)
 
 ## API
 ```python
+root.gamever
+```
+A string specifying the release version of Caves of Qud, like '2.0.193.0'.
+
+```python
 gamecodes = root.get_game_codes()
 ```
 Gives you a dictionary containing everything needed to calculate complete character sheets from character build codes.

@@ -9,6 +9,7 @@ sys.modules['_elementtree'] = None
 from xml.etree import ElementTree as ET  # noqa E402
 
 from hagadias.character_codes import read_gamedata  # noqa E402
+from hagadias.helpers import get_dll_version_string  # noqa E402
 from hagadias.qudobject import QudObject  # noqa E402
 
 
@@ -78,6 +79,8 @@ class GameRoot:
         self._root = root_path
         self._xmlroot = root_path / 'CoQ_Data' / 'StreamingAssets' / 'Base'
         self.pathstr = str(root_path)
+        assembly_path = root_path / 'CoQ_Data' / 'Managed' / 'Assembly-CSharp.dll'
+        self.gamever = get_dll_version_string(str(assembly_path), "FileVersion")
 
     def get_character_codes(self) -> dict:
         """Load and return a dictionary containing all the Qud character code pieces.
