@@ -1,6 +1,6 @@
 """pytest functions to test functions in svalue.py"""
 
-from hagadias.svalue import sValue
+from svalue import sValue
 
 
 def test_creation():

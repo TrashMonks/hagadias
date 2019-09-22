@@ -9,7 +9,7 @@ from xml.etree.ElementTree import Element
 
 from anytree import NodeMixin
 
-from hagadias.qudtile import QudTile
+from qudtile import QudTile
 
 
 class QudObject(NodeMixin):

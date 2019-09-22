@@ -1,6 +1,6 @@
 """Pytest file for functions in helpers.py"""
 
-from hagadias.helpers import DiceBag
+from helpers import DiceBag
 
 
 def test_roll_average():
