@@ -1,10 +1,16 @@
 # hagadias
-Data extractors for the [Caves of Qud](http://www.cavesofqud.com/) roguelike.  
+Python package to extract game data from the [Caves of Qud](http://www.cavesofqud.com/) roguelike.  
 
-This Python package allows a user to read game data in the raw format used by the
+This library forms the base for several projects:
+ - the Caves of Qud wiki bot that builds and updates the [official Caves of Qud wiki](https://cavesofqud.gamepedia.com/)
+ - the Discord bot that operates on the Caves of Qud server
+ - an as yet unannounced project :)
+
+## What does it do?
+hagadias allows a user to read game data in the raw format used by the
 [Caves of Qud](http://www.cavesofqud.com/) roguelike RPG, including the object tree,
-fully colored tiles, and character data. It requires an installation of the game to function
-properly.
+fully colored tiles, and character data. It needs to be passed a path to a local
+installation of the game in order to do anything.
 
 ## Installation
 To install the package from this GitHub repository, run  
