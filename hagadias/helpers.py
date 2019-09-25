@@ -4,7 +4,7 @@ import os
 import re
 from ctypes import *
 
-# load and store the Code Page 437->Unicode translation
+# load and store the Code Page 437 to Unicode translation
 CP437_MAP_FILE = os.path.join(os.path.dirname(__file__), 'IBMGRAPH.TXT')
 cp437_conv = {}
 with open(CP437_MAP_FILE) as f:
