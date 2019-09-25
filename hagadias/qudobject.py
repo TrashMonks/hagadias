@@ -95,11 +95,16 @@ class QudObject(NodeMixin):
                 # normal case: just assign the attributes dictionary to this <tag>-Name combo
                 self.attributes[element_tag][element_name] = element.attrib
         self.all_attributes, self.inherited = self.resolve_inheritance()
-        self.tile = self.render_tile()
+        self._tile = None  # cache; rendered on first call to render_tile()
 
-    def render_tile(self) -> QudTile:
-        """Create and return a QudTile colored to match the in-game representation."""
-        tile = None
+    @property
+    def tile(self) -> QudTile:
+        """Return a QudTile colored to match the in-game representation.
+
+        Created on-demand to speed load times; cached in self._tile after first call."""
+
+        if self._tile is not None:
+            return self._tile
         if self.part_Render_Tile and not self.tag_BaseObject:
             holo_parts = ['part_HologramMaterial',
                           'part_HologramWallMaterial',
@@ -153,6 +158,7 @@ class QudObject(NodeMixin):
             else:
                 # normal rendering
                 tile = QudTile(self.part_Render_Tile, color, tilecolor, detail, self.name)
+        self._tile = tile
         return tile
 
     def resolve_inheritance(self):
