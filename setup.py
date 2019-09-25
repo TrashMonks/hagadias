@@ -17,7 +17,7 @@ setuptools.setup(
     install_requires=['anytree', 'pillow'],
     use_scm_version=True,
     setup_requires=['setuptools_scm'],
-    data_files=[('', ['IBMGRAPH.TXT'])],
+    data_files=[('', ['hagadias/IBMGRAPH.TXT'])],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
