@@ -17,6 +17,7 @@ setuptools.setup(
     install_requires=['anytree', 'pillow'],
     use_scm_version=True,
     setup_requires=['setuptools_scm'],
+    include_package_data=True,
     data_files=[('', ['hagadias/IBMGRAPH.TXT'])],
     classifiers=[
         "Programming Language :: Python :: 3",
