@@ -15,6 +15,8 @@ setuptools.setup(
     url="https://github.com/syntaxaire/hagadias",
     packages=setuptools.find_packages(),
     install_requires=['anytree', 'pillow'],
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
