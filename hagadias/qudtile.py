@@ -2,7 +2,7 @@
 import io
 from pathlib import Path
 
-from PIL import Image, ImageQt
+from PIL import Image
 
 QUD_COLORS = {'r': (166, 74, 46),  # dark red
               'R': (215, 66, 0),  # bright red
@@ -31,7 +31,6 @@ QUD_VIRIDIAN = (15, 64, 63, 255)
 
 tiles_dir = Path('Textures')
 blank_image = Image.new('RGBA', (16, 24), color=(0, 0, 0, 0))
-blank_qtimage = ImageQt.ImageQt(blank_image)
 # index keys are like "creatures/caste_flipped_22.bmp" as in XML
 image_cache = {}
 bad_tile_color = set()
@@ -90,7 +89,6 @@ class QudTile:
                 print(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
                 self.blacklisted = True
                 self.image = blank_image
-        self.qtimage = ImageQt.ImageQt(self.image)
 
     def _color_image(self):
         for y in range(self.image.height):
@@ -117,10 +115,6 @@ class QudTile:
     def get_big_image(self):
         """Draw the 160x240 image for the wiki."""
         return self.image.resize((160, 240))
-
-    def get_big_qtimage(self):
-        """Draw the 160x240 image for the explorer."""
-        return ImageQt.ImageQt(self.get_big_image())
 
     def get_big_bytesio(self):
         """Get a BytesIO representation of a PNG encoding of the big image.
