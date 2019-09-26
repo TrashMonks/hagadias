@@ -1,4 +1,3 @@
-from hagadias.gameroot import qindex
 from hagadias.qudobject_props import strip_qud_color_codes
 
 
@@ -7,6 +6,6 @@ def test_strip_qud_color_codes():
 
 
 # Properties
-def test_chargeused():
+def test_chargeused(qindex):
     obj = qindex['Geomagnetic Disc']
     assert obj.chargeused == '400'

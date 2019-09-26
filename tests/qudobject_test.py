@@ -1,23 +1,7 @@
 """pytest functions to test functions in qudobject.py"""
 
-import os
 
-from hagadias import gameroot
-
-qindex = gameroot.qindex
-
-# fallback location
-FILE = "C:/Steam/SteamApps/common/Caves of Qud/CoQ_Data/StreamingAssets/Base/ObjectBlueprints.xml"
-
-if os.path.exists('last_xml_location'):
-    with open('last_xml_location') as f:
-        filename = f.read()
-    gameroot.load(filename)
-else:
-    gameroot.load(FILE)
-
-
-def test_inherits_from():
+def test_inherits_from(qindex):
     obj = qindex['Stopsvaalinn']
     assert obj.inherits_from('BaseShield')
     assert obj.inherits_from('Item')
@@ -29,13 +13,13 @@ def test_inherits_from():
     assert obj.inherits_from('Object')
 
 
-def test_is_specified():
+def test_is_specified(qindex):
     obj = qindex['Stopsvaalinn']
     assert obj.is_specified('part_Commerce_Value')
     assert not obj.is_specified('fart_Commerce_Value')
 
 
-def test_properties():
+def test_properties(qindex):
     obj = qindex['Asphodel']
     assert obj.lv == '30'
     assert obj.hp == '500'
