@@ -10,7 +10,7 @@ from xml.etree import ElementTree as ET  # noqa E402
 
 from hagadias.character_codes import read_gamedata  # noqa E402
 from hagadias.helpers import get_dll_version_string  # noqa E402
-from hagadias.qudobject import QudObject  # noqa E402
+from hagadias.qudobject_props import QudObjectProps  # noqa E402
 
 
 class LineNumberingParser(ET.XMLParser):
@@ -89,7 +89,7 @@ class GameRoot:
         to calculate complete build codes."""
         return read_gamedata(self._xmlroot)
 
-    def get_object_tree(self, cls=QudObject):
+    def get_object_tree(self, cls=QudObjectProps):
         """Create a tree of the Caves of Qud hierarchy of objects from ObjectBlueprints.xml and
         return a tuple containing:
          - the root object ('Object'),
