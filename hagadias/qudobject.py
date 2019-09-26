@@ -105,6 +105,7 @@ class QudObject(NodeMixin):
 
         if self._tile is not None:
             return self._tile
+        tile = None  # not all objects have tiles
         if self.part_Render_Tile and not self.tag_BaseObject:
             holo_parts = ['part_HologramMaterial',
                           'part_HologramWallMaterial',
