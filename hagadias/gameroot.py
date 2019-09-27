@@ -80,7 +80,11 @@ class GameRoot:
         self._xmlroot = root_path / 'CoQ_Data' / 'StreamingAssets' / 'Base'
         self.pathstr = str(root_path)
         assembly_path = root_path / 'CoQ_Data' / 'Managed' / 'Assembly-CSharp.dll'
-        self.gamever = get_dll_version_string(str(assembly_path), "FileVersion")
+        try:
+            self.gamever = get_dll_version_string(str(assembly_path), "FileVersion")
+        except NameError:
+            # FIXME: temporary workaround for inability to use windll on Linux
+            self.gamever = 'unknown'
 
     def get_character_codes(self) -> dict:
         """Load and return a dictionary containing all the Qud character code pieces.
