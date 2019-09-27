@@ -112,14 +112,26 @@ class QudTile:
                     final.append(255)  # transparency
                     self.image.putpixel((x, y), tuple(final))
 
+    def get_bytesio(self):
+        """Get a BytesIO representation of a PNG encoding of the tile.
+
+        Used for uploading to the wiki and discord.
+        Some applications may require .seek(0) on this before use (discord.py does,
+        mwclient does not.)"""
+        png_b = io.BytesIO()
+        self.image.save(png_b, format='png')
+        return png_b
+
     def get_big_image(self):
-        """Draw the 160x240 image for the wiki."""
+        """Draw the big (10x, 160x240) tile for the wiki or discord."""
         return self.image.resize((160, 240))
 
     def get_big_bytesio(self):
-        """Get a BytesIO representation of a PNG encoding of the big image.
+        """Get a BytesIO representation of a PNG encoding of the big (10x, 160x240) tile.
 
-        Used for uploading to the wiki."""
+        Used for uploading to the wiki and discord.
+        Some applications may require .seek(0) on this before use (discord.py does,
+        mwclient does not.)"""
         png_b = io.BytesIO()
         self.get_big_image().save(png_b, format='png')
         return png_b
