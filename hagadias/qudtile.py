@@ -38,6 +38,17 @@ bad_detail_color = set()
 uses_details = set()
 
 
+def fix_filename(filename: str) -> str:
+    """Return repaired versions of certain broken filenames."""
+    # repair bad access paths
+    if filename.lower().startswith('assets_content_textures'):
+        filename = filename[24:]
+        filename = filename.replace('_', '/', 1)
+    # repair lowercase first letter for case-sensitive operating systems (Linux)
+    filename = filename[0].upper() + filename[1:]
+    return filename
+
+
 class QudTile:
     """Class to load and color a Qud tile."""
 
@@ -65,11 +76,7 @@ class QudTile:
             raw_tilecolor = QUD_COLORS[raw_tilecolor.strip('&')]
             self.tilecolor = raw_tilecolor
             self.transparentcolor = QUD_COLORS[raw_transparent]
-
-        if filename.lower().startswith('assets_content_textures'):
-            # repair bad access paths
-            filename = filename[24:]
-            filename = filename.replace('_', '/', 1)
+        filename = fix_filename(filename)
         if raw_detailcolor is None or raw_detailcolor == 'k':
             # self.detailcolor = QUD_COLORS['k']  # on-ground rendering
             self.detailcolor = (0, 0, 0)  # in-inventory rendering (more detail)
