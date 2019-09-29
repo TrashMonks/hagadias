@@ -1,4 +1,6 @@
-"""pytest functions to test functions in qudobject.py"""
+"""pytest tests to test functions in qudobject.py.
+
+The qindex fixture is supplied by tests/conftest.py."""
 
 
 def test_inherits_from(qindex):

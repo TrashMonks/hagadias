@@ -1,3 +1,7 @@
+"""pytest tests to test qudobject_props.py.
+
+The qindex fixture is supplied by tests/conftest.py."""
+
 from hagadias.qudobject_props import strip_qud_color_codes
 
 

@@ -1,4 +1,6 @@
-"""Tests for the GameRoot class."""
+"""Tests for the GameRoot class.
+
+The gameroot fixture is supplied by tests/conftest.py."""
 
 from hagadias.gameroot import GameRoot
 
