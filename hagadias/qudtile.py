@@ -56,9 +56,11 @@ class QudTile:
                  raw_transparent="transparent"):
         self.blacklisted = False  # set True if problems with tile generation encountered
         self.filename = filename
+        self.colorstring = colorstring
         self.raw_tilecolor = raw_tilecolor
         self.raw_detailcolor = raw_detailcolor
         self.qudname = qudname
+        self.raw_transparent = raw_transparent
 
         if raw_tilecolor is None and colorstring is not None:
             raw_tilecolor = colorstring  # fall back to text mode color
