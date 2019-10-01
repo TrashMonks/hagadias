@@ -2,6 +2,13 @@ from hagadias.helpers import DiceBag
 from hagadias.qudobject import QudObject
 
 
+def is_armor(armor_item: QudObject) -> bool:
+    """Return whether a QudObject can be worn as armor."""
+    if armor_item.part_Armor_WornOn is not None:
+        return True
+    return False
+
+
 class EquipBrain:
     """Loads a creature, analyzes its body parts and inventory, and determines what it would
     probably equip in-game.
@@ -63,9 +70,8 @@ class EquipBrain:
             # not yet implemented
             _ = 1
 
-    def get_items_for_slot(self, slot: str, type_: str):
+    def get_items_for_slot(self, slot: str, type_: str = ''):
         # not yet fully implemented
-        type_ = type_ or ''
         for name in list(self.creature.inventoryobject.keys()):
             if name[0] in '*#@':
                 # special values like '*Junk 1'
@@ -79,11 +85,6 @@ class EquipBrain:
         if part in self.equippable_body_slots:
             if self.equippable_body_slots[part] > 0:
                 return True
-        return False
-
-    def is_armor(self, armor_item: QudObject) -> bool:
-        if armor_item.part_Armor_WornOn:
-            return True
         return False
 
     def armor_score(self, armor_item) -> int:
@@ -131,34 +132,6 @@ class EquipBrain:
         print("armor_score for " + armor_item.id + ":     " + str(round(score)))
         print("      [owned by " + self.creature.id + "]")
         return int(round(score))
-
-    def is_new_weap_better_for_primary_hand(self, new_weap: QudObject, old_weap: QudObject) -> bool:
-        """returns true if new_weap is considered a better candidate for equipping in the primary
-           weapon hand than old_weap. Loosely based on XRL.World.Parts.Brain.CompareWeapons()
-
-        This method should be fully implemented, though it has not yet been extensively tested.
-
-        Parameters:
-            new_weap: The QudObject reference to the new weapon object we're considering equipping
-            old_weap: The QudObject reference to the old weapon object
-        """
-        if (new_weap.tag_AlwaysEquip is not None) != (old_weap.tag_AlwaysEquip is not None):
-            return new_weap.tag_AlwaysEquip is not None
-        new_val = new_weap.tag_NaturalWeapon is not None and new_weap.tag_UndesireableWeapon is None
-        old_val = old_weap.tag_NaturalWeapon is not None and old_weap.tag_UndesireableWeapon is None
-        if new_val != old_val:
-            return new_val
-        if (new_weap.part_MissileWeapon is None) != (old_weap.part_MissileWeapon is None):
-            return new_weap.part_MissileWeapon is None
-        if (new_weap.part_ThrownWeapon is None) != (old_weap.part_ThrownWeapon is None):
-            return new_weap.part_ThrownWeapon is None
-        if (new_weap.part_Food is None) != (old_weap.part_Food is None):
-            return new_weap.part_Food is None
-        if (new_weap.part_Armor is None) != (old_weap.part_Armor is None):
-            return new_weap.part_Armor is None
-        new_val = self.weapon_score(new_weap)
-        old_val = self.weapon_score(old_weap)
-        return new_val > old_val
 
     def weapon_score(self, weapon_item: QudObject) -> int:
         """returns the equip favorability score for a weapon.
@@ -218,3 +191,31 @@ class EquipBrain:
             stunscore = stunscore * stunchance * stunsavetarget // 2000
             finalscore += stunscore
         return finalscore
+
+    def is_new_weap_better_for_primary_hand(self, new_weap: QudObject, old_weap: QudObject) -> bool:
+        """returns true if new_weap is considered a better candidate for equipping in the primary
+           weapon hand than old_weap. Loosely based on XRL.World.Parts.Brain.CompareWeapons()
+
+        This method should be fully implemented, though it has not yet been extensively tested.
+
+        Parameters:
+            new_weap: The QudObject reference to the new weapon object we're considering equipping
+            old_weap: The QudObject reference to the old weapon object
+        """
+        if (new_weap.tag_AlwaysEquip is not None) != (old_weap.tag_AlwaysEquip is not None):
+            return new_weap.tag_AlwaysEquip is not None
+        new_val = new_weap.tag_NaturalWeapon is not None and new_weap.tag_UndesireableWeapon is None
+        old_val = old_weap.tag_NaturalWeapon is not None and old_weap.tag_UndesireableWeapon is None
+        if new_val != old_val:
+            return new_val
+        if (new_weap.part_MissileWeapon is None) != (old_weap.part_MissileWeapon is None):
+            return new_weap.part_MissileWeapon is None
+        if (new_weap.part_ThrownWeapon is None) != (old_weap.part_ThrownWeapon is None):
+            return new_weap.part_ThrownWeapon is None
+        if (new_weap.part_Food is None) != (old_weap.part_Food is None):
+            return new_weap.part_Food is None
+        if (new_weap.part_Armor is None) != (old_weap.part_Armor is None):
+            return new_weap.part_Armor is None
+        new_val = self.weapon_score(new_weap)
+        old_val = self.weapon_score(old_weap)
+        return new_val > old_val
