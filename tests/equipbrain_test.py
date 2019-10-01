@@ -51,4 +51,3 @@ def test_is_new_weap_better_for_primary_hand(qindex):
     weap_good = qindex['Dagger3']  # carbide dagger
     assert brain.is_new_weap_better_for_primary_hand(weap_good, weap_bad) is True
     assert brain.is_new_weap_better_for_primary_hand(weap_bad, weap_good) is False
-

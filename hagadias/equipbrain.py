@@ -66,13 +66,13 @@ class EquipBrain:
                 if mutation == 'Horns':
                     self.equippable_body_slots['Head'] -= 1
         # figure out what should be equipped in each slot
-        for key, val in iter(self.equippable_body_slots.items()):
+        for key, val in self.equippable_body_slots.items():
             # not yet implemented
             _ = 1
 
     def get_items_for_slot(self, slot: str, type_: str = ''):
         # not yet fully implemented
-        for name in list(self.creature.inventoryobject.keys()):
+        for name in self.creature.inventoryobject.keys():
             if name[0] in '*#@':
                 # special values like '*Junk 1'
                 continue

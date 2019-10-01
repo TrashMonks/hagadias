@@ -2,6 +2,19 @@
 
 The qindex fixture is supplied by tests/conftest.py."""
 
+from hagadias.qudtile import QudTile
+
+
+def test_tile(qindex):
+    obj = qindex['Svenlainard']
+    assert isinstance(obj.tile, QudTile)
+
+
+def test_ui_inheritance_path(qindex):
+    obj = qindex['Snapjaw Scavenger']
+    want = 'Object➜PhysicalObject➜Creature➜Humanoid➜BaseHumanoid➜Snapjaw➜Snapjaw Scavenger'
+    assert obj.ui_inheritance_path() == want
+
 
 def test_inherits_from(qindex):
     obj = qindex['Stopsvaalinn']
