@@ -12,6 +12,7 @@ coverage = "*"
 [packages]
 anytree = "*"
 pillow = "*"
+pefile = "*"
 
 [requires]
 python_version = "3.7"
