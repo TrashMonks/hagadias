@@ -2,7 +2,7 @@
 QudObject.part_name_attribute"""
 import sys
 from copy import deepcopy
-from typing import Union
+from typing import Tuple, Union
 # Force Python XML parser:
 sys.modules['_elementtree'] = None
 from xml.etree.ElementTree import Element
@@ -162,8 +162,11 @@ class QudObject(NodeMixin):
         self._tile = tile
         return tile
 
-    def resolve_inheritance(self):
-        """Compute and return a dictionary with all inherited tags and attributes.
+    def resolve_inheritance(self) -> Tuple[dict, dict]:
+        """Compute and return dictionaries with all inherited tags and attributes.
+
+        Returns a 2-tuple of dictionaries. The first contains the computed attributes for this
+        QudObject. The second contains the computed attributes for its parent.
 
         Recurses back all the way to the root Object and combines all data into
         the returned dict. Attributes of tags in children overwrite ancestors.

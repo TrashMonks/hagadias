@@ -101,7 +101,7 @@ class DiceBag:
                 else:
                     raise ValueError(f"DiceBag created with segment of unsupported format: {die}")
 
-    def average(self):
+    def average(self) -> int:
         """Return the average value that is rolled from this dice string,
         rounded down to the nearest integer."""
         val = 0.0
@@ -109,7 +109,7 @@ class DiceBag:
             val += die.quantity * (1.0 + die.size) / 2.0
         return int(val)
 
-    def minimum(self):
+    def minimum(self) -> int:
         """Return the minimum value that can be rolled from this dice string."""
         val = 0.0
         for die in self.dice_bag:
@@ -119,7 +119,7 @@ class DiceBag:
                 val += die.quantity * die.size
         return int(val)
 
-    def maximum(self):
+    def maximum(self) -> int:
         """Return the maximum value that can be rolled from this dice string."""
         val = 0.0
         for die in self.dice_bag:
@@ -129,7 +129,7 @@ class DiceBag:
                 val += die.quantity * 1
         return int(val)
 
-    def shake(self):
+    def shake(self) -> int:
         """Simulate and return a random roll for this dice string."""
         from random import randrange
         val = 0
@@ -143,5 +143,3 @@ class DiceBag:
                 for i in range(abs(q)):
                     val -= randrange(s) + 1
         return val
-
-

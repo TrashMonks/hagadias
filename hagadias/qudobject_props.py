@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import re
+from typing import Union
 
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
 from hagadias.helpers import DiceBag, cp437_to_unicode
@@ -6,7 +9,7 @@ from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
 
 
-def strip_qud_color_codes(text: str):
+def strip_qud_color_codes(text: str) -> str:
     """Remove Qud color codes like `&Y` from the provided text."""
     return re.sub('&[rRwWcCbBgGmMyYkKoO]', '', text)
 
@@ -21,8 +24,9 @@ class QudObjectProps(QudObject):
 
     # PROPERTY HELPERS
     # Helper methods to simplify the calculation of properties, further below.
-    # Sorted alphabetically. All return types should be strings.
-    def attribute_helper(self, attr: str, mode: str = ''):
+    # Sorted alphabetically.
+    def attribute_helper(self, attr: str, mode: str = '') -> Union[str, int]:
+        # TODO: fix that this can return str or int, then fix type annotation above
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
         if self.inherits_from('Creature') or self.inherits_from('ActivePlant'):
@@ -42,7 +46,7 @@ class QudObjectProps(QudObject):
             val = (val - 16) // 2  # return stat modifier for average roll
         return val
 
-    def resistance(self, element):
+    def resistance(self, element: str) -> Union[str, None]:
         """The elemental resistance/weakness the equipment or NPC has.
         Helper function for properties."""
         val = getattr(self, f'stat_{element}Resistance_Value')
@@ -52,13 +56,13 @@ class QudObjectProps(QudObject):
             val = getattr(self, f'part_Armor_{element}')
         return val
 
-    def projectile_object(self, part_attr: str = ''):
+    def projectile_object(self, part_attr: str = '') -> Union[QudObjectProps, str, None]:
         """Retrieve the projectile object for a MissileWeapon or Arrow.
-          If part_attr specified, retrieve the specific part attribute
-          value from that projectile object instead.
+        If part_attr specified, retrieve the specific part attribute
+        value from that projectile object instead.
 
-          Doesn't work for bows because their projectile object varies
-          depending on the type of arrow loaded into them."""
+        Doesn't work for bows because their projectile object varies
+        depending on the type of arrow loaded into them."""
         if self.part_MissileWeapon is not None or self.is_specified('part_AmmoArrow'):
             parts = ['part_BioAmmoLoader_ProjectileObject',
                      'part_AmmoArrow_ProjectileObject',
@@ -77,22 +81,22 @@ class QudObjectProps(QudObject):
 
     # PROPERTIES
     @property
-    def accuracy(self):
+    def accuracy(self) -> Union[str, None]:
         """How accurate the gun is."""
         return self.part_MissileWeapon_WeaponAccuracy
 
     @property
-    def acid(self):
+    def acid(self) -> Union[str, None]:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Acid')
 
     @property
-    def agility(self):
+    def agility(self) -> Union[str, None]:
         """The agility the mutation affects, or the agility of the creature."""
         return self.attribute_helper('Agility')
 
     @property
-    def ammo(self):
+    def ammo(self) -> Union[str, None]:
         """What type of ammo is used."""
         ammo = None
         if self.part_MagazineAmmoLoader_AmmoPart:
@@ -114,21 +118,21 @@ class QudObjectProps(QudObject):
         return ammo
 
     @property
-    def ammodamagetypes(self):
+    def ammodamagetypes(self) -> Union[list, None]:
         """Damage attributes associated with the projectile."""
         attributes = self.projectile_object('part_Projectile_Attributes')
         if attributes is not None:
             return attributes.split()
 
     @property
-    def aquatic(self):
+    def aquatic(self) -> Union[str, None]:
         """If the creature requires to be submerged in water."""
         if self.inherits_from('Creature'):
             if self.part_Brain_Aquatic is not None:
                 return "yes" if self.part_Brain_Aquatic == "true" else "no"
 
     @property
-    def av(self):
+    def av(self) -> Union[str, None]:
         """The AV that an item provides, or the AV that a creature has."""
         av = None
         if self.part_Armor_AV:  # the AV of armor
@@ -153,23 +157,23 @@ class QudObjectProps(QudObject):
             return None
 
     @property
-    def bits(self):
+    def bits(self) -> Union[str, None]:
         """The bits you can get from disassembling the object."""
         if self.part_TinkerItem and self.part_TinkerItem_CanDisassemble != 'false':
             return self.part_TinkerItem_Bits.translate(BIT_TRANS)
 
     @property
-    def bookid(self):
+    def bookid(self) -> Union[str, None]:
         """Id in books.xml."""
         return self.part_Book_ID
 
     @property
-    def butcheredinto(self):
+    def butcheredinto(self) -> Union[str, None]:
         """What a corpse item can be butchered into."""
         return self.part_Butcherable_OnSuccess
 
     @property
-    def canbuild(self):
+    def canbuild(self) -> Union[str, None]:
         """Whether or not the player can tinker up this item."""
         if self.part_TinkerItem_CanBuild == 'true':
             return 'yes'
@@ -177,7 +181,7 @@ class QudObjectProps(QudObject):
             return 'no'  # it's interesting if an item can't be built but can be disassembled
 
     @property
-    def candisassemble(self):
+    def candisassemble(self) -> Union[str, None]:
         """Whether or not the player can disassemble this item."""
         if self.part_TinkerItem_CanDisassemble == 'true':
             return 'yes'
@@ -185,17 +189,17 @@ class QudObjectProps(QudObject):
             return 'no'  # it's interesting if an item can't be disassembled but can be built
 
     @property
-    def carrybonus(self):
+    def carrybonus(self) -> Union[str, None]:
         """The carry weight bonus."""
         return self.part_Armor_CarryBonus
 
     @property
-    def chargeperdram(self):
+    def chargeperdram(self) -> Union[str, None]:
         """How much charge is available per dram (for liquid cells)."""
         return self.part_LiquidFueledEnergyCell_ChargePerDram
 
     @property
-    def chargeused(self):
+    def chargeused(self) -> Union[str, None]:
         """How much charge is used per shot."""
         charge = None
         if self.part_VibroWeapon and int(self.part_VibroWeapon_ChargeUse) > 0:
@@ -215,7 +219,7 @@ class QudObjectProps(QudObject):
         return charge
 
     @property
-    def chargefunction(self):
+    def chargefunction(self) -> Union[str, None]:
         """The features or functions that the charge is used for."""
         # intended to provide clarity for items like Prayer Rod, where charge only affects one of
         # its features (stun) and not the other (elemental damage)
@@ -235,12 +239,12 @@ class QudObjectProps(QudObject):
         return funcs
 
     @property
-    def cold(self):
+    def cold(self) -> Union[str, None]:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Cold')
 
     @property
-    def colorstr(self):
+    def colorstr(self) -> Union[str, None]:
         """The Qud color code associated with the RenderString."""
         if self.part_Render_ColorString:
             return self.part_Render_ColorString
@@ -248,13 +252,13 @@ class QudObjectProps(QudObject):
             return self.part_Gas_ColorString
 
     @property
-    def commerce(self):
+    def commerce(self) -> Union[str, None]:
         """The value of the object."""
         if self.inherits_from('Item') or self.inherits_from('BaseThrownWeapon'):
             return self.part_Commerce_Value
 
     @property
-    def complexity(self):
+    def complexity(self) -> Union[int, None]:
         """The complexity of the object, used for psychometry."""
         if self.part_Examiner_Complexity is None:
             val = 0
@@ -278,32 +282,32 @@ class QudObjectProps(QudObject):
             return val
 
     @property
-    def cookeffect(self):
+    def cookeffect(self) -> Union[list, None]:
         """The possible cooking effects of an item."""
         ingred_type = self.part_PreparedCookingIngredient_type
         if ingred_type is not None:
             return ingred_type.split(',')
 
     @property
-    def corpse(self):
+    def corpse(self) -> Union[str, None]:
         """What corpse a character drops."""
         if self.part_Corpse_CorpseBlueprint is not None and int(self.part_Corpse_CorpseChance) > 0:
             return self.part_Corpse_CorpseBlueprint
 
     @property
-    def corpsechance(self):
+    def corpsechance(self) -> Union[str, None]:
         """The chance of a corpse dropping, if corpsechance is >0"""
         if self.part_Corpse_CorpseChance is not None and int(self.part_Corpse_CorpseChance) > 0:
             return self.part_Corpse_CorpseChance
 
     @property
-    def cursed(self):
+    def cursed(self) -> Union[str, None]:
         """If the item cannot be removed by normal circumstances."""
         if self.part_Cursed is not None:
             return 'yes'
 
     @property
-    def damage(self):
+    def damage(self) -> Union[str, None]:
         """The damage dealt by this object."""
         val = None
         if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
@@ -321,7 +325,7 @@ class QudObjectProps(QudObject):
         return val
 
     @property
-    def demeanor(self):
+    def demeanor(self) -> Union[str, None]:
         """The demeanor of the creature."""
         if self.inherits_from('Creature') or self.inherits_from('ActivePlant'):
             if self.part_Brain_Calm is not None:
@@ -330,7 +334,7 @@ class QudObjectProps(QudObject):
                 return "aggressive" if self.part_Brain_Hostile.lower() == "true" else "neutral"
 
     @property
-    def desc(self):
+    def desc(self) -> Union[str, None]:
         """The short description of the object, with color codes included (ampersands escaped)."""
         desc = None
         if self.part_Description_Short == 'A hideous specimen.':
@@ -350,13 +354,13 @@ class QudObjectProps(QudObject):
         return desc
 
     @property
-    def destroyonunequip(self):
+    def destroyonunequip(self) -> Union[str, None]:
         """If the object is destroyed on unequip."""
         if self.part_DestroyOnUnequip is not None:
             return 'yes'
 
     @property
-    def displayname(self):
+    def displayname(self) -> Union[str, None]:
         """The display name of the object, with color codes removed. Used in UI and wiki."""
         dname = ""
         if self.part_Render_DisplayName is not None:
@@ -365,14 +369,14 @@ class QudObjectProps(QudObject):
         return dname
 
     @property
-    def dramsperuse(self):
+    def dramsperuse(self) -> Union[int, None]:
         """The number of drams of liquid consumed by each shot action."""
         if self.is_specified('part_LiquidAmmoLoader'):
             return 1  # LiquidAmmoLoader always uses 1 dram per action
         # TODO: calculate fractional value for blood-gradient hand vacuum
 
     @property
-    def dv(self):
+    def dv(self) -> Union[str, None]:
         """The Dodge Value of this object."""
         dv = None
         if self.inherits_from('Armor'):
@@ -419,7 +423,7 @@ class QudObjectProps(QudObject):
         return str(dv) if dv else None
 
     @property
-    def dynamictable(self):
+    def dynamictable(self) -> Union[list, None]:
         """What dynamic tables the object is a member of.
 
         Returns a list of strings, the dynamic tables."""
@@ -434,23 +438,23 @@ class QudObjectProps(QudObject):
         return tables if len(tables) > 0 else None
 
     @property
-    def eatdesc(self):
+    def eatdesc(self) -> Union[str, None]:
         """The text when you eat this item."""
         return self.part_Food_Message
 
     @property
-    def ego(self):
+    def ego(self) -> Union[str, None]:
         """The ego the mutation effects, or the ego of the creature."""
         val = self.attribute_helper('Ego')
         return val + "+3d1" if self.name == "Wraith-Knight Templar" else val
 
     @property
-    def electric(self):
+    def electric(self) -> Union[str, None]:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Electric')
 
     @property
-    def elementaldamage(self):
+    def elementaldamage(self) -> Union[str, None]:
         """The elemental damage dealt, if any."""
         if self.is_specified('part_ModFlaming'):
             tierstr = self.part_ModFlaming_Tier
