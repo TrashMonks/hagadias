@@ -87,3 +87,26 @@ ITEM_MOD_PROPS = {'ModCounterweighted': {'complexity': 1,
                                'difficulty': 1,
                                'ifcomplex': True,
                                'prefix': '&cwired &y'}}
+
+QUD_COLORS = {'r': (166, 74, 46),  # dark red
+              'R': (215, 66, 0),  # bright red
+              'w': (152, 135, 95),  # brown
+              'W': (207, 192, 65),  # yellow
+              'c': (64, 164, 185),  # dark cyan
+              'C': (119, 191, 207),  # bright cyan
+              'b': (0, 72, 189),  # dark blue
+              'B': (0, 150, 255),  # bright blue
+              'g': (0, 148, 3),  # dark green
+              'G': (0, 196, 32),  # bright green
+              'm': (177, 84, 207),  # dark magenta
+              'M': (218, 91, 214),  # bright magenta
+              'y': (177, 201, 195),  # bright grey
+              'Y': (255, 255, 255),  # white
+              'k': (15, 59, 58),  # black
+              'K': (21, 83, 82),  # dark grey
+              'o': (241, 95, 34),
+              'O': (233, 159, 16),
+              'transparent': (15, 64, 63, 0),
+              }
+
+QUD_VIRIDIAN = (15, 64, 63, 255)

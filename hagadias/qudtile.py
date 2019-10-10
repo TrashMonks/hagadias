@@ -4,30 +4,10 @@ from pathlib import Path
 
 from PIL import Image
 
-QUD_COLORS = {'r': (166, 74, 46),  # dark red
-              'R': (215, 66, 0),  # bright red
-              'w': (152, 135, 95),  # brown
-              'W': (207, 192, 65),  # yellow
-              'c': (64, 164, 185),  # dark cyan
-              'C': (119, 191, 207),  # bright cyan
-              'b': (0, 72, 189),  # dark blue
-              'B': (0, 150, 255),  # bright blue
-              'g': (0, 148, 3),  # dark green
-              'G': (0, 196, 32),  # bright green
-              'm': (177, 84, 207),  # dark magenta
-              'M': (218, 91, 214),  # bright magenta
-              'y': (177, 201, 195),  # bright grey
-              'Y': (255, 255, 255),  # white
-              'k': (15, 59, 58),  # black
-              'K': (21, 83, 82),  # dark grey
-              'o': (241, 95, 34),
-              'O': (233, 159, 16),
-              'transparent': (15, 64, 63, 0),
-              }
+from hagadias.constants import QUD_COLORS, QUD_VIRIDIAN
 
 TILE_COLOR = (0, 0, 0, 255)
 DETAIL_COLOR = (255, 255, 255, 255)
-QUD_VIRIDIAN = (15, 64, 63, 255)
 
 tiles_dir = Path('Textures')
 blank_image = Image.new('RGBA', (16, 24), color=(0, 0, 0, 0))
@@ -130,6 +110,12 @@ class QudTile:
         png_b = io.BytesIO()
         self.image.save(png_b, format='png')
         return png_b
+
+    def get_bytes(self):
+        """Return the bytes representation of self image in PNG format."""
+        bytesio = self.get_bytesio()
+        bytesio.seek(0)
+        return bytesio.read()
 
     def get_big_image(self):
         """Draw the big (10x, 160x240) tile for the wiki or discord."""
