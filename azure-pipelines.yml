@@ -27,7 +27,7 @@ steps:
 
 - script: |
     pipenv run lint
-  displayname: 'Lint the project'
+  displayName: 'Lint the project'
 
 # - script: |
 #     pip install pytest pytest-azurepipelines
