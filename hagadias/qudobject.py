@@ -5,11 +5,11 @@ from copy import deepcopy
 from typing import Tuple, Union
 # Force Python XML parser:
 sys.modules['_elementtree'] = None
-from xml.etree.ElementTree import Element
+from xml.etree.ElementTree import Element  # noqa E402
 
-from anytree import NodeMixin
+from anytree import NodeMixin  # noqa E402
 
-from hagadias.qudtile import QudTile
+from hagadias.qudtile import QudTile  # noqa E402
 
 
 class QudObject(NodeMixin):

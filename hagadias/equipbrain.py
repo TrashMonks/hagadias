@@ -43,9 +43,9 @@ class EquipBrain:
         self.creature = creature
         self.qindex = qindex
         self.equippable_body_slots = {'Arm': 2, 'Back': 1, 'Body': 1, 'Face': 1, 'Feet': 1,
-                                      'Floating Nearby': 1, 'Hand': 2, 'Hands': 1, 'Head': 1 }
+                                      'Floating Nearby': 1, 'Hand': 2, 'Hands': 1, 'Head': 1}
         self.equipped_items = {'Arm': [], 'Back': [], 'Body': [], 'Face': [], 'Feet': [],
-                               'Floating Nearby': [], 'Hand': [], 'Hands': [], 'Head': [] }
+                               'Floating Nearby': [], 'Hand': [], 'Hands': [], 'Head': []}
         # does this creature have mutations that affect equippable body parts?
         if self.creature.mutation:
             for mutation, info in self.creature.mutation.items():
@@ -77,7 +77,7 @@ class EquipBrain:
             if name[0] in '*#@':
                 # special values like '*Junk 1'
                 continue
-            item = self.qindex[name]
+            # item = self.qindex[name]
             # assume the hand is the primary weapon slot
             # if slot == 'Hand' and item.inherits_from('MeleeWeapon'):
 

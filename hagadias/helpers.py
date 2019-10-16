@@ -2,7 +2,6 @@
 
 import os
 import re
-from ctypes import *
 
 # load and store the Code Page 437 to Unicode translation
 import pefile
