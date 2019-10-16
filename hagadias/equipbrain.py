@@ -1,5 +1,6 @@
 from hagadias.helpers import DiceBag
 from hagadias.qudobject import QudObject
+from hagadias.qudobject_props import QudObjectProps
 
 
 def is_armor(armor_item: QudObject) -> bool:
@@ -38,7 +39,7 @@ class EquipBrain:
             self.score = score
             self.canequip = canequip
 
-    def __init__(self, creature: QudObject, qindex: dict):
+    def __init__(self, creature: QudObjectProps, qindex: dict):
         self.creature = creature
         self.qindex = qindex
         self.equippable_body_slots = {'Arm': 2, 'Back': 1, 'Body': 1, 'Face': 1, 'Feet': 1,
@@ -80,14 +81,14 @@ class EquipBrain:
             # assume the hand is the primary weapon slot
             # if slot == 'Hand' and item.inherits_from('MeleeWeapon'):
 
-    def can_equip_armor(self, armor_item: QudObject) -> bool:
+    def can_equip_armor(self, armor_item: QudObjectProps) -> bool:
         part = armor_item.wornon
         if part in self.equippable_body_slots:
             if self.equippable_body_slots[part] > 0:
                 return True
         return False
 
-    def armor_score(self, armor_item) -> int:
+    def armor_score(self, armor_item: QudObjectProps) -> int:
         """returns the equip favorability score for an armor item.
         loosely based on XRL.World.Parts.Brain.ArmorScore()
 
@@ -133,7 +134,7 @@ class EquipBrain:
         print("      [owned by " + self.creature.id + "]")
         return int(round(score))
 
-    def weapon_score(self, weapon_item: QudObject) -> int:
+    def weapon_score(self, weapon_item: QudObjectProps) -> int:
         """returns the equip favorability score for a weapon.
         loosely based on XRL.World.Parts.Brain.WeaponScore()
 
@@ -192,7 +193,7 @@ class EquipBrain:
             finalscore += stunscore
         return finalscore
 
-    def is_new_weap_better_for_primary_hand(self, new_weap: QudObject, old_weap: QudObject) -> bool:
+    def new_weap_better_primary(self, new_weap: QudObjectProps, old_weap: QudObjectProps) -> bool:
         """returns true if new_weap is considered a better candidate for equipping in the primary
            weapon hand than old_weap. Loosely based on XRL.World.Parts.Brain.CompareWeapons()
 

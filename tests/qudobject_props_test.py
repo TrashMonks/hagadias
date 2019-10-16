@@ -11,15 +11,14 @@ def test_strip_qud_color_codes():
 
 # Properties
 def test_av(qindex):
-    pairs = {'Chain Mail': '3',
-             'Stopsvaalinn': '3',
-             'Basalt': '10',
-             'Q Girl': '7',  # 4 from quills, 1 from polyhedral rings, 0 from powered exoskeleton,
-                             # 1 from ulnar stimulator, 1 from plastifer sneakers
-             'Warden Ualraig': '6',  # 2 from horn, 3 from chainmail, 1 from leather boots
-             'IrritableTortoise': '4'}
-    for obj, av in pairs.items():
-        assert qindex[obj].av == av
+    assert qindex['Chain Mail'].av == '3'
+    assert qindex['Stopsvaalinn'].av == '3'
+    assert qindex['Basalt'].av == '10'
+    assert qindex['Q Girl'].av == '7'
+    # 4 from quills, 1 from polyhedral rings, 0 from powered exoskeleton,
+    # 1 from ulnar stimulator, 1 from plastifer sneakers
+    assert qindex['Warden Ualraig'].av == '6'  # 2 from horn, 3 from chainmail, 1 from leather boots
+    assert qindex['IrritableTortoise'].av == '4'
 
 
 def test_chargeused(qindex):
@@ -28,11 +27,9 @@ def test_chargeused(qindex):
 
 
 def test_dv(qindex):
-    pairs = {'Chain Mail': '-1',
-             'Stopsvaalinn': '0',
-             'Basalt': '-10',
-             'Q Girl': '6',
-             'Warden Ualraig': '8',
-             'IrritableTortoise': '4'}
-    for obj, dv in pairs.items():
-        assert qindex[obj].dv == dv
+    assert qindex['Chain Mail'].dv == '-1'
+    assert qindex['Stopsvaalinn'].dv == '0'
+    assert qindex['Basalt'].dv == '-10'
+    assert qindex['Q Girl'].dv == '6'
+    assert qindex['Warden Ualraig'].dv == '8'
+    assert qindex['IrritableTortoise'].dv == '4'
