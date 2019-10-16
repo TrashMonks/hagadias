@@ -1,3 +1,4 @@
+[![Build Status](https://dev.azure.com/syntaxaire/hagadias-ci/_apis/build/status/TrashMonks.hagadias?branchName=master)](https://dev.azure.com/syntaxaire/hagadias-ci/_build/latest?definitionId=1&branchName=master)
 # hagadias
 Python package to extract game data from the [Caves of Qud](http://www.cavesofqud.com/) roguelike.  
 
