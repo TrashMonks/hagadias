@@ -15,9 +15,9 @@ installation of the game in order to do anything.
 
 ## Installation
 To install the package from this GitHub repository, run  
-`pip install git+https://github.com/syntaxaire/hagadias@master#egg=hagadias`  
+`pip install git+https://github.com/trashmonks/hagadias@master#egg=hagadias`  
 or if you're using pipenv,  
-`pipenv install -e git+https://github.com/syntaxaire/hagadias.git@master#egg=hagadias`
+`pipenv install -e git+https://github.com/trashmonks/hagadias.git@master#egg=hagadias`
 
 ## Usage
 ```python
