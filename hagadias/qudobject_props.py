@@ -811,6 +811,12 @@ class QudObjectProps(QudObject):
             return 'yes'
 
     @property
+    def pettable(self):
+        """If the creature is pettable."""
+        if self.part_Pettable is not None:
+            return 'yes'
+
+    @property
     def preservedinto(self):
         """When preserved, what a preservable item produces."""
         return self.part_PreservableItem_Result
