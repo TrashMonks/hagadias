@@ -1017,22 +1017,7 @@ class QudObjectProps(QudObject):
             val = "&MWraith-Knight Templar of the Binary Honorum"  # override for Wraith Knights
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
-        mods = QudObjectProps.mods.fget(self)  # seems necessary to avoid inheritance ambiguity
-        if mods is not None and self.xtag_Grammar_Proper != 'true':  # prepend mod prefixes
-            modprops = ITEM_MOD_PROPS
-            modprefixes = ''
-            modpostfixes = ''
-            for mod, tier in mods:
-                if mod in modprops:
-                    if 'prefix' in modprops[mod]:
-                        if mod == 'ModCounterweighted' and int(tier) > 2:  # special handling
-                            modprefixes += '&ycounterweighted(' + str((int(tier) + 3) // 3) + ') '
-                        else:
-                            modprefixes += modprops[mod]['prefix']
-                    if 'postfix' in modprops[mod]:
-                        modpostfixes += modprops[mod]['postfix']
-            val = (modprefixes if modprefixes != '' else '') \
-                + val + (modpostfixes if modpostfixes != '' else '')
+        
         return val
 
     @property
