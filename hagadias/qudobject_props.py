@@ -163,6 +163,14 @@ class QudObjectProps(QudObject):
             return self.part_TinkerItem_Bits.translate(BIT_TRANS)
 
     @property
+    def bleedliquid(self) -> Union[str, None]:
+        """What liquid something bleeds. Only returns interesting liquids (not blood)"""
+        if self.is_specified('part_BleedLiquid'):
+            liquid = self.part_BleedLiquid.split('-')[0]
+            if liquid is not "blood":
+                return liquid
+
+    @property
     def bookid(self) -> Union[str, None]:
         """Id in books.xml."""
         return self.part_Book_ID
@@ -521,6 +529,12 @@ class QudObjectProps(QudObject):
         return ret
 
     @property
+    def flametemperature(self):
+        """The temperature that this object sets on fire. Only for items."""
+        if self.inherits_from('Item') and self.is_specified('part_Physics'):
+            return self.part_Physics_FlameTemperature
+
+    @property
     def flyover(self):
         """Whether a flying creature can pass over this object."""
         if self.inherits_from('Wall') or self.inherits_from('Furniture'):
@@ -657,6 +671,12 @@ class QudObjectProps(QudObject):
     def liquidtype(self):
         """For liquid generators, the type of liquid generated."""
         return self.part_LiquidProducer_Liquid
+
+    @property
+    def liquidburst(self):
+        """If its explodes into liquid, what kind?"""
+        if self.is_specified('part_LiquidBurst'):
+            return '{{ID to name|' + self.part_LiquidBurst_Liquid + '}}'
 
     @property
     def lv(self):
@@ -813,7 +833,7 @@ class QudObjectProps(QudObject):
     @property
     def pettable(self):
         """If the creature is pettable."""
-        if self.part_Pettable is not None:
+        if self.is_specified('part_Pettable'):
             return 'yes'
 
     @property
