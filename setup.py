@@ -14,7 +14,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/syntaxaire/hagadias",
     packages=setuptools.find_packages(),
-    install_requires=['anytree', 'pillow'],
+    install_requires=['anytree', 'pefile', 'pillow'],
     use_scm_version=True,
     setup_requires=['setuptools_scm'],
     include_package_data=True,
