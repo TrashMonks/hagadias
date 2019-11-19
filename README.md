@@ -23,7 +23,7 @@ or if you're using pipenv,
 Tile support currently requires a download of [CavesofQudTileModdingToolkit.zip](https://www.dropbox.com/s/g8coebnzoqfema9/CavesofQudTileModdingToolkit.zip?dl=0), extracted into the `hagadias` directory. We're working on making this easier to do.
 
 ## Usage example
-```python
+```
 >>> from hagadias.gameroot import GameRoot
 >>> GAMEPATH = r'C:\Steam\steamapps\common\Caves of Qud'  # Windows
 # GAMEPATH = r'~/.local/share/Steam/steamapps/common/Caves of Qud'  # Linux
@@ -97,3 +97,6 @@ Building Qud object hierarchy and adding tiles...
 >>> help(youngivory.tile)
 # for details.
 ```
+
+## Contributing
+See `CONTRIBUTING.md`.
