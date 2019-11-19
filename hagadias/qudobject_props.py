@@ -167,7 +167,7 @@ class QudObjectProps(QudObject):
         """What liquid something bleeds. Only returns interesting liquids (not blood)"""
         if self.is_specified('part_BleedLiquid'):
             liquid = self.part_BleedLiquid.split('-')[0]
-            if liquid is not "blood":
+            if liquid != "blood":
                 return liquid
 
     @property
@@ -1037,7 +1037,6 @@ class QudObjectProps(QudObject):
             val = "&MWraith-Knight Templar of the Binary Honorum"  # override for Wraith Knights
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
-        
         return val
 
     @property
