@@ -69,8 +69,21 @@ class DiceBag:
         """
 
         def __init__(self, quantity, size):
+            # since the DiceBag might be used in e.g. a Discord bot, do some sanity checks on input
+            if abs(quantity) > 1000:
+                raise ValueError(f'{abs(quantity)} is too many dice to roll')
+            if size < 1:
+                raise ValueError(f'{size} is too low for the number of sides on a die')
+            if size > 500:
+                raise ValueError(f'{size} is too high for the number of sides on a die')
             self.quantity = quantity
             self.size = size
+
+        def __repr__(self):
+            return f'Die({self.quantity}, {self.size})'
+
+        def __str__(self):
+            return f'{self.quantity}d{self.size}'
 
     # static regex patterns:
     # valid dice string must contain only 0-9, +, -, d, or spaces
@@ -99,6 +112,7 @@ class DiceBag:
                     self.dice_bag.append(DiceBag.Die(float(m.group(1)), 1.0))
                 else:
                     raise ValueError(f"DiceBag created with segment of unsupported format: {die}")
+        self.dice_string = dice_string
 
     def average(self) -> int:
         """Return the average value that is rolled from this dice string,
@@ -142,3 +156,9 @@ class DiceBag:
                 for i in range(abs(q)):
                     val -= randrange(s) + 1
         return val
+
+    def __repr__(self):
+        return f"DiceBag('{self.dice_string}')"
+
+    def __str__(self):
+        return self.dice_string
