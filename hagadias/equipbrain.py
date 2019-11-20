@@ -1,4 +1,4 @@
-from hagadias.helpers import DiceBag
+from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.qudobject_props import QudObjectProps
 
