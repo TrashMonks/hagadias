@@ -19,6 +19,7 @@ class DiceBag:
 
         def __init__(self, quantity, size):
             # since the DiceBag might be used in e.g. a Discord bot, do some sanity checks on input
+            quantity = int(quantity)
             if abs(quantity) > 1000:
                 raise ValueError(f'{abs(quantity)} is too many dice to roll')
             if size < 1:
@@ -43,6 +44,8 @@ class DiceBag:
     pattern_die_roll = re.compile(r'^([+-]?\d+)d(\d+)$')
     # a dice string segment that represents a numeric bonus or malus (examples: +3, -1)
     pattern_die_bonus = re.compile(r'^([+-]?\d+)$')
+    # each valid die segment MUST be in [-+]NUM or [-+]NUMdNUM, or throw value error
+    pattern_valid_die = re.compile(r'^([-+]?\d+d\d+|[-+]?\d+)$')
 
     def __init__(self, dice_string: str):
         if self.pattern_valid_dice.match(dice_string) is None:
@@ -52,6 +55,8 @@ class DiceBag:
         dice_string = "".join(dice_string.split())  # strip all whitespace from dice_string
         dice_iter = self.pattern_dice_segment.finditer(dice_string)
         for die in dice_iter:
+            if not self.pattern_valid_die.match(die.group(0)):
+                raise ValueError(f'{die.group(0)} must be in format (number) or (number)d(number)')
             m = self.pattern_die_roll.match(die.group(0))
             if m:
                 self.dice_bag.append(DiceBag.Die(float(m.group(1)), float(m.group(2))))
