@@ -46,6 +46,9 @@ class DiceBag:
     pattern_die_bonus = re.compile(r'^([+-]?\d+)$')
     # each valid die segment MUST be in [-+]NUM or [-+]NUMdNUM, or throw value error
     pattern_valid_die = re.compile(r'^([-+]?\d+d\d+|[-+]?\d+)$')
+    # - and + cannot be clumped together unless cases like 9+-2, else throw value error
+    pattern_invalid_op = re.compile(r'\+{2,}|\-[-+]+')
+
 
     def __init__(self, dice_string: str):
         if self.pattern_valid_dice.match(dice_string) is None:
@@ -53,9 +56,12 @@ class DiceBag:
                              " - dice string must contain only 0-9, +, -, d, or spaces")
         self.dice_bag = []
         dice_string = "".join(dice_string.split())  # strip all whitespace from dice_string
+        if self.pattern_invalid_op.match(dice_string) is not None:
+            raise ValueError(f"Invalid string for DiceBag ({dice_string})"
+                             " - dice string cannot have multiple operators in a row")
         dice_iter = self.pattern_dice_segment.finditer(dice_string)
         for die in dice_iter:
-            if not self.pattern_valid_die.match(die.group(0)):
+            if self.pattern_valid_die.match(die.group(0)) is None:
                 raise ValueError(f'{die.group(0)} must be in format (number) or (number)d(number)')
             m = self.pattern_die_roll.match(die.group(0))
             if m:
