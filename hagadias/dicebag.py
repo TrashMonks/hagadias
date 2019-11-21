@@ -49,7 +49,6 @@ class DiceBag:
     # - and + cannot be clumped together unless cases like 9+-2, else throw value error
     pattern_invalid_op = re.compile(r'\+{2,}|\-[-+]+')
 
-
     def __init__(self, dice_string: str):
         if self.pattern_valid_dice.match(dice_string) is None:
             raise ValueError(f"Invalid string for DiceBag ({dice_string})"
