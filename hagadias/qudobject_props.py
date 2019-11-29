@@ -9,6 +9,16 @@ from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
 
+# STATIC GROUPS
+# Many combat properties can come from anything that inherits from either of these.
+# Use For: any(self.inherits_from(character) for character in ACTIVE_CHAR).
+# ACTIVE: What is typically considered a Character, with an inventory and combat capabilities.
+ACTIVE_CHARS = ['Creature', 'ActivePlant']
+# INACTIVE: What would still be helpful to have combat related stats, but have things that
+# make them different from active characters. Usually immobile and have no attributes.
+INACTIVE_CHARS = ['BaseFungus', 'Baetyl', 'Wall', 'Furniture']
+ALL_CHARS = ACTIVE_CHARS + INACTIVE_CHARS
+
 
 def strip_qud_color_codes(text: str) -> str:
     """Remove Qud color codes like `&Y` from the provided text."""
@@ -22,15 +32,6 @@ class QudObjectProps(QudObject):
 
     Properties should return Python types where possible (lists, bools, etc.) and leave specific
     representations to a subclass."""
-    # STATIC GROUPS
-    # Many combat properties can come from anything that inherits from either of these.
-    # Use For: any(self.inherits_from(character) for character in activecharacters.
-    # ACTIVE: What is typically considered a Character, with an inventory and combat capabilities.
-    activecharacters = ['Creature', 'ActivePlant']
-    # INACTIVE: What would still be helpful to have combat related stats, but have things that
-    # make them different from active characters. Usually immobile and have no attributes.
-    inactivecharacters = ['BaseFungus', 'Baetyl', 'Wall', 'Furniture']
-    allcharacters = activecharacters + inactivecharacters
     # PROPERTY HELPERS
     # Helper methods to simplify the calculation of properties, further below.
     # Sorted alphabetically.
@@ -39,7 +40,7 @@ class QudObjectProps(QudObject):
         # TODO: fix that this can return str or int, then fix type annotation above
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
-        if any(self.inherits_from(character) for character in activecharacters):
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
             if getattr(self, f'stat_{attr}_sValue'):
                 val = str(sValue(getattr(self, f'stat_{attr}_sValue'), level=int(self.lv)))
             elif getattr(self, f'stat_{attr}_Value'):
@@ -149,7 +150,7 @@ class QudObjectProps(QudObject):
             av = self.part_Armor_AV
         if self.part_Shield_AV:  # the AV of a shield
             av = self.part_Shield_AV
-        if any(self.inherits_from(character) for character in allcharacters):
+        if any(self.inherits_from(character) for character in ALL_CHARS):
             # the AV of creatures and stationary objects
             av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
             if self.inventoryobject:
@@ -346,7 +347,7 @@ class QudObjectProps(QudObject):
     @property
     def demeanor(self) -> Union[str, None]:
         """The demeanor of the creature."""
-        if self.inherits_from('Creature') or self.inherits_from('ActivePlant'):
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
             if self.part_Brain_Calm is not None:
                 return "docile" if self.part_Brain_Calm.lower() == "true" else "neutral"
             if self.part_Brain_Hostile is not None:
@@ -404,9 +405,9 @@ class QudObjectProps(QudObject):
         if self.inherits_from('Shield'):
             # same here
             dv = self.part_Shield_DV
-        elif any(self.inherits_from(character) for character in inactivecharacters):
+        elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
             dv = -10
-        elif any(self.inherits_from(character) for character in activecharacters):
+        elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
             # the 'DV' here is the actual DV of the creature or NPC, after:
             # base of 6 plus any explicit DV bonus,
             # skills, agility modifier (which may be a range determined by
@@ -697,9 +698,9 @@ class QudObjectProps(QudObject):
     @property
     def ma(self):
         ma = None
-        if any(self.inherits_from(character) for character in inactivecharacters):
+        if any(self.inherits_from(character) for character in INACTIVE_CHARS):
             return 0
-        elif any(self.inherits_from(character) for character in activecharacters):
+        elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
             # MA starts at base 4
             ma = 4
             # Add MA stat value if specified
