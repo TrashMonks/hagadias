@@ -22,15 +22,24 @@ class QudObjectProps(QudObject):
 
     Properties should return Python types where possible (lists, bools, etc.) and leave specific
     representations to a subclass."""
-
+    # STATIC GROUPS
+    # Many combat properties can come from anything that inherits from either of these.
+    # Use For: any(self.inherits_from(character) for character in activecharacters)
+    allcharacters = ['Creature', 'ActivePlant', 'BaseFungus', 'Baetyl', 'Wall', 'Furniture']
+    # ACTIVE: What is typically considered a Character, with an inventory and combat capabilities.
+    activecharacters = ['Creature', 'ActivePlant']
+    # INACTIVE: What would still be helpful to have combat related stats, but have things that
+    # make them different from active characters. Usually immobile and have no attributes.
+    inactivecharacters = ['BaseFungus', 'Baetyl', 'Wall', 'Furniture']
     # PROPERTY HELPERS
     # Helper methods to simplify the calculation of properties, further below.
     # Sorted alphabetically.
+
     def attribute_helper(self, attr: str, mode: str = '') -> Union[str, int]:
         # TODO: fix that this can return str or int, then fix type annotation above
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
-        if self.inherits_from('Creature') or self.inherits_from('ActivePlant'):
+        if any(self.inherits_from(character) for character in activecharacters):
             if getattr(self, f'stat_{attr}_sValue'):
                 val = str(sValue(getattr(self, f'stat_{attr}_sValue'), level=int(self.lv)))
             elif getattr(self, f'stat_{attr}_Value'):
@@ -140,7 +149,7 @@ class QudObjectProps(QudObject):
             av = self.part_Armor_AV
         if self.part_Shield_AV:  # the AV of a shield
             av = self.part_Shield_AV
-        if self.inherits_from('Creature') or self.inherits_from('Wall'):
+        if any(self.inherits_from(character) for character in allcharacters):
             # the AV of creatures and stationary objects
             av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
             if self.inventoryobject:
@@ -160,7 +169,8 @@ class QudObjectProps(QudObject):
     @property
     def bits(self) -> Union[str, None]:
         """The bits you can get from disassembling the object."""
-        if self.part_TinkerItem and self.part_TinkerItem_CanDisassemble != 'false':
+        if self.part_TinkerItem and (self.part_TinkerItem_CanDisassemble != 'false' or
+                                     self.part_TinkerItem_CanBuild != 'false'):
             return self.part_TinkerItem_Bits.translate(BIT_TRANS)
 
     @property
@@ -168,7 +178,7 @@ class QudObjectProps(QudObject):
         """What liquid something bleeds. Only returns interesting liquids (not blood)"""
         if self.is_specified('part_BleedLiquid'):
             liquid = self.part_BleedLiquid.split('-')[0]
-            if liquid != "blood":
+            if liquid != "blood":  # it's interesting if they don't bleed blood
                 return liquid
 
     @property
@@ -394,9 +404,9 @@ class QudObjectProps(QudObject):
         if self.inherits_from('Shield'):
             # same here
             dv = self.part_Shield_DV
-        elif self.inherits_from('Wall'):
+        elif any(self.inherits_from(character) for character in inactivecharacters):
             dv = -10
-        elif self.inherits_from('Creature'):
+        elif any(self.inherits_from(character) for character in activecharacters):
             # the 'DV' here is the actual DV of the creature or NPC, after:
             # base of 6 plus any explicit DV bonus,
             # skills, agility modifier (which may be a range determined by
@@ -687,9 +697,9 @@ class QudObjectProps(QudObject):
     @property
     def ma(self):
         ma = None
-        if self.inherits_from('Wall'):
+        if any(self.inherits_from(character) for character in inactivecharacters):
             return 0
-        elif self.inherits_from('Creature'):
+        elif any(self.inherits_from(character) for character in activecharacters):
             # MA starts at base 4
             ma = 4
             # Add MA stat value if specified
