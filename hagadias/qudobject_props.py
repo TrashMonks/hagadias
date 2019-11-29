@@ -24,13 +24,13 @@ class QudObjectProps(QudObject):
     representations to a subclass."""
     # STATIC GROUPS
     # Many combat properties can come from anything that inherits from either of these.
-    # Use For: any(self.inherits_from(character) for character in activecharacters)
-    allcharacters = ['Creature', 'ActivePlant', 'BaseFungus', 'Baetyl', 'Wall', 'Furniture']
+    # Use For: any(self.inherits_from(character) for character in activecharacters.
     # ACTIVE: What is typically considered a Character, with an inventory and combat capabilities.
     activecharacters = ['Creature', 'ActivePlant']
     # INACTIVE: What would still be helpful to have combat related stats, but have things that
     # make them different from active characters. Usually immobile and have no attributes.
     inactivecharacters = ['BaseFungus', 'Baetyl', 'Wall', 'Furniture']
+    allcharacters = activecharacters + inactivecharacters
     # PROPERTY HELPERS
     # Helper methods to simplify the calculation of properties, further below.
     # Sorted alphabetically.
