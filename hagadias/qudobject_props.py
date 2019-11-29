@@ -1036,7 +1036,10 @@ class QudObjectProps(QudObject):
 
     @property
     def tier(self):
-        return self.tag_Tier_Value
+        val = self.tag_Tier_Value
+        if self.is_specified('part_TinkerItem_Bits'):
+            val = str(self.part_TinkerItem_Bits)[-1:]
+        return val
 
     @property
     def title(self):
