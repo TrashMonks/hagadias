@@ -569,7 +569,7 @@ class QudObjectProps(QudObject):
     @property
     def gender(self):
         """The gender of the object."""
-        if self.tag_Gender_Value is not None and any(self.inherits_from(character) for 
+        if self.tag_Gender_Value is not None and any(self.inherits_from(character) for
                                                      character in ACTIVE_CHAR):
             return self.tag_Gender_Value
 
