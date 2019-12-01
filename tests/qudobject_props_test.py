@@ -33,3 +33,14 @@ def test_dv(qindex):
     assert qindex['Q Girl'].dv == '6'
     assert qindex['Warden Ualraig'].dv == '8'
     assert qindex['IrritableTortoise'].dv == '4'
+
+
+def test_mentalshield(qindex):
+    assert qindex['Sawhander'].ma == None
+    assert qindex['Lurking Beth'].ma == None
+    
+
+def test_extrainfo(qindex):
+    assert qindex['Ctesiphus'].pettable == 'yes'
+    assert qindex['Lurking Beth'].hidden == '18'
+    assert qindex['Prayer Rod']. energycellrequired == 'yes'
