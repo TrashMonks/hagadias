@@ -556,7 +556,7 @@ class QudObjectProps(QudObject):
     def flyover(self):
         """Whether a flying creature can pass over this object."""
         if self.inherits_from('Wall') or self.inherits_from('Furniture'):
-            if self.is_specified('tag_Flyover'):
+            if self.tag_Flyover is not None:
                 return 'yes'
             else:
                 return 'no'
@@ -569,7 +569,8 @@ class QudObjectProps(QudObject):
     @property
     def gender(self):
         """The gender of the object."""
-        if self.tag_Gender_Value is not None and self.inherits_from('Creature'):
+        if self.tag_Gender_Value is not None and any(self.inherits_from(character) for 
+                                                     character in ACTIVE_CHAR):
             return self.tag_Gender_Value
 
     @property
@@ -698,7 +699,7 @@ class QudObjectProps(QudObject):
     @property
     def liquidburst(self):
         """If its explodes into liquid, what kind?"""
-        if self.is_specified('part_LiquidBurst'):
+        if self.part_LiquidBurst is not None:
             return '{{ID to name|' + self.part_LiquidBurst_Liquid + '}}'
 
     @property
@@ -708,7 +709,7 @@ class QudObjectProps(QudObject):
 
     @property
     def ma(self):
-        if self.is_specified('part_MentalShield'):
+        if self.part_MentalShield is not None:
             return None
         elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
             return 0
@@ -857,7 +858,7 @@ class QudObjectProps(QudObject):
     @property
     def pettable(self):
         """If the creature is pettable."""
-        if self.is_specified('part_Pettable'):
+        if self.part_Pettable is not None:
             return 'yes'
 
     @property
@@ -1049,10 +1050,15 @@ class QudObjectProps(QudObject):
 
     @property
     def tier(self):
-        val = self.tag_Tier_Value
-        if self.is_specified('part_TinkerItem_Bits'):
-            val = str(self.part_TinkerItem_Bits)[-1:]
-        return val
+        """Returns tier. Returns the Specified tier if it isn't inherited. Else it will return
+        the highest value bit (if tinkerable) or its FLOOR(Level/5), if neither of these exist,
+        it will return the inherited tier value."""
+        if not self.is_specified('tag_Tier_Value'):
+            if self.is_specified('part_TinkerItem_Bits'):
+                return str(self.part_TinkerItem_Bits)[-1:]
+            elif self.lv is not None:
+                return str(math.floor(int(self.lv)/5))
+        return self.tag_Tier_Value
 
     @property
     def title(self):
