@@ -517,6 +517,12 @@ class QudObjectProps(QudObject):
             return 'yes'
 
     @property
+    def energycellrequired(self):
+        """Returns yes if the object requires an energy cell to function."""
+        if self.is_specified('part_EnergyCellSocket'):
+            return 'yes'
+
+    @property
     def exoticfood(self):
         """When preserved, whether the player must explicitly choose to preserve it."""
         if self.tag_ChooseToPreserve is not None:
@@ -582,8 +588,13 @@ class QudObjectProps(QudObject):
         return self.resistance('Heat')
 
     @property
+    def hidden(self):
+        """If hidden, what difficulty is required to find them."""
+        return self.part_Hidden_Difficulty
+
+    @property
     def hp(self):
-        if self.inherits_from('Creature') or self.inherits_from('Wall'):
+        if any(self.inherits_from(character) for character in ALL_CHARS):
             if self.stat_Hitpoints_sValue:
                 return self.stat_Hitpoints_sValue
             elif self.stat_Hitpoints_Value:
@@ -697,8 +708,9 @@ class QudObjectProps(QudObject):
 
     @property
     def ma(self):
-        ma = None
-        if any(self.inherits_from(character) for character in INACTIVE_CHARS):
+        if self.is_specified('part_MentalShield'):
+            return None
+        elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
             return 0
         elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
             # MA starts at base 4
@@ -708,7 +720,7 @@ class QudObjectProps(QudObject):
                 ma += int(self.stat_MA_Value)
             # add willpower modifier to MA
             ma += self.attribute_helper('Willpower', 'Modifier')
-        return ma
+            return ma
 
     @property
     def maxammo(self):
