@@ -1,3 +1,4 @@
 .pytest_cache/
+hagadias/__pycache__/
 .idea/
 game_location_for_tests
