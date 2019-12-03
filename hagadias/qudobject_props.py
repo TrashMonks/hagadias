@@ -570,7 +570,7 @@ class QudObjectProps(QudObject):
     def gender(self):
         """The gender of the object."""
         if self.tag_Gender_Value is not None and any(self.inherits_from(character) for
-                                                     character in ACTIVE_CHAR):
+                                                     character in ACTIVE_CHARS):
             return self.tag_Gender_Value
 
     @property
@@ -1057,7 +1057,7 @@ class QudObjectProps(QudObject):
             if self.is_specified('part_TinkerItem_Bits'):
                 return str(self.part_TinkerItem_Bits)[-1:]
             elif self.lv is not None:
-                return str(math.floor(int(self.lv)/5))
+                return str(int(self.lv)//5)
         return self.tag_Tier_Value
 
     @property

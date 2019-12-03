@@ -36,15 +36,17 @@ def test_dv(qindex):
 
 
 def test_mentalshield(qindex):
-    assert qindex['Sawhander'].ma == None
-    assert qindex['Lurking Beth'].ma == None
-    
+    assert qindex['Sawhander'].ma is None
+    assert qindex['Lurking Beth'].ma is None
+
 
 def test_extrainfo(qindex):
     assert qindex['Ctesiphus'].pettable == 'yes'
     assert qindex['Lurking Beth'].hidden == '18'
     assert qindex['Prayer Rod'].energycellrequired == 'yes'
 
+
 def test_tier(qindex):
     assert qindex['Tattoo Gun'].tier == '3'
     assert qindex['HandENuke'].tier == '8'
+    assert qindex['Glowfish'].tier == '0'
