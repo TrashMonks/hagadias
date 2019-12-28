@@ -669,6 +669,12 @@ class QudObjectProps(QudObject):
             return 'yes'
 
     @property
+    def isoccluding(self):
+        if self.part_Render_Occluding is not None:
+            if self.part_Render_Occluding == 'true' or self.part_Render_Occluding == 'True':
+              return 'yes'
+
+    @property
     def isplant(self):
         """If the food item contains plants."""
         if self.tag_Plant is not None:
