@@ -672,7 +672,7 @@ class QudObjectProps(QudObject):
     def isoccluding(self):
         if self.part_Render_Occluding is not None:
             if self.part_Render_Occluding == 'true' or self.part_Render_Occluding == 'True':
-              return 'yes'
+                return 'yes'
 
     @property
     def isplant(self):
