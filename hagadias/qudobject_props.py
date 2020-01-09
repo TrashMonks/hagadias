@@ -511,9 +511,11 @@ class QudObjectProps(QudObject):
                  'SaveModifier',
                  'LiquidFueledPowerPlant',
                  'LiquidProducer',
-                 'TemperatureAdjuster',
+                 'TemperatureAdjuster'
                  ]
         if any(getattr(self, f'part_{part}_IsEMPSensitive') == 'true' for part in parts):
+            return 'yes'
+        if self.part_ZeroPointEnergyCollector is not None:
             return 'yes'
 
     @property
