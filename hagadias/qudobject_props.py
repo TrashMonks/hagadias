@@ -515,7 +515,9 @@ class QudObjectProps(QudObject):
                  ]
         if any(getattr(self, f'part_{part}_IsEMPSensitive') == 'true' for part in parts):
             return 'yes'
-        if self.part_ZeroPointEnergyCollector is not None:
+        parts2 = ['EnergyCellSocket',
+                  'ZeroPointEnergyCollector']
+        if any(getattr(self, f'part_{part}') is not None for part in parts2):
             return 'yes'
 
     @property
