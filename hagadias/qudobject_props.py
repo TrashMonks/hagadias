@@ -516,7 +516,10 @@ class QudObjectProps(QudObject):
         if any(getattr(self, f'part_{part}_IsEMPSensitive') == 'true' for part in parts):
             return 'yes'
         parts2 = ['EnergyCellSocket',
-                  'ZeroPointEnergyCollector']
+                  'ZeroPointEnergyCollector',
+                  'ModFlaming',
+                  'ModFreezing',
+                  'ModElectrified']
         if any(getattr(self, f'part_{part}') is not None for part in parts2):
             return 'yes'
 
@@ -1065,7 +1068,11 @@ class QudObjectProps(QudObject):
         it will return the inherited tier value."""
         if not self.is_specified('tag_Tier_Value'):
             if self.is_specified('part_TinkerItem_Bits'):
-                return str(self.part_TinkerItem_Bits)[-1:]
+                val = str(self.part_TinkerItem_Bits)[-1:]
+                if val.isdigit():
+                    return val
+                else:
+                    return '0'
             elif self.lv is not None:
                 return str(int(self.lv)//5)
         return self.tag_Tier_Value
