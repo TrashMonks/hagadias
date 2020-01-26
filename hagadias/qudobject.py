@@ -179,7 +179,7 @@ class QudObject(NodeMixin):
             <part Name="Render" DisplayName="watervine farmer" ...
         overwrites the DisplayName but not the rest of the Render dict.
         """
-        if self.name == 'Object':
+        if self.parent is None:
             return self.attributes, {}
         inherited = self.parent.all_attributes
         all_attributes = deepcopy(self.attributes)
