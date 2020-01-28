@@ -1139,6 +1139,12 @@ class QudObjectProps(QudObject):
             return 'no'
 
     @property
+    def waterritualable(self):
+        """returns yes if the creature is waterritualable."""
+        if self.is_specified('xtag_WaterRitual'):
+            return 'yes'
+
+    @property
     def weight(self):
         """The weight of the object."""
         if not self.inherits_from('Creature'):
