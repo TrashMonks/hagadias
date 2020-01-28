@@ -119,7 +119,7 @@ class QudTile:
 
     def get_big_image(self):
         """Draw the big (10x, 160x240) tile for the wiki or discord."""
-        return self.image.resize((160, 240))
+        return self.image.resize((160, 240), resample=Image.NEAREST)
 
     def get_big_bytesio(self):
         """Get a BytesIO representation of a PNG encoding of the big (10x, 160x240) tile.
