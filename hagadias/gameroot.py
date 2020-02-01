@@ -157,15 +157,17 @@ class GameRoot:
         for tag_anatomy in tag_anatomies:
             parts = []
             name = tag_anatomy.attrib['Name']
-            for tag_part in tag_anatomy:
+            # .// XPath syntax means select all <part> tags under this element, even if nested
+            found_tag_part = tag_anatomy.findall('.//part')
+            print(found_tag_part)
+            for tag_part in found_tag_part:
                 part = tag_part.attrib['Type']
+                if 'Laterality' in tag_part.attrib:
+                    part_full = f"{tag_part.attrib['Laterality']} {part}"
+                else:
+                    part_full = part
                 variant_of = variants[part] if part in variants else part
-                parts.append([part, variant_of])
-                for tag_part_nested in tag_part:
-                    # parts can be nested one deep, but no deeper
-                    part = tag_part_nested.attrib['Type']
-                    variant_of = variants[part] if part in variants else part
-                    parts.append([part, variant_of])
+                parts.append({'Name': part_full, 'Type': variant_of})
             anatomies[name] = parts
         self.anatomies = anatomies
         return anatomies
