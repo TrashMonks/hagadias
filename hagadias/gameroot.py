@@ -1,6 +1,5 @@
 """Functionality for loading the Qud game data from various game files."""
 
-import re
 import sys
 import time
 from pathlib import Path
@@ -9,7 +8,8 @@ sys.modules['_elementtree'] = None
 from xml.etree import ElementTree as ET  # noqa E402
 
 from hagadias.character_codes import read_gamedata  # noqa E402
-from hagadias.helpers import get_dll_version_string  # noqa E402
+from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, \
+    repair_invalid_chars  # noqa E402
 from hagadias.qudobject_props import QudObjectProps  # noqa E402
 
 
@@ -32,28 +32,6 @@ class LineNumberingParser(ET.XMLParser):
         element._end_column_number = self.parser.CurrentColumnNumber
         element._end_byte_index = self.parser.CurrentByteIndex
         return element
-
-
-def repair_invalid_chars(contents):
-    """Return a version of an XML file with invalid control characters substituted."""
-    ch_re = re.compile("&#11;")
-    contents = re.sub(ch_re, '♂', contents)
-    ch_re = re.compile("&#15;")
-    contents = re.sub(ch_re, '☼', contents)
-    return contents
-
-
-def repair_invalid_linebreaks(contents):
-    """Return a version of an XML file with invalid line breaks replaced with XML line breaks."""
-    pat_linebreaks = r"^\s*<[^!][^>]*\n.*?>"
-    match = re.search(pat_linebreaks, contents, re.MULTILINE)
-    while match:
-        before = match.string[:match.start()]
-        fixed = match.string[match.start():match.end()].replace('\n', '&#10;')
-        after = match.string[match.end():]
-        contents = before + fixed + after
-        match = re.search(pat_linebreaks, contents, re.MULTILINE)
-    return contents
 
 
 class GameRoot:
@@ -120,6 +98,9 @@ class GameRoot:
         contents = repair_invalid_linebreaks(contents)
         print(f"done in {time.time() - start:.2f} seconds")
         contents_b = contents.encode('utf-8')  # start/stop markers are in bytes, not characters
+        print(len(contents_b))
+        with open('temp.xml', 'wb') as f:
+            f.write(contents_b)
         raw = ET.fromstring(contents, parser=LineNumberingParser())
         print("Building Qud object hierarchy and adding tiles...")
         # Build the Qud object hierarchy from the XML data
