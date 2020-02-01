@@ -98,9 +98,6 @@ class GameRoot:
         contents = repair_invalid_linebreaks(contents)
         print(f"done in {time.time() - start:.2f} seconds")
         contents_b = contents.encode('utf-8')  # start/stop markers are in bytes, not characters
-        print(len(contents_b))
-        with open('temp.xml', 'wb') as f:
-            f.write(contents_b)
         raw = ET.fromstring(contents, parser=LineNumberingParser())
         print("Building Qud object hierarchy and adding tiles...")
         # Build the Qud object hierarchy from the XML data
