@@ -159,7 +159,6 @@ class GameRoot:
             name = tag_anatomy.attrib['Name']
             # .// XPath syntax means select all <part> tags under this element, even if nested
             found_tag_part = tag_anatomy.findall('.//part')
-            print(found_tag_part)
             for tag_part in found_tag_part:
                 part = tag_part.attrib['Type']
                 if 'Laterality' in tag_part.attrib:
