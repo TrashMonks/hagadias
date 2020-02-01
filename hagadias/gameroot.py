@@ -64,12 +64,20 @@ class GameRoot:
             # FIXME: temporary workaround for inability to use windll on Linux
             self.gamever = 'unknown'
 
+        # set up cache for multiple calls, so we don't have to parse XML every time
+        self.character_codes = None
+        self.qud_object_root = None
+        self.qindex = None
+        self.anatomies = None
+
     def get_character_codes(self) -> dict:
         """Load and return a dictionary containing all the Qud character code pieces.
 
         Also includes associated data like callings and castes with stat bonuses that are required
         to calculate complete build codes."""
-        return read_gamedata(self._xmlroot)
+        if self.character_codes is None:
+            self.character_codes = read_gamedata(self._xmlroot)
+        return self.character_codes
 
     def get_object_tree(self, cls=QudObjectProps):
         """Create a tree of the Caves of Qud hierarchy of objects from ObjectBlueprints.xml and
@@ -83,10 +91,12 @@ class GameRoot:
             objects. Implemented to allow a tree of QudObjectWiki for the Qud Blueprint Explorer
             app.
         """
+        if self.qud_object_root is not None:
+            return self.qud_object_root, self.qindex
         path = self._xmlroot / 'ObjectBlueprints.xml'
         with path.open('r', encoding='utf-8') as f:
             contents = f.read()
-        # Do some repair of invalid XML:
+        # Do some repair of invalid XML specifically for ObjectBlueprints.xml:
         # First, replace some invalid control characters intended for CP437 with their Unicode equiv
         start = time.time()
         print("Repairing invalid XML characters... ", end='')
@@ -119,4 +129,43 @@ class GameRoot:
         tail = contents_b[last_stop:].decode('utf-8')
         obj.source = source + tail  # add tail of file to the XML source of last object loaded
         qud_object_root = qindex['Object']
+        self.qud_object_root = qud_object_root
+        self.qindex = qindex
         return qud_object_root, qindex
+
+    def get_anatomies(self) -> dict:
+        """Return the available body plans.
+
+        Returns a dictionary containing all available creature anatomies.
+        Each anatomy is given as a list of tuples of body parts.
+        The tuples are the body part name and what they are a variant of (if applicable), like
+        ("Support Strut", "Arm"). If the body part name is not a variant, it will be given like
+        ("Arm", "Arm").
+        """
+        if self.anatomies is not None:
+            return self.anatomies
+        path = self._xmlroot / 'Bodies.xml'
+        tree = ET.parse(path)
+        # Walk the body part type variants first, to map out the part synonyms
+        variants = {}
+        tag_variants = tree.find('bodyparttypevariants')
+        for tag_variant in tag_variants:
+            variants[tag_variant.attrib['Type']] = tag_variant.attrib['VariantOf']
+        # Now walk the anatomies and collect their parts
+        anatomies = {}
+        tag_anatomies = tree.find('anatomies')
+        for tag_anatomy in tag_anatomies:
+            parts = []
+            name = tag_anatomy.attrib['Name']
+            for tag_part in tag_anatomy:
+                part = tag_part.attrib['Type']
+                variant_of = variants[part] if part in variants else part
+                parts.append([part, variant_of])
+                for tag_part_nested in tag_part:
+                    # parts can be nested one deep, but no deeper
+                    part = tag_part_nested.attrib['Type']
+                    variant_of = variants[part] if part in variants else part
+                    parts.append([part, variant_of])
+            anatomies[name] = parts
+        self.anatomies = anatomies
+        return anatomies
