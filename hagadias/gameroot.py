@@ -166,7 +166,7 @@ class GameRoot:
                 else:
                     part_full = part
                 variant_of = variants[part] if part in variants else part
-                parts.append({'Name': part_full, 'Type': variant_of})
+                parts.append({'name': part_full, 'type': variant_of})
             anatomies[name] = parts
         self.anatomies = anatomies
         return anatomies
