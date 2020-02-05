@@ -626,17 +626,6 @@ class QudObjectProps(QudObject):
                 return 'yes'
 
     @property
-    def image(self):
-        """The image filename."""
-        if self.part_Render_Tile is None:
-            tile = 'none'
-        else:
-            tile = self.displayname
-            tile = re.sub(r"[^a-zA-Z\d ]", '', tile)
-            tile = tile.casefold() + '.png'
-        return tile
-
-    @property
     def inheritingfrom(self):
         """The ID of the parent object in the Qud object hierarchy."""
         return self.parent.name
