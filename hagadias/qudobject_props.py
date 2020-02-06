@@ -1103,7 +1103,7 @@ class QudObjectProps(QudObject):
                     return 0
             elif self.lv is not None:
                 return int(self.lv)//5
-        return int(self.tag_Tier_Value)
+        return int_or_none(self.tag_Tier_Value)
 
     @property
     def title(self) -> Union[str, None]:
