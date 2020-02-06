@@ -38,5 +38,5 @@ def test_properties(qindex):
     obj = qindex['Asphodel']
     assert obj.lv == '30'
     assert obj.hp == '500'
-    assert obj.av == '11'  # natural 8 + clay pot
+    assert obj.av == 11  # natural 8 + clay pot
     # assert obj.dv == '12'  # base 6 plus (28 - 16) / 2
