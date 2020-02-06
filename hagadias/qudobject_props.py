@@ -279,10 +279,12 @@ class QudObjectProps(QudObject):
             return self.part_Gas_ColorString
 
     @property
-    def commerce(self) -> Union[int, None]:
+    def commerce(self) -> Union[float, None]:
         """The value of the object."""
         if self.inherits_from('Item') or self.inherits_from('BaseThrownWeapon'):
-            return int_or_none(self.part_Commerce_Value)
+            value = self.part_Commerce_Value
+            if value is not None:
+                return float(value)
 
     @property
     def complexity(self) -> Union[int, None]:
