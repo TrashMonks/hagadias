@@ -4,7 +4,7 @@ import re
 from typing import Union
 
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
-from hagadias.helpers import cp437_to_unicode
+from hagadias.helpers import cp437_to_unicode, int_or_none
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue

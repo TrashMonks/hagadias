@@ -2,6 +2,7 @@
 
 import os
 import re
+from typing import Union
 
 import pefile
 
@@ -50,6 +51,12 @@ def get_dll_version_string(path, throwaway):
                                 if key == 'ProductVersion':
                                     return val
     raise ValueError
+
+
+def int_or_none(value) -> Union[int, None]:
+    """Return the result of int(value), or None if value is None."""
+    if value is not None:
+        return int(value)
 
 
 def repair_invalid_linebreaks(contents):
