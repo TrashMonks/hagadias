@@ -804,13 +804,10 @@ class QudObjectProps(QudObject):
             return self.stat_MoveSpeed_Value
 
     @property
-    def movespeedbonus(self):
+    def movespeedbonus(self) -> Union[int, None]:
+        """The movespeed bonus of an item."""
         if self.inherits_from('Item'):
-            if self.part_MoveCostMultiplier is not None:
-                temp = ""
-                if int(self.part_MoveCostMultiplier_Amount) < 0:
-                    temp = "+"
-                return temp + str(int(self.part_MoveCostMultiplier_Amount) * -1)
+            return -int_or_none(self.part_MoveCostMultiplier_Amount)
 
     @property
     def mutations(self):
