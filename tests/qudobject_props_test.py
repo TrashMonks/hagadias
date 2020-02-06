@@ -41,9 +41,9 @@ def test_mentalshield(qindex):
 
 
 def test_extrainfo(qindex):
-    assert qindex['Ctesiphus'].pettable == True
+    assert qindex['Ctesiphus'].pettable is True
     assert qindex['Lurking Beth'].hidden == 18
-    assert qindex['Prayer Rod'].energycellrequired == True
+    assert qindex['Prayer Rod'].energycellrequired is True
 
 
 def test_tier(qindex):
