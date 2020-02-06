@@ -707,6 +707,13 @@ class QudObjectProps(QudObject):
             return True
 
     @property
+    def isswarmer(self) -> Union[bool, None]:
+        """Whether a creature is a Swarmer."""
+        if self.inherits_from('Creature'):
+            if self.is_specified('part_Swarmer'):
+                return True
+
+    @property
     def lightprojectile(self) -> Union[bool, None]:
         """If the gun fires light projectiles (heat immune creatures will not take damage)."""
         if self.tag_Light is not None:
@@ -1023,6 +1030,12 @@ class QudObjectProps(QudObject):
         return int_or_none(self.part_MissileWeapon_ShotsPerAction)
 
     @property
+    def skills(self) -> Union[str, None]:
+        """The skills that certain creatures have."""
+        if self.skill is not None:
+            return self.skill
+
+    @property
     def solid(self) -> Union[bool, None]:
         if self.is_specified('part_Physics_Solid'):
             if self.part_Physics_Solid == 'true' or self.part_Physics_Solid == 'True':
@@ -1034,6 +1047,16 @@ class QudObjectProps(QudObject):
     def spectacles(self) -> Union[bool, None]:
         """If the item corrects vision."""
         return True if self.part_Spectacles is not None else None
+
+    @property
+    def strength(self) -> Union[int, None]:
+        """The strength the mutation affects, or the strength of the creature."""
+        return self.attribute_helper('Strength')
+
+    @property
+    def swarmbonus(self) -> Union[int, None]:
+        """The additional bonus that Swarmers receive."""
+        return int_or_none(self.part_Swarmer_ExtraBonus)
 
     @property
     def temponenter(self) -> Union[str, None]:
@@ -1060,47 +1083,6 @@ class QudObjectProps(QudObject):
         temp = self.part_TemperatureOnHit_MaxTemp
         if temp is not None:
             return int(temp)
-
-    @property
-    def weaponskill(self) -> Union[str, None]:
-        """The skill tree required for use."""
-        val = None
-        if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
-            val = self.part_MeleeWeapon_Skill
-        if self.inherits_from('MissileWeapon'):
-            if self.part_MissileWeapon_Skill is not None:
-                val = self.part_MissileWeapon_Skill
-        if self.part_Gaslight:
-            val = self.part_Gaslight_ChargedSkill
-        # disqualify various things from showing the 'cudgel' skill:
-        if self.inherits_from('Projectile'):
-            val = None
-        if self.inherits_from('Shield'):
-            val = 'Shield'
-        return val
-
-    @property
-    def skills(self) -> Union[str, None]:
-        """The skills that certain creatures have."""
-        if self.skill is not None:
-            return self.skill
-
-    @property
-    def strength(self) -> Union[int, None]:
-        """The strength the mutation affects, or the strength of the creature."""
-        return self.attribute_helper('Strength')
-
-    @property
-    def swarmbonus(self) -> Union[int, None]:
-        """The additional bonus that Swarmers receive."""
-        return int_or_none(self.part_Swarmer_ExtraBonus)
-
-    @property
-    def isswarmer(self) -> Union[bool, None]:
-        """Whether a creature is a Swarmer."""
-        if self.inherits_from('Creature'):
-            if self.is_specified('part_Swarmer'):
-                return True
 
     @property
     def thirst(self) -> Union[int, None]:
@@ -1194,6 +1176,24 @@ class QudObjectProps(QudObject):
         """Whether the creature is waterritualable."""
         if self.is_specified('xtag_WaterRitual'):
             return True
+
+    @property
+    def weaponskill(self) -> Union[str, None]:
+        """The skill tree required for use."""
+        val = None
+        if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
+            val = self.part_MeleeWeapon_Skill
+        if self.inherits_from('MissileWeapon'):
+            if self.part_MissileWeapon_Skill is not None:
+                val = self.part_MissileWeapon_Skill
+        if self.part_Gaslight:
+            val = self.part_Gaslight_ChargedSkill
+        # disqualify various things from showing the 'cudgel' skill:
+        if self.inherits_from('Projectile'):
+            val = None
+        if self.inherits_from('Shield'):
+            val = 'Shield'
+        return val
 
     @property
     def weight(self) -> Union[int, None]:
