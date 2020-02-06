@@ -699,10 +699,9 @@ class QudObjectProps(QudObject):
         return self.part_LiquidProducer_Liquid
 
     @property
-    def liquidburst(self):
+    def liquidburst(self) -> Union[str, None]:
         """If its explodes into liquid, what kind?"""
-        if self.part_LiquidBurst is not None:
-            return '{{ID to name|' + self.part_LiquidBurst_Liquid + '}}'
+        return self.part_LiquidBurst_Liquid
 
     @property
     def lv(self):
