@@ -1118,7 +1118,12 @@ class QudObjectProps(QudObject):
                 else:
                     return 0
             elif self.lv is not None:
-                return int(self.lv)//5
+                try:
+                    level = int(self.lv)
+                except ValueError:
+                    # levels can be very rarely given like "18-29"
+                    level = int(self.lv.split('-')[0])
+                return level // 5
         return int_or_none(self.tag_Tier_Value)
 
     @property
