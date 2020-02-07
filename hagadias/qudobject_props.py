@@ -1019,7 +1019,8 @@ class QudObjectProps(QudObject):
     @property
     def savemodifieramt(self) -> Union[int, None]:
         """returns amount of the save modifer."""
-        return int_or_none(self.part_SaveModifier_Vs)
+        if self.part_SaveModifier_Vs is not None:
+            return int_or_none(self.part_SaveModifier_Amount)
 
     @property
     def shotcooldown(self) -> Union[str, None]:
