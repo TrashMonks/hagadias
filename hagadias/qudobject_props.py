@@ -493,7 +493,7 @@ class QudObjectProps(QudObject):
     def ego(self) -> Union[str, None]:
         """The ego the mutation effects, or the ego of the creature."""
         val = self.attribute_helper('Ego')
-        return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else str(val)
+        return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
 
     @property
     def electric(self) -> Union[int, None]:
