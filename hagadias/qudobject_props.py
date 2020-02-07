@@ -337,8 +337,8 @@ class QudObjectProps(QudObject):
             return True
 
     @property
-    def damage(self) -> Union[int, None]:
-        """The damage dealt by this object."""
+    def damage(self) -> Union[str, None]:
+        """The damage dealt by this object. Often a dice string."""
         val = None
         if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
             val = self.part_MeleeWeapon_BaseDamage
@@ -352,7 +352,7 @@ class QudObjectProps(QudObject):
         projectiledamage = self.projectile_object('part_Projectile_BaseDamage')
         if projectiledamage:
             val = projectiledamage
-        return int_or_none(val)
+        return val
 
     @property
     def demeanor(self) -> Union[str, None]:
