@@ -36,7 +36,7 @@ class QudObjectProps(QudObject):
     # Helper methods to simplify the calculation of properties, further below.
     # Sorted alphabetically.
 
-    def attribute_helper(self, attr: str, mode: str = '') -> Union[int, None]:
+    def attribute_helper(self, attr: str, mode: str = '') -> Union[str, None]:
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
         if any(self.inherits_from(character) for character in ACTIVE_CHARS):
@@ -49,12 +49,20 @@ class QudObjectProps(QudObject):
                 val += f'+{boost}'
         elif self.inherits_from('Armor'):
             val = getattr(self, f'part_Armor_{attr}')
-        if mode in ['Average', 'Modifier']:
-            val = DiceBag(val).average()  # calculate average stat value
-            val = int(val * (0.8 if self.role == 'Minion' else 1))  # Minions lose 20% to all stats
-            if mode == 'Modifier':
-                val = (val - 16) // 2  # return stat modifier for average roll
-        return int_or_none(val)
+        return val
+
+    def attribute_helper_avg(self, attr: str) -> Union[int, None]:
+        """Return the average stat value for the given stat."""
+        val_str = self.attribute_helper(attr)
+        val = DiceBag(val_str).average()  # calculate average stat value
+        val = int(val * (0.8 if self.role == 'Minion' else 1))  # Minions lose 20% to all stats
+        return val
+
+    def attribute_helper_mod(self, attr: str) -> Union[int, None]:
+        """Return the modifier for the average stat value for the given stat."""
+        val = self.attribute_helper_avg(attr)
+        val = (val - 16) // 2  # return stat modifier for average roll
+        return val
 
     def resistance(self, element: str) -> Union[int, None]:
         """The elemental resistance/weakness the equipment or NPC has.
@@ -104,7 +112,7 @@ class QudObjectProps(QudObject):
         return self.resistance('Acid')
 
     @property
-    def agility(self) -> Union[int, None]:
+    def agility(self) -> Union[str, None]:
         """The agility the mutation affects, or the agility of the creature."""
         return self.attribute_helper('Agility')
 
@@ -438,7 +446,7 @@ class QudObjectProps(QudObject):
                     dv += 2
                 if self.skill_Acrobatics_Tumble:  # the 'Tumble' skill
                     dv += 1
-                dv += self.attribute_helper('Agility', 'Modifier')
+                dv += self.attribute_helper_mod('Agility')
                 # does this creature have armor with DV modifiers to add?
                 if self.inventoryobject:
                     for name in list(self.inventoryobject.keys()):
@@ -661,7 +669,7 @@ class QudObjectProps(QudObject):
         return self.parent.name
 
     @property
-    def intelligence(self) -> Union[int, None]:
+    def intelligence(self) -> Union[str, None]:
         """The intelligence the mutation affects, or the intelligence of the creature."""
         return self.attribute_helper('Intelligence')
 
@@ -766,7 +774,7 @@ class QudObjectProps(QudObject):
             if self.stat_MA_Value:
                 ma += int(self.stat_MA_Value)
             # add willpower modifier to MA
-            ma += self.attribute_helper('Willpower', 'Modifier')
+            ma += self.attribute_helper_mod('Willpower')
             return ma
 
     @property
@@ -1052,7 +1060,7 @@ class QudObjectProps(QudObject):
         return True if self.part_Spectacles is not None else None
 
     @property
-    def strength(self) -> Union[int, None]:
+    def strength(self) -> Union[str, None]:
         """The strength the mutation affects, or the strength of the creature."""
         return self.attribute_helper('Strength')
 
@@ -1129,7 +1137,7 @@ class QudObjectProps(QudObject):
             return int_or_none(self.part_MeleeWeapon_HitBonus)
 
     @property
-    def toughness(self) -> Union[int, None]:
+    def toughness(self) -> Union[str, None]:
         """The toughness the mutation affects, or the toughness of the creature."""
         return self.attribute_helper('Toughness')
 
@@ -1205,7 +1213,7 @@ class QudObjectProps(QudObject):
             return int_or_none(self.part_Physics_Weight)
 
     @property
-    def willpower(self) -> Union[int, None]:
+    def willpower(self) -> Union[str, None]:
         """The willpower the mutation affects, or the willpower of the creature."""
         return self.attribute_helper('Willpower')
 
