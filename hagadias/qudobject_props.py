@@ -320,7 +320,7 @@ class QudObjectProps(QudObject):
                     if (modprops[key]['ifcomplex'] is True) and (val <= 0):
                         continue  # ditto
                     val += int(modprops[key]['complexity'])
-        if val > 0 or self.canbuild == 'yes':
+        if val > 0 or self.canbuild:
             return val
 
     @property
@@ -961,7 +961,7 @@ class QudObjectProps(QudObject):
     @property
     def pvpowered(self) -> Union[bool, None]:
         """Whether the object's PV changes when it is powered."""
-        if ((self.vibro == 'yes' and
+        if ((self.vibro and
              (not self.part_VibroWeapon or int(self.part_VibroWeapon_ChargeUse) > 0)) or
                 (self.part_Gaslight and int(self.part_Gaslight_ChargeUse) > 0)):
             return True
