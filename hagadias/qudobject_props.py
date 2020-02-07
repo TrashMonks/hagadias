@@ -41,7 +41,12 @@ class QudObjectProps(QudObject):
         val = None
         if any(self.inherits_from(character) for character in ACTIVE_CHARS):
             if getattr(self, f'stat_{attr}_sValue'):
-                val = str(sValue(getattr(self, f'stat_{attr}_sValue'), level=int(self.lv)))
+                try:
+                    level = int(self.lv)
+                except ValueError:
+                    # levels can be very rarely given like "18-29"
+                    level = int(self.lv.split('-')[0])
+                val = str(sValue(getattr(self, f'stat_{attr}_sValue'), level=level))
             elif getattr(self, f'stat_{attr}_Value'):
                 val = getattr(self, f'stat_{attr}_Value')
             boost = getattr(self, f'stat_{attr}_Boost')
