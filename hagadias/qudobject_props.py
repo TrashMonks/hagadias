@@ -696,6 +696,12 @@ class QudObjectProps(QudObject):
             return ret
 
     @property
+    def iscurrency(self) -> Union[bool, None]:
+        """If the item is considered currency (price remains fixed while trading)."""
+        if self.intproperty_Currency_Value == '1':
+            return True
+
+    @property
     def isfungus(self) -> Union[bool, None]:
         """If the food item contains fungus."""
         if self.tag_Mushroom is not None:
