@@ -1201,7 +1201,7 @@ class QudObjectProps(QudObject):
     @property
     def waterritualable(self) -> Union[bool, None]:
         """Whether the creature is waterritualable."""
-        if self.is_specified('xtag_WaterRitual'):
+        if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
             return True
 
     @property
