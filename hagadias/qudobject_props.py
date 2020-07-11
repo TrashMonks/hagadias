@@ -480,7 +480,7 @@ class QudObjectProps(QudObject):
         for key, val in self.tag.items():
             if key.startswith('DynamicObjectsTable'):
                 if 'Value' in val and val['Value'] == '{{{remove}}}':
-                    continue  # explicitly blacklisted from an inherited dynamic table
+                    continue  # explicitly disallowed from an inherited dynamic table
                 tables.append(key.split(':')[1])
         return tables if len(tables) > 0 else None
 
