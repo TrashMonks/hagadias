@@ -1140,7 +1140,7 @@ class QudObjectProps(QudObject):
             val = self.builder_GoatfolkHero1_ForceName  # for Mamon
         elif self.name == "Wraith-Knight Templar":
             val = "&MWraith-Knight Templar of the Binary Honorum"  # override for Wraith Knights
-        elif self.name =='TreeSkillsoft':
+        elif self.name == 'TreeSkillsoft':
             val = '&ySkillsoft Plus'  # override for Skillsoft Plus
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
