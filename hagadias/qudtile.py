@@ -34,7 +34,7 @@ class QudTile:
 
     def __init__(self, filename, colorstring, raw_tilecolor, raw_detailcolor, qudname,
                  raw_transparent="transparent"):
-        self.blacklisted = False  # set True if problems with tile generation encountered
+        self.hasproblems = False  # set True if problems with tile generation encountered
         self.filename = filename
         self.colorstring = colorstring
         self.raw_tilecolor = raw_tilecolor
@@ -76,7 +76,7 @@ class QudTile:
                 self._color_image()
             except FileNotFoundError:
                 print(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
-                self.blacklisted = True
+                self.hasproblems = True
                 self.image = blank_image
 
     def _color_image(self):
