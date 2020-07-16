@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import re
 from typing import Union, Tuple, List
 
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
-from hagadias.helpers import cp437_to_unicode, int_or_none
+from hagadias.helpers import cp437_to_unicode, int_or_none, strip_oldstyle_qud_colors, strip_newstyle_qud_colors
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
@@ -18,11 +17,6 @@ ACTIVE_CHARS = ['Creature', 'ActivePlant']
 # make them different from active characters. Usually immobile and have no attributes.
 INACTIVE_CHARS = ['BaseFungus', 'Baetyl', 'Wall', 'Furniture']
 ALL_CHARS = ACTIVE_CHARS + INACTIVE_CHARS
-
-
-def strip_qud_color_codes(text: str) -> str:
-    """Remove Qud color codes like `&Y` from the provided text."""
-    return re.sub('&[rRwWcCbBgGmMyYkKoO]', '', text)
 
 
 class QudObjectProps(QudObject):
@@ -408,7 +402,8 @@ class QudObjectProps(QudObject):
         dname = ""
         if self.part_Render_DisplayName is not None:
             dname = self.part_Render_DisplayName
-            dname = strip_qud_color_codes(dname)
+            dname = strip_oldstyle_qud_colors(dname)
+            dname = strip_newstyle_qud_colors(dname)
         return dname
 
     @property

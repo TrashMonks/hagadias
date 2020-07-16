@@ -2,11 +2,11 @@
 
 The qindex fixture is supplied by tests/conftest.py."""
 
-from hagadias.qudobject_props import strip_qud_color_codes
+from hagadias.helpers import strip_oldstyle_qud_colors
 
 
 def test_strip_qud_color_codes():
-    assert strip_qud_color_codes('&yfloating&G &Yglowsphere') == 'floating glowsphere'
+    assert strip_oldstyle_qud_colors('&yfloating&G &Yglowsphere') == 'floating glowsphere'
 
 
 # Properties
@@ -24,6 +24,11 @@ def test_av(qindex):
 def test_chargeused(qindex):
     obj = qindex['Geomagnetic Disc']
     assert obj.chargeused == 400
+
+
+def test_displayname(qindex):
+    assert qindex['ElderBob'].displayname == 'Elder Irudad'
+    assert qindex['Cudgel6'].displayname == 'crysteel mace'
 
 
 def test_dv(qindex):
