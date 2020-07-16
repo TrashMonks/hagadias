@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Union, Tuple, List
 
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
-from hagadias.helpers import cp437_to_unicode, int_or_none, strip_oldstyle_qud_colors, strip_newstyle_qud_colors
+from hagadias.helpers import cp437_to_unicode, int_or_none,\
+    strip_oldstyle_qud_colors, strip_newstyle_qud_colors
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
