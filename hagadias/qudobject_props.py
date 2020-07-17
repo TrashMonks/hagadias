@@ -57,6 +57,8 @@ class QudObjectProps(QudObject):
         if val_str is not None:
             val = DiceBag(val_str).average()  # calculate average stat value
             val = int(val * (0.8 if self.role == 'Minion' else 1))  # Minions lose 20% to all stats
+        else:
+            val = None
         return val
 
     def attribute_helper_mod(self, attr: str) -> Union[int, None]:
