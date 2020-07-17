@@ -895,6 +895,12 @@ class QudObjectProps(QudObject):
             return mutations
 
     @property
+    def noprone(self) -> Union[List[bool, None]]:
+        """Returns true if has part NoKnockdown."""
+        if self.part_NoKnockdown is not None:
+            return True
+
+    @property
     def omniphaseprojectile(self) -> Union[bool, None]:
         projectile = self.projectile_object()
         if projectile.is_specified('part_OmniphaseProjectile') or \
