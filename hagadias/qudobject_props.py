@@ -54,8 +54,9 @@ class QudObjectProps(QudObject):
     def attribute_helper_avg(self, attr: str) -> Union[int, None]:
         """Return the average stat value for the given stat."""
         val_str = self.attribute_helper(attr)
-        val = DiceBag(val_str).average()  # calculate average stat value
-        val = int(val * (0.8 if self.role == 'Minion' else 1))  # Minions lose 20% to all stats
+        if val_str is not None:
+            val = DiceBag(val_str).average()  # calculate average stat value
+            val = int(val * (0.8 if self.role == 'Minion' else 1))  # Minions lose 20% to all stats
         return val
 
     def attribute_helper_mod(self, attr: str) -> Union[int, None]:
