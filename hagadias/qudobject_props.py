@@ -1170,7 +1170,7 @@ class QudObjectProps(QudObject):
         if self.inherits_from('MeleeWeapon') or self.inherits_from('MissileWeapon'):
             if self.tag_UsesSlots and self.tag_UsesSlots != 'Hand':
                 return None  # exclude things like Slugsnout Snout
-            if self.part_Physics_bUsesTwoSlots:
+            if self.part_Physics_bUsesTwoSlots or self.part_Physics_UsesTwoSlots:
                 return True
             return False
 
