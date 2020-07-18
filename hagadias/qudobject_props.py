@@ -243,7 +243,7 @@ class QudObjectProps(QudObject):
         parts = ['StunOnHit',
                  'EnergyAmmoLoader',
                  'MechanicalWings',
-                 'GeomagneticDisk',
+                 'GeomagneticDisc',
                  'ProgrammableRecoiler',
                  'Teleporter',
                  'LatchesOn']
