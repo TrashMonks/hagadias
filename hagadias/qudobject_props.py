@@ -1153,6 +1153,12 @@ class QudObjectProps(QudObject):
             val = '&YSkillsoft [&Wmedium sp&Y]'  # override for Skillsoft [51-150]
         elif self.name == 'SingleSkillsoft3':
             val = '&YSkillsoft [&Whigh sp&Y]'  # override for Skillsoft [151+]
+        elif self.name == 'Schemasoft2':
+            val = '&YSchemasoft [&Wlow-tier&Y]'  # override for Schemasoft [low-tier]
+        elif self.name == 'Schemasoft3':
+            val = '&YSchemasoft [&Wmid-tier&Y]'  # override for Schemasoft [mid-tier]
+        elif self.name == 'Schemasoft4':
+            val = '&YSchemasoft [&Whigh-tier&Y]'  # override for Schemasoft [high-tier]
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
         return val
