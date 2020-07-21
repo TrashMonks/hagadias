@@ -1146,7 +1146,13 @@ class QudObjectProps(QudObject):
         elif self.name == "Wraith-Knight Templar":
             val = "&MWraith-Knight Templar of the Binary Honorum"  # override for Wraith Knights
         elif self.name == 'TreeSkillsoft':
-            val = '&ySkillsoft Plus'  # override for Skillsoft Plus
+            val = '&YSkillsoft Plus'  # override for Skillsoft Plus
+        elif self.name == 'SingleSkillsoft1':
+            val = '&YSkillsoft [&Wlow sp&Y]'  # override for Skillsoft [0-50sp]
+        elif self.name == 'SingleSkillsoft2':
+            val = '&YSkillsoft [&Wmedium sp&Y]'  # override for Skillsoft [51-150]
+        elif self.name == 'SingleSkillsoft3':
+            val = '&YSkillsoft [&Whigh sp&Y]'  # override for Skillsoft [151+]
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
         return val
