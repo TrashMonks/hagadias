@@ -378,19 +378,26 @@ class QudObjectProps(QudObject):
     def desc(self) -> Union[str, None]:
         """The short description of the object, with color codes included (ampersands escaped)."""
         desc = None
+        desc_extra = []
         if self.part_Description_Short == 'A hideous specimen.':
             pass  # hide items with default description
-        elif self.intproperty_GenotypeBasedDescription is not None:
-            desc = f"[True kin]\n{self.property_TrueManDescription_Value}\n\n" \
-                   f"[Mutant]\n{self.property_MutantDescription_Value}"
         elif self.part_Description_Short:
+            if self.intproperty_GenotypeBasedDescription is not None:
+                desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
+                desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
+            if self.part_RulesDescription:
+                if self.part_RulesDescription_AltForGenotype == "True Kin":
+                    desc_extra.append(f"[Mutant]\n{self.part_RulesDescription_Text}")
+                    desc_extra.append(f"[True Kin]\n{self.part_RulesDescription_GenotypeAlt}")
+                else:
+                    desc_extra.append(f"{self.part_RulesDescription_Text}")
             if self.part_Description_Mark:
-                desc = self.part_Description_Short + "\n\n" + self.part_Description_Mark
-            else:
-                desc = self.part_Description_Short
-        if desc is not None:
+                desc_extra.append(self.part_Description_Mark)
             if self.part_BonusPostfix is not None:
-                desc += "\n\n" + self.part_BonusPostfix_Postfix
+                desc_extra.append(self.part_BonusPostfix_Postfix)
+        desc = self.part_Description_Short
+        if desc is not None:
+            desc = desc + '\n\n' + '\n\n'.join(desc_extra)
             desc = desc.replace('\r\n', '\n')  # currently, only the description for Bear
         return desc
 
