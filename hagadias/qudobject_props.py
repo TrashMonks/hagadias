@@ -397,9 +397,8 @@ class QudObjectProps(QudObject):
             if self.part_BonusPostfix is not None:
                 desc_extra.append(self.part_BonusPostfix_Postfix)
         if desc is not None:
-            desc_extra_str = '\n\n'.join(desc_extra)
-            if not desc_extra_str.isspace():
-                desc += '\n\n' + desc_extra_str
+            if len(desc_extra) > 0:
+                desc += '\n\n' + '\n\n'.join(desc_extra)
             desc = desc.replace('\r\n', '\n')  # currently, only the description for Bear
         return desc
 
