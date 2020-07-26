@@ -382,6 +382,7 @@ class QudObjectProps(QudObject):
         if self.part_Description_Short == 'A hideous specimen.':
             pass  # hide items with default description
         elif self.part_Description_Short:
+            desc = self.part_Description_Short
             if self.intproperty_GenotypeBasedDescription is not None:
                 desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
@@ -395,9 +396,10 @@ class QudObjectProps(QudObject):
                 desc_extra.append(self.part_Description_Mark)
             if self.part_BonusPostfix is not None:
                 desc_extra.append(self.part_BonusPostfix_Postfix)
-        desc = self.part_Description_Short
         if desc is not None:
-            desc = desc + '\n\n' + '\n\n'.join(desc_extra)
+            desc_extra_str = '\n\n'.join(desc_extra)
+            if not desc_extra_str.isspace():
+                desc += '\n\n' + desc_extra_str
             desc = desc.replace('\r\n', '\n')  # currently, only the description for Bear
         return desc
 
