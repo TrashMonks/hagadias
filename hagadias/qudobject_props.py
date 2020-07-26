@@ -388,10 +388,11 @@ class QudObjectProps(QudObject):
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
             if self.part_RulesDescription:
                 if self.part_RulesDescription_AltForGenotype == "True Kin":
-                    desc_extra.append(f"[Mutant]\n{self.part_RulesDescription_Text}")
-                    desc_extra.append(f"[True Kin]\n{self.part_RulesDescription_GenotypeAlt}")
+                    desc_extra.append(f"[Mutant]\n{{{{rules|{self.part_RulesDescription_Text}}}}}")
+                    desc_extra.append("[True Kin]\n{{{{rules|"\
+                                     f"{self.part_RulesDescription_GenotypeAlt}}}}}")
                 else:
-                    desc_extra.append(f"{self.part_RulesDescription_Text}")
+                    desc_extra.append(f"{{{{rules|{self.part_RulesDescription_Text}}}}}")
             if self.part_Description_Mark:
                 desc_extra.append(self.part_Description_Mark)
             if self.part_BonusPostfix is not None:
