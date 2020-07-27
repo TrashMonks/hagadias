@@ -383,9 +383,12 @@ class QudObjectProps(QudObject):
             pass  # hide items with default description
         elif self.part_Description_Short:
             desc = self.part_Description_Short
-            if self.intproperty_GenotypeBasedDescription is not None:
+            if self.intproperty_GenotypeBasedDescription:
                 desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
+            if self.part_Cybernetics2BaseItem:
+                desc_extra.append("{{rules|" + self.part_Cybernetics2BaseItem_BehaviorDescription +
+                                  "}}")
             if self.part_RulesDescription:
                 if self.part_RulesDescription_AltForGenotype == "True Kin":
                     desc_extra.append(f"[Mutant]\n{{{{rules|{self.part_RulesDescription_Text}}}}}")
