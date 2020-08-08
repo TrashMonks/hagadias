@@ -4,7 +4,7 @@ from typing import Union, Tuple, List
 
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
 from hagadias.helpers import cp437_to_unicode, int_or_none,\
-    strip_oldstyle_qud_colors, strip_newstyle_qud_colors
+    strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
@@ -383,6 +383,28 @@ class QudObjectProps(QudObject):
             pass  # hide items with default description
         elif self.part_Description_Short:
             desc = self.part_Description_Short
+            if self.inherits_from("Item"):  # append armor resistances and attributes
+                resists = []
+                attrs = {'heat': ['R', 1],
+                         'cold': ['C', 1],
+                         'electrical': ['W', 1],
+                         'acid': ['G', 1],
+                         'willpower': ['C', 0],
+                         'ego': ['C', 0],
+                         'agility': ['C', 0],
+                         'toughness': ['C', 0],
+                         'strength': ['C', 0],
+                         'intelligence': ['C', 0],
+                         'quickness': ['C', 0],
+                         'movespeedbonus': ['C', 0]}
+                for attr in attrs:
+                    resist = getattr(self, f'{attr}')
+                    if resist:
+                        resist_str = f"{pos_or_neg(resist)}{resist} " + attr.title() \
+                                   + (" Resistance" if attrs[attr][1] == 1 else "")
+                        resists.append(f"{{{{{attrs[attr][0]}|{resist_str}}}}}")
+                if len(resists) > 0:
+                    desc_extra.append('\n'.join(resists))
             if self.intproperty_GenotypeBasedDescription:
                 desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
@@ -396,6 +418,14 @@ class QudObjectProps(QudObject):
                                       self.part_RulesDescription_GenotypeAlt + "}}")
                 else:
                     desc_extra.append(f"{{{{rules|{self.part_RulesDescription_Text}}}}}")
+            if self.part_AddsTelepathyOnEquip:
+                desc_extra.append("Grants you Telepathy.")
+            if self.part_ReduceEnergyCosts:
+                num = int(self.part_ReduceEnergyCosts_PercentageReduction)
+                pre = '' if (int(self.part_ReduceEnergyCosts_ChargeUse) == 0) else 'when powered, '
+                temp = f"{pre}provides {num}% reduction in " \
+                       f"{self.part_ReduceEnergyCosts_ScopeDescription}."
+                desc_extra.append("{{rules|" + temp[0].upper() + temp[1:] + "}}")
             if self.part_Description_Mark:
                 desc_extra.append(self.part_Description_Mark)
             if self.part_BonusPostfix is not None:
@@ -507,7 +537,7 @@ class QudObjectProps(QudObject):
         return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
 
     @property
-    def electric(self) -> Union[int, None]:
+    def electrical(self) -> Union[int, None]:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Electric')
 
@@ -994,6 +1024,8 @@ class QudObjectProps(QudObject):
         """Return quickness of a creature"""
         if self.inherits_from('Creature'):
             return int_or_none(self.stat_Speed_Value)
+        if self.part_Armor:
+            return int_or_none(self.part_Armor_SpeedBonus)
 
     @property
     def reflect(self) -> Union[int, None]:

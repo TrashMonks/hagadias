@@ -196,3 +196,8 @@ def strip_oldstyle_qud_colors(text: str) -> str:
         "raw beetle meat"
     """
     return re.sub('&[rRwWcCbBgGmMyYkKoO]', '', text)
+
+def pos_or_neg(num: int) -> str:
+    if int(num) >= 0:
+        return '+'
+    return "-"
