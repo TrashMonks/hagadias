@@ -197,6 +197,7 @@ def strip_oldstyle_qud_colors(text: str) -> str:
     """
     return re.sub('&[rRwWcCbBgGmMyYkKoO]', '', text)
 
+
 def pos_or_neg(num: int) -> str:
     if int(num) >= 0:
         return '+'
