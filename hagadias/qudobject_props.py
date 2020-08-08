@@ -246,10 +246,17 @@ class QudObjectProps(QudObject):
                  'GeomagneticDisc',
                  'ProgrammableRecoiler',
                  'Teleporter',
-                 'LatchesOn']
+                 'LatchesOn',
+                 'PartsGas',
+                 'ReduceCooldowns',
+                 'BootSequence']
         for part in parts:
             if getattr(self, f'part_{part}'):
-                charge = getattr(self, f'part_{part}_ChargeUse')
+                tempcharge = getattr(self, f'part_{part}_ChargeUse')
+                if tempcharge:
+                    if charge is None:
+                        charge = 0
+                    charge += int(tempcharge)
         return int_or_none(charge)
 
     @property
