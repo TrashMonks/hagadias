@@ -1025,6 +1025,8 @@ class QudObjectProps(QudObject):
              (not self.part_VibroWeapon or int(self.part_VibroWeapon_ChargeUse) > 0)) or
                 (self.part_Gaslight and int(self.part_Gaslight_ChargeUse) > 0)):
             return True
+        if self.part_Projectile_Attributes == "Vorpal":
+            return True
 
     @property
     def quickness(self) -> Union[int, None]:
