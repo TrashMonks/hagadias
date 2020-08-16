@@ -987,6 +987,21 @@ class QudObjectProps(QudObject):
             return True
 
     @property
+    def phase(self) -> Union[str, None]:
+        """What phase the object/creature is in, if not in phase."""
+        if self.part_HologramMaterial or self.tag_Omniphase:
+            return "omniphase"
+        if self.tag_Nullphase:
+            return "nullphase"
+        if self.tag_Astral:
+            return "out of phase"
+        if self.mutation:
+            for mutation, data in self.mutation.items():
+                if mutation == "Spinnerets":
+                    if f"{data['Phase']}" == 'True':
+                        return "out of phase"
+
+    @property
     def preservedinto(self) -> Union[str, None]:
         """When preserved, what a preservable item produces."""
         return self.part_PreservableItem_Result
