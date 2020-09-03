@@ -623,13 +623,16 @@ class QudObjectProps(QudObject):
         ret = None
         if self.part_Brain_Factions:
             ret = []
-            for part in self.part_Brain_Factions.split(','):
-                if '-' in part:
-                    # has format like `Joppa-100,Barathrumites-100`
-                    faction, value = part.split('-')
-                    ret.append((faction, int(value)))
-                else:
-                    print(f'FIXME: unexpected faction format: {part} in {self.name}')
+            if self.name[-6:] == 'Cherub':
+                ret.append(('Cherubim', 100)) # manual override for cherubs
+            else:
+                for part in self.part_Brain_Factions.split(','):
+                    if '-' in part:
+                        # has format like `Joppa-100,Barathrumites-100`
+                        faction, value = part.split('-')
+                        ret.append((faction, int(value)))
+                    else:
+                        print(f'FIXME: unexpected faction format: {part} in {self.name}')
         return ret
 
     @property
