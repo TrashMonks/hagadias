@@ -624,7 +624,7 @@ class QudObjectProps(QudObject):
         if self.part_Brain_Factions:
             ret = []
             if self.name[-6:] == 'Cherub':
-                ret.append(('Cherubim', 100)) # manual override for cherubs
+                ret.append(('Cherubim', 100))  # manual override for cherubs
             else:
                 for part in self.part_Brain_Factions.split(','):
                     if '-' in part:
