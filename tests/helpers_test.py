@@ -19,6 +19,8 @@ def test_iter_qud_colors(gameroot):
     assert next(i) == ('t', None)
     i = iter_qud_colors('{{y|raw beetle meat}}', colors)
     assert next(i) == ('r', 'y')
+    i = iter_qud_colors('{{purple|raw beetle meat}}', colors)
+    assert next(i) == ('r', 'm')
     i = iter_qud_colors('{{cider|cider}}', colors)
     assert(list(i)) == [('c', 'r'), ('i', 'r'), ('d', 'r'), ('e', 'r'), ('r', 'r')]
     i = iter_qud_colors('{{g-g-G sequence|abcdef}}', colors)

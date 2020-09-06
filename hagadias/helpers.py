@@ -203,7 +203,7 @@ def iter_qud_colors(phrase: str, colors) -> Iterator[Tuple]:
         elif code in colors['solidcolors']:
             # the short name color codes that map to the basic color codes
             for char in text:
-                yield char, colors[code]['color']
+                yield char, colors['solidcolors'][code]
         elif code in colors['shaders'] and colors['shaders'][code]['type'] == 'solid':
             # solid shaders
             for char in text:
@@ -252,15 +252,15 @@ def iter_qud_colors(phrase: str, colors) -> Iterator[Tuple]:
                 yield char, random.choice(distribution)
         elif code == 'chaotic':
             # each character is different
-            colors = list(QUD_COLORS)
-            colors.remove('transparent')
+            bucket = list(QUD_COLORS)
+            bucket.remove('transparent')
             for char in text:
-                yield char, random.choice(colors)
+                yield char, random.choice(bucket)
         elif code == 'random':
             # random solid color
-            colors = list(QUD_COLORS)
-            colors.remove('transparent')
-            color = random.choice(colors)
+            bucket = list(QUD_COLORS)
+            bucket.remove('transparent')
+            color = random.choice(bucket)
             for char in text:
                 yield char, color
 
