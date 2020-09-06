@@ -1,11 +1,14 @@
 """Helper functions for hagadias."""
 
+import itertools
 import os
+import random
 import re
-from typing import List, Tuple, Union
+from typing import Iterator, List, Tuple, Union
 
 import pefile
 
+from hagadias.constants import QUD_COLORS
 
 # load and store the Code Page 437 to Unicode translation
 CP437_MAP_FILE = os.path.join(os.path.dirname(__file__), 'IBMGRAPH.TXT')
@@ -173,6 +176,93 @@ def parse_qud_colors(phrase: str) -> List[Tuple]:
     if len(current_fragment) > 0:
         output.append((current_fragment, current_shader))
     return output
+
+
+def iter_qud_colors(phrase: str, colors) -> Iterator[Tuple]:
+    """Builds on parse_qud_colors to return one character with its color code at a time,
+    instead of a longer string with its color code. This also interprets shader
+    color codes properly.
+
+    Where parse_qud_colors('{{r|La}} {{r-R-R-W-W-w-w sequence|Jeunesse}}') would return
+    [("la", "r"), (" ", None), ("Jeunesse", "r-R-R-W-W-w-w sequence"],
+    iter_qud_colors('{{r|La}} {{r-R-R-W-W-w-w sequence|Jeunesse}}') returns instead
+    [('l', 'r'), ('a', 'r'), (' ', None), ('J', 'r'), ('e', 'R'), ('u', 'R'), ('n', 'W') ...]
+
+    :param phrase:
+    :param colors: a colors dictionary from a game install obtained by calling GameRoot.get_colors()
+    """
+    for text, code in parse_qud_colors(phrase):
+        if code is None:
+            # no shader
+            for char in text:
+                yield char, None
+        elif code in QUD_COLORS:
+            # the basic built-in color codes like 'y'
+            for char in text:
+                yield char, code
+        elif code in colors['solidcolors']:
+            # the short name color codes that map to the basic color codes
+            for char in text:
+                yield char, colors[code]['color']
+        elif code in colors['shaders'] and colors['shaders'][code]['type'] == 'solid':
+            # solid shaders
+            for char in text:
+                yield char, colors['shaders'][code]['colors']
+        # predefined complex shaders
+        elif code.endswith(' sequence') or \
+                code in colors['shaders'] and colors['shaders'][code]['type'] == 'sequence':
+            # sequence: one color at a time from the list, starting at the beginning when done
+            if code.endswith(' sequence'):
+                sequence = code[:-9].split('-')
+            else:
+                sequence = colors['shaders'][code]['colors'].split('-')
+            for char, color in zip(text, itertools.cycle(sequence)):
+                yield char, color
+        elif code.endswith(' alternation') or \
+                code in colors['shaders'] and colors['shaders'][code]['type'] == 'alternation':
+            # alternate: If the phrase is longer than the list of colors, stretch the colors across
+            # the length of the phrase. If the phrase is shorter, render the same as sequence type.
+            if code.endswith(' alternation'):
+                alternation = code[:-12].split('-')
+            else:
+                alternation = colors['shaders'][code]['colors'].split('-')
+            for index, char in enumerate(text):
+                yield char, alternation[int(index / len(text) * len(alternation))]
+        elif code.endswith(' bordered') or \
+                code in colors['shaders'] and colors['shaders'][code]['type'] == 'bordered':
+            # bordered: first code is for the main text, second code is for the first and last
+            # characters
+            if code.endswith(' bordered'):
+                bordered = code[:-9].split('-')
+            else:
+                bordered = colors['shaders'][code]['colors'].split('-')
+            for index, char in enumerate(text):
+                if index == 0 or index == len(text) - 1:
+                    yield char, bordered[1]
+                else:
+                    yield char, bordered[0]
+        elif code.endswith(' distribution') or \
+                code in colors['shaders'] and colors['shaders'][code]['type'] == 'distribution':
+            # distribution: the color list specifies colors to be sampled from
+            if code.endswith(' bordered'):
+                distribution = code[:-9].split('-')
+            else:
+                distribution = colors['shaders'][code]['colors'].split('-')
+            for char in text:
+                yield char, random.choice(distribution)
+        elif code == 'chaotic':
+            # each character is different
+            colors = list(QUD_COLORS)
+            colors.remove('transparent')
+            for char in text:
+                yield char, random.choice(colors)
+        elif code == 'random':
+            # random solid color
+            colors = list(QUD_COLORS)
+            colors.remove('transparent')
+            color = random.choice(colors)
+            for char in text:
+                yield char, color
 
 
 def strip_newstyle_qud_colors(phrase: str) -> str:

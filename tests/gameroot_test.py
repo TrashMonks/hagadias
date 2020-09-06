@@ -16,3 +16,8 @@ def test_gamever(gameroot):
     assert len(ver) > 4
     assert ver[0] in '01234567890'
     assert '.' in ver
+
+
+def test_colors(gameroot):
+    colors = gameroot.get_colors()
+    assert(colors['shaders']['snakeskin']['colors'] == 'g-c-C-G')

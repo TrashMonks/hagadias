@@ -170,3 +170,26 @@ class GameRoot:
             anatomies[name] = parts
         self.anatomies = anatomies
         return anatomies
+
+    def get_colors(self) -> dict:
+        """Return the color codes and shaders.
+
+        Returns a nested dictionary mirroring the XML file structure.
+        Format:
+            {"solidcolors": {"black":"K"},
+             ...
+             "shaders": {"arctic camouflage": {"type": "sequence",
+                                               "colors": "y-y-Y-y-K-y-y-Y-Y-K"}
+            }
+        """
+        colors = {'solidcolors': {}, 'shaders': {}}
+        path = self._xmlroot / 'Colors.xml'
+        tree = ET.parse(path)
+        for solidcolor in tree.find('solidcolors'):
+            name = solidcolor.attrib['Name']
+            colors['solidcolors'][name] = solidcolor.attrib['Color']
+        for shader in tree.find('shaders'):
+            name = shader.attrib['Name']
+            colors['shaders'][name] = {'type': shader.attrib['Type'],
+                                       'colors': shader.attrib['Colors']}
+        return colors
