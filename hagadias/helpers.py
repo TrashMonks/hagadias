@@ -244,8 +244,8 @@ def iter_qud_colors(phrase: str, colors) -> Iterator[Tuple]:
         elif code.endswith(' distribution') or \
                 code in colors['shaders'] and colors['shaders'][code]['type'] == 'distribution':
             # distribution: the color list specifies colors to be sampled from
-            if code.endswith(' bordered'):
-                distribution = code[:-9].split('-')
+            if code.endswith(' distribution'):
+                distribution = code[:-13].split('-')
             else:
                 distribution = colors['shaders'][code]['colors'].split('-')
             for char in text:
