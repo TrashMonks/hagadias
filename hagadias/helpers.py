@@ -9,6 +9,10 @@ from typing import Iterator, List, Tuple, Union
 import pefile
 
 from hagadias.constants import QUD_COLORS
+PALETTE = list(QUD_COLORS)
+PALETTE.remove('transparent')
+PALETTE.remove('o')  # extradimensional color
+PALETTE.remove('O')  # extradimensional color
 
 # load and store the Code Page 437 to Unicode translation
 CP437_MAP_FILE = os.path.join(os.path.dirname(__file__), 'IBMGRAPH.TXT')
@@ -252,15 +256,11 @@ def iter_qud_colors(phrase: str, colors) -> Iterator[Tuple]:
                 yield char, random.choice(distribution)
         elif code == 'chaotic':
             # each character is different
-            bucket = list(QUD_COLORS)
-            bucket.remove('transparent')
             for char in text:
-                yield char, random.choice(bucket)
+                yield char, random.choice(PALETTE)
         elif code == 'random':
             # random solid color
-            bucket = list(QUD_COLORS)
-            bucket.remove('transparent')
-            color = random.choice(bucket)
+            color = random.choice(PALETTE)
             for char in text:
                 yield char, color
 
