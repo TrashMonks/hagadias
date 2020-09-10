@@ -136,7 +136,7 @@ class QudObject(NodeMixin):
                 # detail = _ if _ else 'transparent'
                 trans = 'transparent'
 
-            if self.is_specified('tag_PaintedWall') and self.tag_PaintedWall_Value != "*delete":
+            if self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete":
                 # special handling for painted walls
                 if detail is None and '^' in color:
                     trans = color.split('^', 1)[1]
@@ -146,7 +146,7 @@ class QudObject(NodeMixin):
                 tileext = _ if _ and self.name != 'Dirt' else '.bmp'
                 tile = QudTile(tileloc + self.tag_PaintedWall_Value + '-00000000' + tileext,
                                color, tilecolor, detail, self.name, raw_transparent=trans)
-            elif self.is_specified('tag_PaintedFence') and self.tag_PaintedFence_Value != "*delete":
+            elif self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete":
                 # special handling for painted fences
                 if detail is None and '^' in color:
                     trans = color.split('^', 1)[1]
