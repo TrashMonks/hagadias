@@ -20,7 +20,7 @@ or if you're using pipenv,
 `pipenv install -e git+https://github.com/trashmonks/hagadias.git@master#egg=hagadias`
 
 ## Tile support
-Tile support currently requires a download of [CavesofQudTileModdingToolkit.zip](https://www.dropbox.com/s/g8coebnzoqfema9/CavesofQudTileModdingToolkit.zip?dl=0), extracted into the `hagadias` directory. We're working on making this easier to do.
+Tile support requires a download of [caves-of-qud-tiles-200.71.zip](https://www.dropbox.com/s/3hub59uoiamz0vq/caves-of-qud-tiles-200.71.zip?dl=1). This does not need to be extracted, just present in the project directory.
 
 ## Usage example
 ```
