@@ -95,15 +95,14 @@ class QudObject(NodeMixin):
                 # normal case: just assign the attributes dictionary to this <tag>-Name combo
                 self.attributes[element_tag][element_name] = element.attrib
         self.all_attributes, self.inherited = self.resolve_inheritance()
-        self._tile = None  # cache; rendered on first call to render_tile()
 
     @property
     def tile(self) -> QudTile:
         """Return a QudTile colored to match the in-game representation.
 
         Created on-demand to speed load times; cached in self._tile after first call."""
-
-        if self._tile is not None:
+        if hasattr(self, '_tile'):
+            # do we have a cached tile?
             return self._tile
         tile = None  # not all objects have tiles
         if self.part_Render_Tile and not self.tag_BaseObject:
