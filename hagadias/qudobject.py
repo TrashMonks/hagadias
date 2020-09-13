@@ -11,6 +11,10 @@ from anytree import NodeMixin  # noqa E402
 
 from hagadias.qudtile import QudTile  # noqa E402
 
+HOLO_PARTS = ['part_HologramMaterial',
+              'part_HologramWallMaterial',
+              'part_HologramMaterialPrimary']
+
 
 class QudObject(NodeMixin):
     """Represents a Caves of Qud object blueprint with attribute inheritance.
@@ -105,23 +109,18 @@ class QudObject(NodeMixin):
             # do we have a cached tile?
             return self._tile
         tile = None  # not all objects have tiles
-        if self.part_Render_Tile and not self.tag_BaseObject:
-            holo_parts = ['part_HologramMaterial',
-                          'part_HologramWallMaterial',
-                          'part_HologramMaterialPrimary']
-            if (any(self.is_specified(part) for part in holo_parts)
+        if (self.part_Render_Tile or self.part_RandomTile) and not self.tag_BaseObject:
+            # determine coloration
+            trans = 'transparent'  # default transparency
+            if (any(self.is_specified(part) for part in HOLO_PARTS)
                     or self.name == "Wraith-Knight Templar"):
                 # special handling for holograms
-                color = '&B'
-                tilecolor = '&B^b'
-                detail = 'b'
-                trans = 'transparent'
+                color, tilecolor, detail = '&B', '&B^b', 'b'
             elif self.is_specified('part_AnimatedMaterialStasisfield'):
-                color = '&C^M'
-                tilecolor = '&C^M'
-                detail = 'M'
-                trans = 'M'
+                # special handling for stasis fields
+                color, tilecolor, detail, trans = '&C^M', '&C^M', 'M', 'M'
             else:
+                # general case
                 color = self.part_Render_ColorString
                 tilecolor = self.part_Render_TileColor
                 # default detail color when unspecified is black (0, 0, 0)
@@ -133,8 +132,8 @@ class QudObject(NodeMixin):
                 # ------------------------------------
                 # _ = self.part_Render_DetailColor
                 # detail = _ if _ else 'transparent'
-                trans = 'transparent'
 
+            # handle special tile attributes
             if self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete":
                 # special handling for painted walls
                 if detail is None and '^' in color:
@@ -143,8 +142,7 @@ class QudObject(NodeMixin):
                 tileloc = _ if _ else 'Tiles/'
                 _ = self.tag_PaintedWallExtension_Value
                 tileext = _ if _ and self.name != 'Dirt' else '.bmp'
-                tile = QudTile(tileloc + self.tag_PaintedWall_Value + '-00000000' + tileext,
-                               color, tilecolor, detail, self.name, raw_transparent=trans)
+                file = tileloc + self.tag_PaintedWall_Value + '-00000000' + tileext
             elif self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete":
                 # special handling for painted fences
                 if detail is None and '^' in color:
@@ -153,11 +151,13 @@ class QudObject(NodeMixin):
                 tileloc = _ if _ else 'Tiles/'
                 _ = self.tag_PaintedFenceExtension_Value
                 tileext = _ if _ else '.bmp'
-                tile = QudTile(tileloc + self.tag_PaintedFence_Value + "_" + tileext,
-                               color, tilecolor, detail, self.name, raw_transparent=trans)
+                file = tileloc + self.tag_PaintedFence_Value + "_" + tileext
             else:
                 # normal rendering
-                tile = QudTile(self.part_Render_Tile, color, tilecolor, detail, self.name)
+                file = self.part_Render_Tile
+            if self.part_RandomTile:
+                file = self.part_RandomTile_Tiles.split(',')[0]
+            tile = QudTile(file, color, tilecolor, detail, self.name, raw_transparent=trans)
         self._tile = tile
         return tile
 
