@@ -1,6 +1,6 @@
 # https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
 import io
-import zipfile
+from pathlib import Path
 
 from PIL import Image
 
@@ -9,7 +9,7 @@ from hagadias.constants import QUD_COLORS, QUD_VIRIDIAN
 TILE_COLOR = (0, 0, 0, 255)
 DETAIL_COLOR = (255, 255, 255, 255)
 
-TILES_PATH = zipfile.Path('caves-of-qud-tiles-200.71.zip', at='Textures')
+tiles_dir = Path('Textures')
 blank_image = Image.new('RGBA', (16, 24), color=(0, 0, 0, 0))
 # index keys are like "creatures/caste_flipped_22.bmp" as in XML
 image_cache = {}
@@ -69,12 +69,12 @@ class QudTile:
             self.image = image_cache[filename].copy()
             self._color_image()
         else:
+            fullpath = tiles_dir / filename
             try:
-                with (TILES_PATH / filename).open() as tilefile:
-                    self.image = Image.open(tilefile)
-                    image_cache[filename] = self.image.copy()
-                    self._color_image()
-            except KeyError:
+                self.image = Image.open(fullpath)
+                image_cache[filename] = self.image.copy()
+                self._color_image()
+            except FileNotFoundError:
                 print(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
                 self.hasproblems = True
                 self.image = blank_image
