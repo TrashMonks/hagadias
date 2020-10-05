@@ -544,8 +544,15 @@ class QudObjectProps(QudObject):
         return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
 
     @property
-    def electrical(self) -> Union[int, None]:
+    def electric(self) -> Union[int, None]:
         """The elemental resistance/weakness the equipment or NPC has."""
+        return self.resistance('Electric')
+
+    @property
+    def electrical(self) -> Union[int, None]:
+        """The elemental resistance/weakness the equipment or NPC has.
+        *egocarib 10/4/2020 - I am pretty sure this property is unused, but leaving it here
+         just in case. Most things use 'electric' since that is our wiki template field name"""
         return self.resistance('Electric')
 
     @property
