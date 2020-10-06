@@ -240,11 +240,11 @@ class QudObjectProps(QudObject):
             charge = self.part_VibroWeapon_ChargeUse
         if self.part_Gaslight and int(self.part_Gaslight_ChargeUse) > 0:
             charge = self.part_Gaslight_ChargeUse
+        # evaluate charge using parts (note that ProgrammableRecoiler is returned as a separate property)
         parts = ['StunOnHit',
                  'EnergyAmmoLoader',
                  'MechanicalWings',
                  'GeomagneticDisc',
-                 'ProgrammableRecoiler',
                  'Teleporter',
                  'LatchesOn',
                  'PartsGas',
@@ -723,6 +723,15 @@ class QudObjectProps(QudObject):
         if not self.inherits_from('Corpse'):
             if self.part_Food_IllOnEat == 'true':
                 return True
+
+    @property
+    def imprintchargecost(self) -> Union[int, None]:
+        """How much charge is used to imprint a programmable recoiler."""
+        if self.part_ProgrammableRecoiler is not None:
+            charge = self.part_ProgrammableRecoiler_ChargeUse
+            if charge is not None:
+                return int_or_none(charge)
+            return 10000  # default IProgrammableRecoiler charge use
 
     @property
     def inheritingfrom(self) -> Union[str, None]:
