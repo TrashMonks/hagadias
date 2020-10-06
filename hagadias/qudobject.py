@@ -10,6 +10,7 @@ from xml.etree.ElementTree import Element  # noqa E402
 from anytree import NodeMixin  # noqa E402
 
 from hagadias.qudtile import QudTile  # noqa E402
+from hagadias.tilepainter import TilePainter  # noqa E402
 
 HOLO_PARTS = ['part_HologramMaterial',
               'part_HologramWallMaterial',
@@ -109,7 +110,7 @@ class QudObject(NodeMixin):
             # do we have a cached tile?
             return self._tile
         tile = None  # not all objects have tiles
-        if (self.part_Render_Tile or self.part_RandomTile) and not self.tag_BaseObject:
+        if self.has_tile():
             # determine coloration
             trans = 'transparent'  # default transparency
             if (any(self.is_specified(part) for part in HOLO_PARTS)
@@ -134,24 +135,13 @@ class QudObject(NodeMixin):
                 # detail = _ if _ else 'transparent'
 
             # handle special tile attributes
-            if self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete":
-                # special handling for painted walls
-                if detail is None and '^' in color:
-                    trans = color.split('^', 1)[1]
-                _ = self.tag_PaintedWallAtlas_Value
-                tileloc = _ if _ else 'Tiles/'
-                _ = self.tag_PaintedWallExtension_Value
-                tileext = _ if _ and self.name != 'Dirt' else '.bmp'
-                file = tileloc + self.tag_PaintedWall_Value + '-00000000' + tileext
-            elif self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete":
-                # special handling for painted fences
-                if detail is None and '^' in color:
-                    trans = color.split('^', 1)[1]
-                _ = self.tag_PaintedFenceAtlas_Value
-                tileloc = _ if _ else 'Tiles/'
-                _ = self.tag_PaintedFenceExtension_Value
-                tileext = _ if _ else '.bmp'
-                file = tileloc + self.tag_PaintedFence_Value + "_" + tileext
+            if (self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete") or \
+               (self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete") or \
+               self.part_Walltrap is not None:
+                # painted tile rendering
+                painter = TilePainter(self, color, tilecolor, detail, trans)
+                self._tile = painter.tile
+                return self._tile
             else:
                 # normal rendering
                 file = self.part_Render_Tile
@@ -160,6 +150,18 @@ class QudObject(NodeMixin):
             tile = QudTile(file, color, tilecolor, detail, self.name, raw_transparent=trans)
         self._tile = tile
         return tile
+
+    def has_tile(self) -> bool:
+        """Returns true if this object qualifies for tile rendering."""
+        if self.tag_BaseObject:
+            return False
+        if self.part_Render_Tile or self.part_RandomTile:
+            return True
+        if self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete":
+            return True
+        if self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete":
+            return True
+        return False
 
     def resolve_inheritance(self) -> Tuple[dict, dict]:
         """Compute and return dictionaries with all inherited tags and attributes.
