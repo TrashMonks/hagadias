@@ -1,5 +1,6 @@
 # https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
 import io
+import logging
 from pathlib import Path
 
 from PIL import Image
@@ -13,9 +14,6 @@ tiles_dir = Path('Textures')
 blank_image = Image.new('RGBA', (16, 24), color=(0, 0, 0, 0))
 # index keys are like "creatures/caste_flipped_22.bmp" as in XML
 image_cache = {}
-bad_tile_color = set()
-bad_detail_color = set()
-uses_details = set()
 
 
 def fix_filename(filename: str) -> str:
@@ -31,6 +29,8 @@ def fix_filename(filename: str) -> str:
 
 class QudTile:
     """Class to load and color a Qud tile."""
+    # Note: See info dump on tile rendering at
+    # https://discordapp.com/channels/214532333900922882/482714670860468234/762827742424465411
 
     def __init__(self, filename, colorstring, raw_tilecolor, raw_detailcolor, qudname,
                  raw_transparent="transparent"):
@@ -59,10 +59,8 @@ class QudTile:
             self.tilecolor = raw_tilecolor
             self.transparentcolor = QUD_COLORS[raw_transparent]
         filename = fix_filename(filename)
-        if raw_detailcolor is None or raw_detailcolor == 'k':
-            # self.detailcolor = QUD_COLORS['k']  # on-ground rendering
-            self.detailcolor = (0, 0, 0)  # in-inventory rendering (more detail)
-            bad_detail_color.add(self.qudname)
+        if raw_detailcolor is None:
+            self.detailcolor = QUD_COLORS['transparent']
         else:
             self.detailcolor = QUD_COLORS[raw_detailcolor.strip('&')]
         if filename in image_cache:
@@ -75,7 +73,7 @@ class QudTile:
                 image_cache[filename] = self.image.copy()
                 self._color_image()
             except FileNotFoundError:
-                print(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
+                logging.warning(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
                 self.hasproblems = True
                 self.image = blank_image
 
@@ -87,15 +85,13 @@ class QudTile:
                     self.image.putpixel((x, y), self.tilecolor)
                 elif px == DETAIL_COLOR:
                     self.image.putpixel((x, y), self.detailcolor)
-                    uses_details.add(self.qudname)
                 elif px[3] == 0:
                     self.image.putpixel((x, y), self.transparentcolor)
                 else:
                     # custom tinted image: uses R channel of special color from tile
                     final = []
                     detailpercent = px[0] / 255  # get opacity from R channel of tricolor
-                    detail = QUD_VIRIDIAN if self.qudname in bad_detail_color else self.detailcolor
-                    for tile, det in zip(self.tilecolor, detail):
+                    for tile, det in zip(self.tilecolor, self.detailcolor):
                         minimum = min(tile, det)
                         final.append(int(abs((tile - det) * detailpercent + minimum)))
                     final.append(255)  # transparency
