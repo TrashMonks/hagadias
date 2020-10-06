@@ -1125,6 +1125,17 @@ class QudObjectProps(QudObject):
             return int_or_none(self.part_SaveModifier_Amount)
 
     @property
+    def seeping(self) -> Union[str, None]:
+        if self.part_Gas is not None:
+            if self.is_specified('part_Gas_Seeping'):
+                if self.part_Gas_Seeping == 'true':
+                    return 'yes'
+            if self.is_specified('tag_GasGenerationAddSeeping'):
+                if self.tag_GasGenerationAddSeeping_Value == 'true':
+                    return 'yes'
+            return 'no'
+
+    @property
     def shotcooldown(self) -> Union[str, None]:
         """Cooldown before weapon can be fired again, typically a dice string."""
         return self.part_CooldownAmmoLoader_Cooldown
