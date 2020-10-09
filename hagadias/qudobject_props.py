@@ -1055,11 +1055,14 @@ class QudObjectProps(QudObject):
     @property
     def pvpowered(self) -> Union[bool, None]:
         """Whether the object's PV changes when it is powered."""
-        if ((self.vibro and
-             (not self.part_VibroWeapon or int(self.part_VibroWeapon_ChargeUse) > 0)) or
-                (self.part_Gaslight and int(self.part_Gaslight_ChargeUse) > 0)):
+        is_vibro = self.vibro and self.vibro is not None
+        if is_vibro and self.is_specified('part_MissileWeapon'):
+            return None
+        if is_vibro and (not self.part_VibroWeapon or int(self.part_VibroWeapon_ChargeUse) > 0):
             return True
-        if self.part_Projectile_Attributes == "Vorpal":
+        if self.part_Gaslight and int(self.part_Gaslight_ChargeUse) > 0:
+            return True
+        if self.part_Projectile_Attributes == "Vorpal":  # TODO: not sure if this works [use projectile_object()?]
             return True
 
     @property
@@ -1305,15 +1308,17 @@ class QudObjectProps(QudObject):
     @property
     def vibro(self) -> Union[bool, None]:
         """Whether this is a vibro weapon."""
-        if self.is_specified('part_ThrownWeapon'):
-            if self.is_specified('part_GeomagneticDisk'):
-                return True
-            else:
-                return False
-        elif self.inherits_from('NaturalWeapon') or self.inherits_from('MeleeWeapon'):
+        # if self.is_specified('part_ThrownWeapon'):
+        if self.is_specified('part_GeomagneticDisc'):
+            return True
+        elif self.is_specified('part_MissileWeapon'):
+            attributes = self.projectile_object('part_Projectile_Attributes')
+            if attributes is not None:
+                if 'Vorpal' in attributes.split(' '):
+                    return True
+        elif self.inherits_from('MeleeWeapon') or self.inherits_from('NaturalWeapon'):
             if self.part_VibroWeapon:
                 return True
-            return False
 
     @property
     def waterritualable(self) -> Union[bool, None]:
