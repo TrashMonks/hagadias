@@ -248,6 +248,7 @@ class QudObjectProps(QudObject):
                  'Teleporter',
                  'LatchesOn',
                  'PartsGas',
+                 'Mill',
                  'ReduceCooldowns',
                  'Toolbox',
                  'EquipStatBoost',
