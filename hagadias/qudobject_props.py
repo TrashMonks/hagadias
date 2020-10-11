@@ -235,46 +235,15 @@ class QudObjectProps(QudObject):
     @property
     def chargeused(self) -> Union[int, None]:
         """How much charge is used for various item functions."""
-
-
-
-
-        charge = None
-        if self.part_VibroWeapon and int(self.part_VibroWeapon_ChargeUse) > 0:
-            charge = self.part_VibroWeapon_ChargeUse
-        if self.part_Gaslight and int(self.part_Gaslight_ChargeUse) > 0:
-            charge = self.part_Gaslight_ChargeUse
-        # evaluate charge using parts (note that ProgrammableRecoiler is returned as a separate property)
-        parts = ['StunOnHit',
-                 'EnergyAmmoLoader',
-                 'MechanicalWings',
-                 'GeomagneticDisc',
-                 'Teleporter',
-                 'LatchesOn',
-                 'PartsGas',
-                 'Mill',
-                 'Chair',
-                 'Bed',
-                 'ChargeSink',
-                 'ReduceCooldowns',
-                 'Toolbox',
-                 'EquipStatBoost',
-                 'NavigationBonus',
-                 'ReduceEnergyCosts',
-                 'TemperatureAdjuster',
-                 'RealityStabilization',
-                 'RocketSkates',
-                 'PoweredFloating',
-                 'PointDefense',
-                 'BootSequence']
-        for part in parts:
-            if getattr(self, f'part_{part}'):
-                tempcharge = getattr(self, f'part_{part}_ChargeUse')
-                if tempcharge is not None and int(tempcharge) > 0:
-                    if charge is None:
-                        charge = 0
-                    charge += int(tempcharge)
-        return int_or_none(charge)
+        charge = 0
+        for part in self.all_attributes['part']:
+            if part == 'ProgrammableRecoiler':
+                continue  # parts ignored or handled elsewhere
+            chg = getattr(self, f'part_{part}_ChargeUse')
+            if chg is not None and int(chg) > 0:
+                charge += int(chg)
+        if charge > 0:
+            return charge
 
     @property
     def chargefunction(self) -> Union[str, None]:
