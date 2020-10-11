@@ -282,6 +282,8 @@ class QudObjectProps(QudObject):
                     func = 'Latch Effect'
                 elif part == 'Toolbox':
                     func = 'Tinker Bonus'
+                elif part == 'ConversationScript':
+                    func = 'Audio Processing'
                 elif getattr(self, f'part_{part}_NameForStatus') is not None:
                     func = getattr(self, f'part_{part}_NameForStatus')
                 elif part == 'Chair':  # handle chairs without a NameForStatus
