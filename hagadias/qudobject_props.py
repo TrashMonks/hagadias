@@ -487,16 +487,10 @@ class QudObjectProps(QudObject):
     def dv(self) -> Union[int, None]:
         """The Dodge Value of this object."""
         dv = None
-        if self.inherits_from('Armor'):
-            # if this object is armor, the 'DV' we are interested in is the DV modifier of the armor
-            armor_dv = self.part_Armor_DV
-            if armor_dv is not None:
-                dv = int(armor_dv)
-        if self.inherits_from('Shield'):
-            # same as above
-            shield_dv = self.part_Shield_DV
-            if shield_dv is not None:
-                dv = int(shield_dv)
+        if self.part_Armor_DV is not None:  # the DV of armor
+            dv = int(self.part_Armor_DV)
+        if self.part_Shield_DV is not None:  # the DV of a shield
+            dv = int(self.part_Shield_DV)
         elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
             dv = -10
         elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
