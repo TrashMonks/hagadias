@@ -256,6 +256,7 @@ class QudObjectProps(QudObject):
                  'NavigationBonus',
                  'ReduceEnergyCosts',
                  'TemperatureAdjuster',
+                 'RealityStabilization',
                  'RocketSkates',
                  'PoweredFloating',
                  'PointDefense',
