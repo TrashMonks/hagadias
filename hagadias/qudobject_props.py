@@ -249,6 +249,7 @@ class QudObjectProps(QudObject):
                  'LatchesOn',
                  'PartsGas',
                  'Mill',
+                 'Chair',
                  'ReduceCooldowns',
                  'Toolbox',
                  'EquipStatBoost',
