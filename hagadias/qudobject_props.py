@@ -798,6 +798,14 @@ class QudObjectProps(QudObject):
             return True
 
     @property
+    def ismissile(self) -> Union[bool, None]:
+        """If this item is a missile weapon"""
+        if self.inherits_from('MissileWeapon'):
+            return True
+        if self.is_specified('part_MissileWeapon'):
+            return True
+
+    @property
     def isoccluding(self) -> Union[bool, None]:
         if self.part_Render_Occluding is not None:
             if self.part_Render_Occluding == 'true' or self.part_Render_Occluding == 'True':
