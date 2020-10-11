@@ -278,10 +278,16 @@ class QudObjectProps(QudObject):
                     func = 'Cooldown Reduction'
                 elif part == 'RealityStabilization':
                     func = 'Reality Stabilization'
+                elif part == 'LatchesOn':
+                    func = 'Latch Effect'
+                elif part == 'Toolbox':
+                    func = 'Tinker Bonus'
+                elif getattr(self, f'part_{part}_NameForStatus') is not None:
+                    func = getattr(self, f'part_{part}_NameForStatus')
+                elif part == 'Chair':  # handle chairs without a NameForStatus
+                    func = 'Chair Effect'
                 else:
-                    chargefor = getattr(self, f'part_{part}_NameForStatus')
-                    if chargefor is not None:
-                        func = chargefor
+                    func = part  # default to part name if no other match
                 if func is not None:
                     funcs.append(func)
                     detailedfuncs.append(func + ' [' + chg + ']')
