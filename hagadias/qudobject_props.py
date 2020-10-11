@@ -234,7 +234,11 @@ class QudObjectProps(QudObject):
 
     @property
     def chargeused(self) -> Union[int, None]:
-        """How much charge is used per shot."""
+        """How much charge is used for various item functions."""
+
+
+
+
         charge = None
         if self.part_VibroWeapon and int(self.part_VibroWeapon_ChargeUse) > 0:
             charge = self.part_VibroWeapon_ChargeUse
@@ -274,40 +278,50 @@ class QudObjectProps(QudObject):
 
     @property
     def chargefunction(self) -> Union[str, None]:
-        """The features or functions that the charge is used for.
-
-        Intended to provide clarity for items like Prayer Rod, where charge only affects one of
-        its features (stun) and not the other (elemental damage)."""
+        """The features or functions that the charge is used for."""
         funcs = []
+        detailedfuncs = []
         for part in self.all_attributes['part']:
             if part == 'ProgrammableRecoiler':
                 continue  # parts ignored or handled elsewhere
-            tempcharge = getattr(self, f'part_{part}_ChargeUse')
-            if tempcharge is not None and int(tempcharge) > 0:
+            chg = getattr(self, f'part_{part}_ChargeUse')
+            if chg is not None and int(chg) > 0:
+                func = None
                 if part == 'StunOnHit':
-                    funcs.append('Stun effect')
-                elif part == 'EnergyAmmoLoader or self.part_Gaslight':
-                    funcs.append('Weapon power')
-                elif part == 'VibroWeapon and int(self.part_VibroWeapon_ChargeUse) > 0':
-                    funcs.append('Adaptive penetration')
+                    func = 'Stun effect'
+                elif part == 'EnergyAmmoLoader' or part == 'Gaslight':
+                    func = 'Weapon Power'
+                elif part == 'VibroWeapon':
+                    func = 'Adaptive Penetration'
                 elif part == 'MechanicalWings':
-                    funcs.append('Flight')
+                    func = 'Flight'
                 elif part == 'RocketSkates':
-                    funcs.append('Power skate')
+                    func = 'Power Skate'
                 elif part == 'GeomagneticDisc':
-                    funcs.append('Disc effect')
+                    func = 'Throw Effect'
                 elif part == 'Teleporter':
-                    funcs.append('Teleportation')
+                    func = 'Teleportation'
                 elif part == 'EquipStatBoost':
-                    funcs.append('Stat boost')
+                    func = 'Stat Boost'
+                elif part == 'PartsGas':
+                    func = 'Gas Dispersion'
+                elif part == 'ReduceCooldowns':
+                    func = 'Cooldown Reduction'
+                elif part == 'RealityStabilization':
+                    func = 'Reality Stabilization'
                 else:
                     chargefor = getattr(self, f'part_{part}_NameForStatus')
                     if chargefor is not None:
-                        funcs.append(chargefor)
+                        func = chargefor
+                if func is not None:
+                    funcs.append(func)
+                    detailedfuncs.append(func + ' [' + chg + ']')
         if len(funcs) == 0:
             return None
+        elif len(funcs) == 1:
+            return funcs[0]  # if only one function, return the simple name
         else:
-            return ', '.join(funcs)
+            return ', '.join(detailedfuncs)  # if multiple, return names with charge amount appended
 
     @property
     def cold(self) -> Union[int, None]:
