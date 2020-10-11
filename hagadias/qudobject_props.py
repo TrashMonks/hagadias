@@ -251,6 +251,7 @@ class QudObjectProps(QudObject):
                  'Mill',
                  'Chair',
                  'Bed',
+                 'ChargeSink',
                  'ReduceCooldowns',
                  'Toolbox',
                  'EquipStatBoost',
