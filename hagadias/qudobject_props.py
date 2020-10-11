@@ -249,6 +249,7 @@ class QudObjectProps(QudObject):
                  'LatchesOn',
                  'PartsGas',
                  'ReduceCooldowns',
+                 'Toolbox',
                  'BootSequence']
         for part in parts:
             if getattr(self, f'part_{part}'):
