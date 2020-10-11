@@ -279,22 +279,35 @@ class QudObjectProps(QudObject):
         Intended to provide clarity for items like Prayer Rod, where charge only affects one of
         its features (stun) and not the other (elemental damage)."""
         funcs = []
-        if self.part_StunOnHit:
-            funcs.append('stun effect')
-        if self.part_EnergyAmmoLoader or self.part_Gaslight:
-            funcs.append('weapon power')
-        if self.part_VibroWeapon and int(self.part_VibroWeapon_ChargeUse) > 0:
-            funcs.append('adaptive penetration')
-        if self.part_MechanicalWings:
-            funcs.append('flight')
-        if self.part_GeomagneticDisk:
-            funcs.append('disc effect')
-        if self.part_ProgrammableRecoiler or self.part_Teleporter:
-            funcs.append('teleportation')
+        for part in self.all_attributes['part']:
+            if part == 'ProgrammableRecoiler':
+                continue  # parts ignored or handled elsewhere
+            tempcharge = getattr(self, f'part_{part}_ChargeUse')
+            if tempcharge is not None and int(tempcharge) > 0:
+                if part == 'StunOnHit':
+                    funcs.append('Stun effect')
+                elif part == 'EnergyAmmoLoader or self.part_Gaslight':
+                    funcs.append('Weapon power')
+                elif part == 'VibroWeapon and int(self.part_VibroWeapon_ChargeUse) > 0':
+                    funcs.append('Adaptive penetration')
+                elif part == 'MechanicalWings':
+                    funcs.append('Flight')
+                elif part == 'RocketSkates':
+                    funcs.append('Power skate')
+                elif part == 'GeomagneticDisc':
+                    funcs.append('Disc effect')
+                elif part == 'Teleporter':
+                    funcs.append('Teleportation')
+                elif part == 'EquipStatBoost':
+                    funcs.append('Stat boost')
+                else:
+                    chargefor = getattr(self, f'part_{part}_NameForStatus')
+                    if chargefor is not None:
+                        funcs.append(chargefor)
         if len(funcs) == 0:
             return None
         else:
-            return ', '.join(funcs).capitalize()
+            return ', '.join(funcs)
 
     @property
     def cold(self) -> Union[int, None]:
@@ -376,8 +389,8 @@ class QudObjectProps(QudObject):
         if self.part_Gaslight:
             val = self.part_Gaslight_ChargedDamage
         if self.is_specified('part_ThrownWeapon'):
-            if self.is_specified('part_GeomagneticDisk'):
-                val = self.part_GeomagneticDisk_Damage
+            if self.is_specified('part_GeomagneticDisc'):
+                val = self.part_GeomagneticDisc_Damage
             else:
                 val = self.part_ThrownWeapon_Damage
         projectiledamage = self.projectile_object('part_Projectile_BaseDamage')
