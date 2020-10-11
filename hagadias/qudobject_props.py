@@ -250,6 +250,7 @@ class QudObjectProps(QudObject):
                  'PartsGas',
                  'Mill',
                  'Chair',
+                 'Bed',
                  'ReduceCooldowns',
                  'Toolbox',
                  'EquipStatBoost',
