@@ -252,11 +252,12 @@ class QudObjectProps(QudObject):
                  'Toolbox',
                  'EquipStatBoost',
                  'NavigationBonus',
+                 'ReduceEnergyCosts',
                  'BootSequence']
         for part in parts:
             if getattr(self, f'part_{part}'):
                 tempcharge = getattr(self, f'part_{part}_ChargeUse')
-                if tempcharge:
+                if tempcharge is not None and int(tempcharge) > 0:
                     if charge is None:
                         charge = 0
                     charge += int(tempcharge)
