@@ -1043,6 +1043,15 @@ class QudObjectProps(QudObject):
                         return "out of phase"
 
     @property
+    def poisononhit(self) -> Union[str, None]:
+        if self.part_PoisonOnHit:
+            pct = self.part_PoisonOnHit_Chance if self.part_PoisonOnHit_Chance is not None else '100'
+            save = self.part_PoisonOnHit_Strength if self.part_PoisonOnHit_Strength is not None else '15'
+            dmg = self.part_PoisonOnHit_DamageIncrement if self.part_PoisonOnHit_DamageIncrement is not None else '3d3'
+            duration = self.part_PoisonOnHit_Duration if self.part_PoisonOnHit_Duration is not None else '6-9'
+            return f'{pct}% to poison on hit, toughness save {save}. {dmg} damage for {duration} turns.'
+
+    @property
     def preservedinto(self) -> Union[str, None]:
         """When preserved, what a preservable item produces."""
         return self.part_PreservableItem_Result
