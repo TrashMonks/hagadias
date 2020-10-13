@@ -384,6 +384,8 @@ class QudObjectProps(QudObject):
                 val = self.part_GeomagneticDisc_Damage
             else:
                 val = self.part_ThrownWeapon_Damage
+                if val is None:
+                    val = 1  # default damage for ThrownWeapon
         projectiledamage = self.projectile_object('part_Projectile_BaseDamage')
         if projectiledamage:
             val = projectiledamage
@@ -800,6 +802,12 @@ class QudObjectProps(QudObject):
             return True
 
     @property
+    def isthrown(self) -> Union[bool, None]:
+        """If this item is a thrown weapon"""
+        if self.part_ThrownWeapon is not None:
+            return True
+
+    @property
     def isoccluding(self) -> Union[bool, None]:
         if self.part_Render_Occluding is not None:
             if self.part_Render_Occluding == 'true' or self.part_Render_Occluding == 'True':
@@ -892,15 +900,10 @@ class QudObjectProps(QudObject):
     @property
     def maxpv(self) -> Union[int, None]:
         """The max strength bonus + our base PV."""
-        if self.is_specified('part_ThrownWeapon'):
-            pv = int_or_none(self.part_ThrownWeapon_Penetration)
-            if pv is None:
-                pv = 1
-        else:
-            pv = self.pv
-            if pv is not None:
-                if self.part_MeleeWeapon_MaxStrengthBonus is not None:
-                    pv += int(self.part_MeleeWeapon_MaxStrengthBonus)
+        pv = self.pv
+        if pv is not None:
+            if self.part_MeleeWeapon_MaxStrengthBonus is not None:
+                pv += int(self.part_MeleeWeapon_MaxStrengthBonus)
         return pv
 
     @property
@@ -1057,7 +1060,8 @@ class QudObjectProps(QudObject):
 
     @property
     def pv(self) -> Union[int, None]:
-        """The base PV, which is by default 4 if not set. Optional."""
+        """The base PV, which is by default 4 if not set. Optional.
+        The game adds 4 to internal PV values for display purposes, so we also do that here."""
         pv = None
         if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
             pv = 4
@@ -1067,7 +1071,12 @@ class QudObjectProps(QudObject):
                 pv += int(self.part_MeleeWeapon_PenBonus)
         missilepv = self.projectile_object('part_Projectile_BasePenetration')
         if missilepv is not None:
-            pv = int(missilepv) + 4  # add base 4 PV
+            pv = int(missilepv) + 4
+        if self.part_ThrownWeapon is not None:
+            pv = int_or_none(self.part_ThrownWeapon_Penetration)
+            if pv is None:
+                pv = 1
+            pv = pv + 4
         if pv is not None:
             return pv
 
