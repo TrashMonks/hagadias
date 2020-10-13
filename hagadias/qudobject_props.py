@@ -1205,8 +1205,13 @@ class QudObjectProps(QudObject):
         if self.is_specified('part_Physics_Solid'):
             if self.part_Physics_Solid == 'true' or self.part_Physics_Solid == 'True':
                 return True
-            else:
-                return False
+            # add some if-exclusions for things that shouldn't say 'can be walked over/through':
+            if self.inheritingfrom == 'Door':  # security doors
+                return None
+            if self.part_ThrownWeapon is not None:  # thrown weapons for some reason often specify Solid="false"
+                if 'Boulder' not in self.name:
+                    return None
+            return False
 
     @property
     def spectacles(self) -> Union[bool, None]:
