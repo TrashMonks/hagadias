@@ -379,7 +379,7 @@ class QudObjectProps(QudObject):
             val = self.part_MeleeWeapon_BaseDamage
         if self.part_Gaslight:
             val = self.part_Gaslight_ChargedDamage
-        if self.is_specified('part_ThrownWeapon'):
+        if self.part_ThrownWeapon is not None:
             if self.is_specified('part_GeomagneticDisc'):
                 val = self.part_GeomagneticDisc_Damage
             else:
