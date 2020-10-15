@@ -11,6 +11,7 @@ from anytree import NodeMixin  # noqa E402
 
 from hagadias.qudtile import QudTile  # noqa E402
 from hagadias.tilepainter import TilePainter  # noqa E402
+from hagadias.tileanimator import TileAnimator  # noqa E402
 
 HOLO_PARTS = ['part_HologramMaterial',
               'part_HologramWallMaterial',
@@ -162,6 +163,22 @@ class QudObject(NodeMixin):
         if self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete":
             return True
         return False
+
+    @property
+    def gif_image(self):
+        """Returns the rendered GIF for this QudObject, which is a PIL Image object.
+
+        Created on demand and then cached in self._gif after first call."""
+        if not hasattr(self, '_gif'):
+            if not self.has_gif_tile():
+                self._gif = None
+            else:
+                self._gif = TileAnimator(self).gif
+        return self._gif
+
+    def has_gif_tile(self) -> bool:
+        """Returns true if this object qualifies for GIF rendering."""
+        return TileAnimator(self).has_gif
 
     def resolve_inheritance(self) -> Tuple[dict, dict]:
         """Compute and return dictionaries with all inherited tags and attributes.
