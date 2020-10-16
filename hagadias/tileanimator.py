@@ -35,7 +35,12 @@ class TileAnimator:
     @property
     def gif(self) -> Image:
         """Selects an animation algorithm and applies it. This results in the creation of the GIF image,
-        a PIL Image object, which is cached in the _gif_image attribute of this class."""
+        a PIL Image object, which is cached in the _gif_image attribute of this class.
+
+        Note that a PIL Image object is really only a single frame of the GIF. PIL exposes an iterator
+        that you can use to walk the GIF frames if you need to (ImageSequence.Iterator). If you want to
+        save this GIF to a file or bytestream, make sure to specify 'save_all=True' in the Image.save()
+        method to save all of the GIF frames together, otherwise only the first will be saved."""
         if not self.is_valid:
             return None
         if self._gif_image is None:
@@ -54,9 +59,15 @@ class TileAnimator:
         """Performs the actual GIF Image creation. Resizes the supplied array of QudTile frames, and appends
         them together as a GIF Image with the specified frame durations."""
         frame = qud_tiles[0].get_big_image()
-        next_frames = []
+        next_frames: List[Image] = []
         for img in qud_tiles[1:]:
             next_frames.append(img.get_big_image())
         gif_b = io.BytesIO()
-        frame.save(gif_b, format='gif', save_all=True, append_images=next_frames, duration=durations, loop=0)
+        frame.save(gif_b,
+                   format='GIF',
+                   save_all=True,
+                   append_images=next_frames,
+                   duration=durations,
+                   loop=0)
+        gif_b.seek(0)
         self._gif_image = Image.open(gif_b)
