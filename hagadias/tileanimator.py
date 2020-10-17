@@ -2,6 +2,7 @@ import io
 from typing import List
 from PIL import Image
 from hagadias.qudtile import QudTile
+from hagadias.tileanimator_creategif import save_transparent_gif
 
 
 class TileAnimator:
@@ -63,11 +64,21 @@ class TileAnimator:
         for img in qud_tiles[1:]:
             next_frames.append(img.get_big_image())
         gif_b = io.BytesIO()
-        frame.save(gif_b,
-                   format='GIF',
-                   save_all=True,
-                   append_images=next_frames,
-                   duration=durations,
-                   loop=0)
+
+        # The following SHOULD work, but there's a bug with the PIL library when creating a new GIF that includes
+        # transparency, which causes the GIF to have a black background, among other problems. This doesn't seem to
+        # affect subsequent saves after creation, so you can use Image.save() elsewhere in the code to save this
+        # GIF instance. For example, we do this in MainWindow.save_selected_tile().
+        #   frame.save(gif_b,
+        #              format='GIF',
+        #              save_all=True,
+        #              append_images=next_frames,
+        #              transparency=transparency_palette_index,
+        #              duration=durations,
+        #              loop=0)
+
+        # Workaround code for transparent GIF creation:
+        save_transparent_gif([frame] + next_frames, durations, gif_b)
+
         gif_b.seek(0)
         self._gif_image = Image.open(gif_b)
