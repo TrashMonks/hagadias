@@ -106,3 +106,17 @@ class GifHelper:
         for frame in ImageSequence.Iterator(gif_image):
             durations.append(frame.info['duration'])
         gif_image.save(save_target, format='GIF', save_all=True, duration=durations, loop=0)
+
+    @staticmethod
+    def get_bytes(gif_image: Image):
+        """Converts a GIF PIL Image object to its bytes representation"""
+        gif_b = io.BytesIO()
+        GifHelper.save(gif_image, gif_b)
+        return gif_b.getvalue()
+
+    @staticmethod
+    def get_bytesio(gif_image: Image):
+        """Converts a GIF PIL Image object to its BytesIO representation"""
+        gif_b = io.BytesIO()
+        GifHelper.save(gif_image, gif_b)
+        return gif_b
