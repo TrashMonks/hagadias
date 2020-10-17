@@ -58,7 +58,14 @@ class TileAnimator:
 
     def _make_gif(self, qud_tiles: List[QudTile], durations: List[int]) -> Image:
         """Performs the actual GIF Image creation. Resizes the supplied array of QudTile frames, and appends
-        them together as a GIF Image with the specified frame durations (in milliseconds)."""
+        them together as a GIF Image with the specified frame durations (in milliseconds).
+
+        Args:
+            qud_tiles: The list of QudTile objects that compose this GIF animation
+            durations: The list of durations for each frame in the GIF animation. You should specify durations as
+                       milliseconds, but note that they actually only have one tenth of that resolution, because GIF
+                       images work on a 100-tick-per-second model. For example, 50 will be internally converted to 5
+        """
         frame = qud_tiles[0].get_big_image()
         next_frames: List[Image] = []
         for img in qud_tiles[1:]:
@@ -67,8 +74,8 @@ class TileAnimator:
 
         # The following SHOULD work, but there's a bug with the PIL library when creating a new GIF that includes
         # transparency, which causes the GIF to have a black background, among other problems. This doesn't seem to
-        # affect subsequent saves after creation, so you can use Image.save() elsewhere in the code to save this
-        # GIF instance. For example, we do this in MainWindow.save_selected_tile().
+        # affect subsequent saves after creation, so you can use Image.save() or GifHelper.save() elsewhere in the
+        # code to save this GIF instance. For example, we save the GIF in MainWindow.save_selected_tile().
         #   frame.save(gif_b,
         #              format='GIF',
         #              save_all=True,
