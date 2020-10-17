@@ -1,6 +1,6 @@
 import io
 from typing import List
-from PIL import Image
+from PIL import Image, ImageSequence
 from hagadias.qudtile import QudTile
 from hagadias.tileanimator_creategif import save_transparent_gif
 
@@ -40,8 +40,8 @@ class TileAnimator:
 
         Note that a PIL Image object is really only a single frame of the GIF. PIL exposes an iterator
         that you can use to walk the GIF frames if you need to (ImageSequence.Iterator). If you want to
-        save this GIF to a file or bytestream, make sure to specify 'save_all=True' in the Image.save()
-        method to save all of the GIF frames together, otherwise only the first will be saved."""
+        save this GIF to a file or bytestream, you should call GifHelper.save() to ensure that all
+        frames and animation delays are properly preserved."""
         if not self.is_valid:
             return None
         if self._gif_image is None:
@@ -54,11 +54,11 @@ class TileAnimator:
         tile = self.qud_object.tile
         frame1and2 = QudTile(tile.filename, '&Y', None, 'C', tile.qudname, tile.raw_transparent)
         frame3 = QudTile(tile.filename, '&C', None, 'C', tile.qudname, tile.raw_transparent)
-        self._make_gif([frame1and2, frame3], [4, 2])
+        self._make_gif([frame1and2, frame3], [40, 20])
 
     def _make_gif(self, qud_tiles: List[QudTile], durations: List[int]) -> Image:
         """Performs the actual GIF Image creation. Resizes the supplied array of QudTile frames, and appends
-        them together as a GIF Image with the specified frame durations."""
+        them together as a GIF Image with the specified frame durations (in milliseconds)."""
         frame = qud_tiles[0].get_big_image()
         next_frames: List[Image] = []
         for img in qud_tiles[1:]:
@@ -82,3 +82,20 @@ class TileAnimator:
 
         gif_b.seek(0)
         self._gif_image = Image.open(gif_b)
+
+
+class GifHelper:
+
+    @staticmethod
+    def save(gif_image: Image, save_target):
+        """Saves an existing GIF PIL Image object, ensuring that frames and animation delays are properly preserved.
+
+        Args:
+            gif_image: A GIF PIL Image object
+            save_target: A filename (string), pathlib.Path object or file object. (This parameter corresponds
+                         and is passed to the PIL.Image.save() method.)
+        """
+        durations = []
+        for frame in ImageSequence.Iterator(gif_image):
+            durations.append(frame.info['duration'])
+        gif_image.save(save_target, format='GIF', save_all=True, duration=durations, loop=0)
