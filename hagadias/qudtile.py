@@ -3,7 +3,7 @@ import io
 import logging
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 from hagadias.constants import QUD_COLORS, QUD_VIRIDIAN
 
@@ -161,14 +161,11 @@ class StandInTiles:
 
     @staticmethod
     def hologram_material_glyph1() -> Image:
-        """Creates a PIL Image representation of the  |  character, which is used by HologramMaterial animations.
-
-        This image is pre-colored, because it looks better with slight transparency applied to soften the edges."""
+        """Creates a PIL Image representation of the  |  character, which is used by HologramMaterial animations."""
         if StandInTiles._hologram_material_glyph1 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
-            for y in range(1, image.height - 1):
-                for x in range(7, 9):
-                    image.putpixel((x, y), TILE_COLOR)
+            draw = ImageDraw.Draw(image)
+            draw.rectangle([7, 1, 8, image.height-1], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph1 = image
         return StandInTiles._hologram_material_glyph1
 
@@ -177,9 +174,8 @@ class StandInTiles:
         """Creates a PIL Image representation of the  _  character, which is used by HologramMaterial animations."""
         if StandInTiles._hologram_material_glyph2 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
-            for y in range(21, 24):
-                for x in range(image.width):
-                    image.putpixel((x, y), TILE_COLOR)
+            draw = ImageDraw.Draw(image)
+            draw.rectangle([1, 21, image.width-1, 22], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph2 = image
         return StandInTiles._hologram_material_glyph2
 
@@ -188,8 +184,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  -  character, which is used by HologramMaterial animations."""
         if StandInTiles._hologram_material_glyph3 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
-            for y in range(11, 13):
-                for x in range(2, 14):
-                    image.putpixel((x, y), TILE_COLOR)
+            draw = ImageDraw.Draw(image)
+            draw.rectangle([2, 11, 13, 12], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph3 = image
         return StandInTiles._hologram_material_glyph3
