@@ -119,6 +119,7 @@ class TileAnimator:
         #              append_images=next_frames,
         #              transparency=transparency_palette_index,
         #              duration=durations,
+        #              disposal=2
         #              loop=0)
 
         # Workaround code for transparent GIF creation:
