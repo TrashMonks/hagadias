@@ -33,7 +33,19 @@ class QudTile:
     # https://discordapp.com/channels/214532333900922882/482714670860468234/762827742424465411
 
     def __init__(self, filename, colorstring, raw_tilecolor, raw_detailcolor, qudname,
-                 raw_transparent="transparent"):
+                 raw_transparent="transparent", image_provider=None):
+        """Loads and colors a tile, creating the corresponding PIL Image object.
+
+        Args:
+            filename: filename of the tile source image. Set to None if the image_provider parameter is specified.
+            colorstring: the ColorString associated with this tile.
+            raw_tilecolor: the TileColor associated with this tile.
+            raw_detailcolor: the DetailColor associated with this tile.
+            qudname: name of the Qud object. Used only for debug purposes.
+            raw_transparent: an override color to use to fill the transparent pixels of the source.
+            image_provider: a method that returns a PIL Image object. Can be used instead of a filename. If
+                            specified, QudTile will call Image.copy() to avoid altering the provided image.
+        """
         self.hasproblems = False  # set True if problems with tile generation encountered
         self.filename = filename
         self.colorstring = colorstring
@@ -58,24 +70,28 @@ class QudTile:
             raw_tilecolor = QUD_COLORS[raw_tilecolor.strip('&')]
             self.tilecolor = raw_tilecolor
             self.transparentcolor = QUD_COLORS[raw_transparent]
-        filename = fix_filename(filename)
         if raw_detailcolor is None:
             self.detailcolor = QUD_COLORS['transparent']
         else:
             self.detailcolor = QUD_COLORS[raw_detailcolor.strip('&')]
-        if filename in image_cache:
-            self.image = image_cache[filename].copy()
+        if image_provider is not None:
+            self.image = image_provider().copy()
             self._color_image()
         else:
-            fullpath = tiles_dir / filename
-            try:
-                self.image = Image.open(fullpath)
-                image_cache[filename] = self.image.copy()
+            filename = fix_filename(filename)
+            if filename in image_cache:
+                self.image = image_cache[filename].copy()
                 self._color_image()
-            except FileNotFoundError:
-                logging.warning(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
-                self.hasproblems = True
-                self.image = blank_image
+            else:
+                fullpath = tiles_dir / filename
+                try:
+                    self.image = Image.open(fullpath)
+                    image_cache[filename] = self.image.copy()
+                    self._color_image()
+                except FileNotFoundError:
+                    logging.warning(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
+                    self.hasproblems = True
+                    self.image = blank_image
 
     def _color_image(self):
         for y in range(self.image.height):
@@ -132,3 +148,48 @@ class QudTile:
         bytesio = self.get_big_bytesio()
         bytesio.seek(0)
         return bytesio.read()
+
+
+class StandInTiles:
+    """Provides PIL Image representations of certain Code Page 437 characters that are used for animations.
+
+    Methods in this class return an uncolored tile image constructed from only black and transparent pixels.
+    """
+    _hologram_material_glyph1: Image = None
+    _hologram_material_glyph2: Image = None
+    _hologram_material_glyph3: Image = None
+
+    @staticmethod
+    def hologram_material_glyph1() -> Image:
+        """Creates a PIL Image representation of the  |  character, which is used by HologramMaterial animations.
+
+        This image is pre-colored, because it looks better with slight transparency applied to soften the edges."""
+        if StandInTiles._hologram_material_glyph1 is None:
+            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            for y in range(1, image.height - 1):
+                for x in range(7, 9):
+                    image.putpixel((x, y), TILE_COLOR)
+            StandInTiles._hologram_material_glyph1 = image
+        return StandInTiles._hologram_material_glyph1
+
+    @staticmethod
+    def hologram_material_glyph2() -> Image:
+        """Creates a PIL Image representation of the  _  character, which is used by HologramMaterial animations."""
+        if StandInTiles._hologram_material_glyph2 is None:
+            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            for y in range(21, 24):
+                for x in range(image.width):
+                    image.putpixel((x, y), TILE_COLOR)
+            StandInTiles._hologram_material_glyph2 = image
+        return StandInTiles._hologram_material_glyph2
+
+    @staticmethod
+    def hologram_material_glyph3() -> Image:
+        """Creates a PIL Image representation of the  -  character, which is used by HologramMaterial animations."""
+        if StandInTiles._hologram_material_glyph3 is None:
+            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            for y in range(11, 13):
+                for x in range(2, 14):
+                    image.putpixel((x, y), TILE_COLOR)
+            StandInTiles._hologram_material_glyph3 = image
+        return StandInTiles._hologram_material_glyph3

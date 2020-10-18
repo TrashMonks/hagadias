@@ -139,6 +139,8 @@ def _create_animated_gif(images: List[Image], durations: Union[int, List[int]]) 
 def save_transparent_gif(images: List[Image], durations: Union[int, List[int]], save_file):
     """Creates a transparent GIF, adjusting to avoid transparency issues that are present in the PIL library
 
+    Note that this does NOT work for partial alpha. The partial alpha gets discarded and replaced by solid colors.
+
     Parameters:
         images: a list of PIL Image objects that compose the GIF frames
         durations: an int or List[int] that describes the animation durations for the frames of this GIF
