@@ -158,6 +158,10 @@ class StandInTiles:
     _hologram_material_glyph1: Image = None
     _hologram_material_glyph2: Image = None
     _hologram_material_glyph3: Image = None
+    _gas_glyph1: Image = None
+    _gas_glyph2: Image = None
+    _gas_glyph3: Image = None
+    _gas_glyph4: Image = None
 
     @staticmethod
     def hologram_material_glyph1() -> Image:
@@ -188,3 +192,62 @@ class StandInTiles:
             draw.rectangle([2, 11, 13, 12], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph3 = image
         return StandInTiles._hologram_material_glyph3
+
+    @staticmethod
+    def gas_glyph1() -> Image:
+        """Creates a PIL Image representation of the  ░  character, which is used by Gas animations."""
+        if StandInTiles._gas_glyph1 is None:
+            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            draw = ImageDraw.Draw(image)
+            for y in range(0, image.height, 6):
+                for x in range(4, image.width, 6):
+                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+            for y in range(2, image.height, 6):
+                for x in range(0, image.width, 6):
+                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+            for y in range(4, image.height, 6):
+                for x in range(2, image.width, 6):
+                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+            StandInTiles._gas_glyph1 = image
+        return StandInTiles._gas_glyph1
+
+    @staticmethod
+    def gas_glyph2() -> Image:
+        """Creates a PIL Image representation of the  ▒  character, which is used by Gas animations."""
+        if StandInTiles._gas_glyph2 is None:
+            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            draw = ImageDraw.Draw(image)
+            for y in range(0, image.height, 4):
+                for x in range(0, image.width, 4):
+                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+            for y in range(2, image.height, 4):
+                for x in range(2, image.width, 4):
+                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+            StandInTiles._gas_glyph2 = image
+        return StandInTiles._gas_glyph2
+
+    @staticmethod
+    def gas_glyph3() -> Image:
+        """Creates a PIL Image representation of the  ▓  character, which is used by Gas animations."""
+        if StandInTiles._gas_glyph3 is None:
+            image = Image.new('RGBA', (16, 24), color=TILE_COLOR)
+            draw = ImageDraw.Draw(image)
+            for y in range(0, image.height, 8):
+                for x in range(6, image.width, 8):
+                    draw.rectangle([x, y, x+1, y+1], outline=QUD_COLORS['transparent'])
+            for y in range(2, image.height, 4):
+                for x in range(0, image.width, 4):
+                    draw.rectangle([x, y, x+1, y+1], outline=QUD_COLORS['transparent'])
+            for y in range(4, image.height, 8):
+                for x in range(2, image.width, 8):
+                    draw.rectangle([x, y, x+1, y+1], outline=QUD_COLORS['transparent'])
+            StandInTiles._gas_glyph3 = image
+        return StandInTiles._gas_glyph3
+
+    @staticmethod
+    def gas_glyph4() -> Image:
+        """Creates a PIL Image representation of the  █  character, which is used by Gas animations."""
+        if StandInTiles._gas_glyph4 is None:
+            image = Image.new('RGBA', (16, 24), color=TILE_COLOR)
+            StandInTiles._gas_glyph4 = image
+        return StandInTiles._gas_glyph4
