@@ -71,7 +71,7 @@ class TileAnimator:
         matches, because it'll always be the same (2) is predictable and we know it'll look halfway decent.
 
         We could potentially also add an 'apply_hologram_material_random' method if we want to randomize the
-        animation. For example, perhaps Cryptogull could apply hologram animation to any tile."""
+        animation. For example, perhaps Cryptogull could apply randomized holographic animation to any tile."""
         tile = self.qud_object.tile
         glyph1 = StandInTiles.hologram_material_glyph1
         glyph2 = StandInTiles.hologram_material_glyph2
