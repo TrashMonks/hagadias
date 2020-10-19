@@ -173,6 +173,17 @@ class StandInTiles:
     _gas_glyph4: Image = None
 
     @staticmethod
+    def get_tile_provider_for(qud_object):
+        """Returns a method that can provide a stand-in tile for the specified QudObject, if one is available. Enables
+        specifying tiles for things that don't actually have a tile specified in ObjectBlueprints.xml, but for which
+        it makes sense to 'fake' a tile by drawing their code page 437 character. The prime example is gases.
+
+        We could consider loading this from config eventually, but I doubt there will be many things that use it."""
+        if getattr(qud_object, 'part_Gas') is not None:
+            return StandInTiles.gas_glyph1
+        return None
+
+    @staticmethod
     def hologram_material_glyph1() -> Image:
         """Creates a PIL Image representation of the  |  character, which is used by HologramMaterial animations."""
         if StandInTiles._hologram_material_glyph1 is None:
