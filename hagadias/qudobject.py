@@ -11,7 +11,7 @@ from anytree import NodeMixin  # noqa E402
 
 from hagadias.qudtile import QudTile  # noqa E402
 from hagadias.tilepainter import TilePainter  # noqa E402
-from hagadias.tileanimator import TileAnimator  # noqa E402
+from hagadias.tileanimator import TileAnimator, StandInTiles  # noqa E402
 
 HOLO_PARTS = ['part_HologramMaterial',
               'part_HologramWallMaterial',
@@ -121,6 +121,12 @@ class QudObject(NodeMixin):
             elif self.is_specified('part_AnimatedMaterialStasisfield'):
                 # special handling for stasis fields
                 color, tilecolor, detail, trans = '&C^M', '&C^M', 'M', 'M'
+            elif self.is_specified('part_Gas') and self.part_Gas_ColorString is not None:
+                color = tilecolor = self.part_Gas_ColorString
+                detail = None
+                # gastype = self.part_Gas_GasType
+                # if gastype is None or 'Cryo' not in gastype:  # Cryo gas always retains ^Y background color
+                #     color = color.split('^')[0] + '^k'  # other gases have ^k unless they are > 50 density
             else:
                 # general case
                 color = self.part_Render_ColorString
@@ -135,7 +141,8 @@ class QudObject(NodeMixin):
                 # _ = self.part_Render_DetailColor
                 # detail = _ if _ else 'transparent'
 
-            # handle special tile attributes
+            # determine file and handle special tile attributes
+            file = None
             if (self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete") or \
                (self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete") or \
                self.part_Walltrap is not None:
@@ -148,7 +155,12 @@ class QudObject(NodeMixin):
                 file = self.part_Render_Tile
             if self.part_RandomTile:
                 file = self.part_RandomTile_Tiles.split(',')[0]
-            tile = QudTile(file, color, tilecolor, detail, self.name, raw_transparent=trans)
+            if file is not None:
+                tile = QudTile(file, color, tilecolor, detail, self.name, raw_transparent=trans)
+            else:
+                standin_tile_provider = StandInTiles.get_tile_provider_for(self)
+                if standin_tile_provider is not None:
+                    tile = QudTile(None, color, tilecolor, detail, self.name, trans, standin_tile_provider)
         self._tile = tile
         return tile
 
@@ -161,6 +173,8 @@ class QudObject(NodeMixin):
         if self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete":
             return True
         if self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete":
+            return True
+        if StandInTiles.get_tile_provider_for(self) is not None:
             return True
         return False
 

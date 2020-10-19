@@ -35,6 +35,8 @@ class TileAnimator:
                 return True
             if self.qud_object.part_HologramWallMaterial is not None:
                 return True
+            if self.qud_object.part_Gas is not None:
+                return True
         return False
 
     @property
@@ -55,6 +57,8 @@ class TileAnimator:
                 self.apply_hologram_material()
             if self.qud_object.part_HologramWallMaterial is not None:
                 self.apply_hologram_material()
+            if self.qud_object.part_Gas is not None:
+                self.apply_gas_animation()
         return self._gif_image
 
     def apply_animated_material_luminous(self) -> None:
@@ -63,6 +67,18 @@ class TileAnimator:
         frame1and2 = QudTile(tile.filename, '&Y', None, 'C', tile.qudname, tile.raw_transparent)
         frame3 = QudTile(tile.filename, '&C', None, 'C', tile.qudname, tile.raw_transparent)
         self._make_gif([frame1and2, frame3], [40, 20])
+
+    def apply_gas_animation(self) -> None:
+        t = self.qud_object.tile
+        glyph1 = StandInTiles.gas_glyph1
+        glyph2 = StandInTiles.gas_glyph2
+        glyph3 = StandInTiles.gas_glyph3
+        glyph4 = StandInTiles.gas_glyph4
+        frame1 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent, glyph1)
+        frame2 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent, glyph2)
+        frame3 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent, glyph3)
+        frame4 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent, glyph4)
+        self._make_gif([frame1, frame2, frame3, frame4], [250, 250, 250, 250])
 
     def apply_hologram_material(self) -> None:
         """Renders a GIF loosely based on the behavior of the HologramMaterial part.
