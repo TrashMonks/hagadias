@@ -65,7 +65,7 @@ class QudTile:
             self.transparentcolor = QUD_COLORS[raw_transparent]
         else:
             if '^' in raw_tilecolor:
-                # TODO: this seems to be for setting background
+                raw_transparent = raw_tilecolor.split('^')[1]
                 raw_tilecolor = raw_tilecolor.split('^')[0]
             raw_tilecolor = QUD_COLORS[raw_tilecolor.strip('&')]
             self.tilecolor = raw_tilecolor
