@@ -94,24 +94,33 @@ class QudTile:
                     self.image = blank_image
 
     def _color_image(self):
-        for y in range(self.image.height):
-            for x in range(self.image.width):
-                px = self.image.getpixel((x, y))
-                if px == TILE_COLOR:
-                    self.image.putpixel((x, y), self.tilecolor)
-                elif px == DETAIL_COLOR:
-                    self.image.putpixel((x, y), self.detailcolor)
-                elif px[3] == 0:
-                    self.image.putpixel((x, y), self.transparentcolor)
-                else:
-                    # custom tinted image: uses R channel of special color from tile
-                    final = []
-                    detailpercent = px[0] / 255  # get opacity from R channel of tricolor
-                    for tile, det in zip(self.tilecolor, self.detailcolor):
-                        minimum = min(tile, det)
-                        final.append(int(abs((tile - det) * detailpercent + minimum)))
-                    final.append(255)  # transparency
-                    self.image.putpixel((x, y), tuple(final))
+        skip_trans = True if self.transparentcolor == QUD_COLORS['transparent'] else False
+        alphas = self.image.getdata(3)  # A (alpha channel only)
+        pixels = self.image.getdata()   # RGBA (all four channels as a tuple)
+        width = self.image.width
+        index = -1
+        for alpha, pixel in zip(alphas, pixels):
+            index += 1
+            if alpha == 0 and skip_trans:
+                continue  # skip all pixels that are already transparent
+            x = index % width
+            y = index // 16
+            coords = (x, y)
+            if alpha == 0:
+                self.image.putpixel(coords, self.transparentcolor)
+            elif pixel == TILE_COLOR:
+                self.image.putpixel(coords, self.tilecolor)
+            elif pixel == DETAIL_COLOR:
+                self.image.putpixel(coords, self.detailcolor)
+            else:
+                # custom tinted image: uses R channel of special color from tile
+                final = []
+                detailpercent = pixel[0] / 255  # get opacity from R channel of tricolor
+                for tile, det in zip(self.tilecolor, self.detailcolor):
+                    minimum = min(tile, det)
+                    final.append(int(abs((tile - det) * detailpercent + minimum)))
+                final.append(255)  # transparency
+                self.image.putpixel(coords, tuple(final))
 
     def get_bytesio(self):
         """Get a BytesIO representation of a PNG encoding of the tile.
