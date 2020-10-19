@@ -117,7 +117,7 @@ class QudObject(NodeMixin):
             if (any(self.is_specified(part) for part in HOLO_PARTS)
                     or self.name == "Wraith-Knight Templar"):
                 # special handling for holograms
-                color, tilecolor, detail = '&B', '&B^b', 'b'
+                color, tilecolor, detail = '&B', '&B', 'b'
             elif self.is_specified('part_AnimatedMaterialStasisfield'):
                 # special handling for stasis fields
                 color, tilecolor, detail, trans = '&C^M', '&C^M', 'M', 'M'
