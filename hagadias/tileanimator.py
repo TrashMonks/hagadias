@@ -58,6 +58,8 @@ class TileAnimator:
                 animators.append(self.apply_animated_material_generic)
         if obj.part_AnimatedMaterialLuminous is not None:
             animators.append(self.apply_animated_material_luminous)
+        if obj.part_AnimatedMaterialMainframeTapeDrive is not None:
+            animators.append(self.apply_animated_material_mainframe_tape_drive)
         if obj.part_Gas is not None:
             animators.append(self.apply_gas_animation)
         if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
@@ -186,6 +188,44 @@ class TileAnimator:
         frame1and2 = QudTile(tile.filename, '&Y', None, 'C', tile.qudname, tile.raw_transparent)
         frame3 = QudTile(tile.filename, '&C', None, 'C', tile.qudname, tile.raw_transparent)
         self._make_gif([frame1and2, frame3], [40, 20])
+
+    def apply_animated_material_mainframe_tape_drive(self) -> None:
+        """Renders a GIF loosely based on the behavior of the AnimatedMaterialMainframeTapeDrive."""
+        t = self.qud_object.tile
+        pre = t.filename.split('-')[0][:-1]
+        post = '-' + t.filename.split('-')[1]
+        file1, file2, file3, file4 = f'{pre}1{post}', f'{pre}2{post}', f'{pre}3{post}', f'{pre}4{post}'
+        frames: List[QudTile] = [
+            QudTile(file1, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent),
+            QudTile(file2, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent),
+            QudTile(file3, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent),
+            QudTile(file4, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent)]
+        # tape drive rotates forward once every 500ms. But it also has a 1/64 chance (each) to enter RushingForward or
+        # RushingBackward mode for a random duration between 15-120 frames. We have to restrain ourselves a bit to
+        # keep the GIF at a manageable size. The GIF generated below is 80 frames and 926KB.
+        sequence = []
+        durations = []
+        for cycle in range(2):  # Normal forward
+            for rotation in range(4):
+                sequence.append(frames[rotation])
+                durations.append(500)
+        for cycle in range(12):  # RushingBackward
+            for rotation in [2, 1, 0, 3]:
+                sequence.append(frames[rotation])
+                durations.append(20)
+        for cycle in range(1):  # Normal forward
+            for rotation in range(4):
+                sequence.append(frames[rotation])
+                durations.append(500)
+        for cycle in range(4):  # RushingForward
+            for rotation in range(4):
+                sequence.append(frames[rotation])
+                durations.append(20)
+        for cycle in range(1):  # Normal forward
+            for rotation in range(4):
+                sequence.append(frames[rotation])
+                durations.append(500)
+        self._make_gif(sequence, durations)
 
     def apply_gas_animation(self) -> None:
         """Renders a GIF that replicates the behavior of the Gas part."""
