@@ -170,7 +170,7 @@ class TileAnimator:
             detail = source_tile.raw_detailcolor if (detail is None or detail == 'default') else detail
             # Some complexity follows: if ColorStringAnimationFrames is not specified or is 'default', the game
             # uses the Render part ColorString and does NOT touch TileColor. However, if ColorStringAnimationFrames
-            # IS specified, the game will (effectivelY) set the specified color to BOTH ColorString and TileColor:
+            # IS specified, the game will (effectively) set the specified color to BOTH ColorString and TileColor:
             animation_color_is_unspecified = (color is None or color == 'default')
             color = source_tile.colorstring if animation_color_is_unspecified else color
             tile_color = source_tile.raw_tilecolor if animation_color_is_unspecified else color
