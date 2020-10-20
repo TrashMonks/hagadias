@@ -66,15 +66,12 @@ class TilePainter:
         # the same base (IPowerTransmission) but the logic for rendering IPowerTransmission objects is very complex.
         if self.obj.part_HydraulicPowerTransmission:
             if self.obj.part_HydraulicPowerTransmission_TileEffects == 'true':
-                if self.obj.part_HydraulicPowerTransmission_TileAnimateSuppressWhenUnbroken:
-                    append = self.obj.part_HydraulicPowerTransmission_TileAppendWhenBrokenAndPowered
-                    if append:
-                        tilename = tilename + append + '_1'
-                else:
-                    powered = self.obj.part_HydraulicPowerTransmission_TileAppendWhenPowered
-                    unbroken = self.obj.part_HydraulicPowerTransmission_TileAppendWhenUnbroken
-                    if powered and unbroken:
-                        tilename = tilename + powered + unbroken + '_1'
+                powered = self.obj.part_HydraulicPowerTransmission_TileAppendWhenPowered
+                unbroken = self.obj.part_HydraulicPowerTransmission_TileAppendWhenUnbroken
+                if powered and unbroken:
+                    tilename = tilename + powered + unbroken
+                if not self.obj.part_HydraulicPowerTransmission_TileAnimateSuppressWhenUnbroken:
+                    tilename += '_1'
         if self.obj.part_MechanicalPowerTransmission:
             if self.obj.part_MechanicalPowerTransmission_TileEffects == 'true':
                 tilename = tilename + '_1'
@@ -108,3 +105,7 @@ class TilePainter:
     @staticmethod
     def parse_paint_path(path: str) -> str:
         return path.split(',')[0]
+
+    @staticmethod
+    def is_painted_fence(qud_object) -> bool:
+        return qud_object.tag_PaintedFence is not None and qud_object.tag_PaintedFence_Value != "*delete"
