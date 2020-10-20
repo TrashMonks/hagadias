@@ -58,6 +58,8 @@ class TileAnimator:
         if not self.is_valid:
             return animators
         obj = self.qud_object
+        if obj.part_AnimatedMaterialElectric is not None:
+            animators.append(self.apply_animated_material_electric)
         if obj.part_AnimatedMaterialGeneric is not None or obj.part_AnimatedMaterialGenericAlternate is not None:
             if obj.name != 'Telescope':  # manually excluded objects
                 animators.append(self.apply_animated_material_generic)
@@ -79,6 +81,13 @@ class TileAnimator:
         if obj.part_Walltrap is not None:
             animators.append(self.apply_walltrap_animation)
         return animators
+
+    def apply_animated_material_electric(self) -> None:
+        """Renders a GIF loosely based on the behavior of the AnimatedMaterialElectric part."""
+        tile = self.qud_object.tile
+        frame1and2 = QudTile(tile.filename, '&W', None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame3 = QudTile(tile.filename, '&Y', None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        self._make_gif([frame1and2, frame3], [40, 20])
 
     def apply_animated_material_generic(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialGeneric and
