@@ -4,6 +4,7 @@ import itertools
 import os
 import random
 import re
+from math import gcd
 from typing import Iterator, List, Tuple, Union
 
 import pefile
@@ -292,3 +293,16 @@ def pos_or_neg(num: int) -> str:
     if int(num) >= 0:
         return '+'
     return "-"
+
+
+def lowest_common_multiple(a, b) -> int:
+    return abs(a*b) // gcd(a, b)
+
+
+def parse_comma_equals_str_into_dict(values: str, output: dict):
+    if values is not None and len(values) > 0:
+        for entry in values.split(','):
+            info = entry.split('=')
+            val = int_or_none(info[0])
+            if val is not None and len(info) == 2:
+                output[val] = info[1]

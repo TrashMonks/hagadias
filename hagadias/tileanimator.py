@@ -1,6 +1,8 @@
 from io import BytesIO
-from typing import List
+from typing import List, Callable
 from PIL import Image, ImageSequence
+
+from hagadias.helpers import lowest_common_multiple, parse_comma_equals_str_into_dict
 from hagadias.qudtile import QudTile, StandInTiles
 from hagadias.tileanimator_creategif import save_transparent_gif
 
@@ -28,16 +30,7 @@ class TileAnimator:
     @property
     def has_gif(self) -> bool:
         """Whether this TileAnimator's QudObject qualifies for GIF rendering."""
-        if self.is_valid:
-            if self.qud_object.part_AnimatedMaterialLuminous is not None:
-                return True
-            if self.qud_object.part_HologramMaterial is not None:
-                return True
-            if self.qud_object.part_HologramWallMaterial is not None:
-                return True
-            if self.qud_object.part_Gas is not None:
-                return True
-        return False
+        return len(self.get_animators()) > 0
 
     @property
     def gif(self) -> Image:
@@ -48,18 +41,141 @@ class TileAnimator:
         that you can use to walk the GIF frames if you need to (ImageSequence.Iterator). If you want to
         save this GIF to a file or bytestream, you should call GifHelper.save() to ensure that all
         frames and animation delays are properly preserved."""
-        if not self.is_valid:
-            return None
         if self._gif_image is None:
-            if self.qud_object.part_AnimatedMaterialLuminous is not None:
-                self.apply_animated_material_luminous()
-            if self.qud_object.part_HologramMaterial is not None:
-                self.apply_hologram_material()
-            if self.qud_object.part_HologramWallMaterial is not None:
-                self.apply_hologram_material()
-            if self.qud_object.part_Gas is not None:
-                self.apply_gas_animation()
+            for animation_applicator in self.get_animators():
+                animation_applicator()
         return self._gif_image
+
+    def get_animators(self) -> List[Callable]:
+        """Returns all of the animation methods that are relevant to this object."""
+        animators = []
+        if not self.is_valid:
+            return animators
+        obj = self.qud_object
+        if obj.part_AnimatedMaterialLuminous is not None:
+            animators.append(self.apply_animated_material_luminous)
+        if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
+            animators.append(self.apply_hologram_material)
+        if obj.part_Gas is not None:
+            animators.append(self.apply_gas_animation)
+        if obj.part_AnimatedMaterialGeneric is not None or obj.part_AnimatedMaterialGenericAlternate is not None:
+            if obj.name != 'Telescope':  # manually excluded objects
+                animators.append(self.apply_animated_material_generic)
+        return animators
+
+    def apply_animated_material_generic(self) -> None:
+        """Renders a GIF loosely based on the behavior of the AnimatedMaterialGeneric and
+        AnimatedMaterialGenericAlternate parts."""
+        source_tile = self.qud_object.tile
+        max_frames = 40  # set an upper limit to animation length to limit .gif size
+        anim_parts = []
+        if self.qud_object.part_AnimatedMaterialGeneric is not None:
+            anim_parts.append(self.qud_object.part_AnimatedMaterialGeneric)
+        if self.qud_object.part_AnimatedMaterialGenericAlternate is not None:
+            anim_parts.append(self.qud_object.part_AnimatedMaterialGenericAlternate)
+
+        # adjustments for particular objects
+        # AnimatedMaterialGenericAlternate is often inherited from HighTechInstallation and used as the 'unpowered'
+        # animation, so we don't always want to show it if we're animating an object that also has a 'powered' animation
+        remove_alternate = ['Force Projector', 'GritGateChromeBeacon', 'Rodanis Y', 'Industrial Fan']
+        if self.qud_object.name in remove_alternate:
+            anim_parts.pop()  # ignore AnimatedMaterialGenericAlternate
+
+        # get greatest animation length and move that animation to front of array
+        max_animation_length = 60
+        len1, len2 = 60, 60
+        if 'AnimationLength' in anim_parts[0]:
+            len1 = max_animation_length = int(anim_parts[0]['AnimationLength'])
+        if len(anim_parts) == 2 and 'AnimationLength' in anim_parts[1]:
+            len2 = int(anim_parts[1]['AnimationLength'])
+            if len2 > max_animation_length:
+                max_animation_length = int(anim_parts[1]['AnimationLength'])
+                anim_parts[0], anim_parts[1] = anim_parts[1], anim_parts[0]
+                len1, len2 = len2, len1
+
+        # if necessary, calculate lowest common multiple of out-of-sync animation lengths
+        total_duration = max_animation_length
+        if len(anim_parts) > 1:
+            total_duration = lowest_common_multiple(len1, len2)
+
+        # extract frames from each animation
+        tileframes: List[dict] = [{}, {}]
+        colorframes: List[dict] = [{}, {}]
+        detailframes: List[dict] = [{}, {}]
+        for part, tframes, cframes, dframes in zip(anim_parts, tileframes, colorframes, detailframes):
+            # set first frame to 'default' to absorb object's base render properties using special logic below
+            tframes[0] = 'default'
+            cframes[0] = 'default'
+            dframes[0] = 'default'
+            # add additional frames based on AnimatedMaterial* part
+            if 'TileAnimationFrames' in part:
+                parse_comma_equals_str_into_dict(part['TileAnimationFrames'], tframes)
+            if 'ColorStringAnimationFrames' in part:
+                parse_comma_equals_str_into_dict(part['ColorStringAnimationFrames'], cframes)
+            if 'DetailColorAnimationFrames' in part:
+                parse_comma_equals_str_into_dict(part['DetailColorAnimationFrames'], dframes)
+
+        # merge animation frames until we reach total_duration or we hit the max_frames limit
+        sequenced_animation = []
+        tick, max_tick = -1, max_frames * 300
+        frame_index, last_frame_tick, idx1, idx2 = 0, 0, 0, 0
+        while tick < max_tick and tick < (total_duration - 1) and frame_index <= max_frames:
+            tick += 1
+            tile, color, detail = None, None, None
+            idx1 = tick % len1
+            idx2 = tick % len2
+            if idx1 in tileframes[0]:
+                tile = tileframes[0][idx1]
+            if idx1 in colorframes[0]:
+                color = colorframes[0][idx1]
+            if idx1 in detailframes[0]:
+                detail = detailframes[0][idx1]
+            if idx2 in tileframes[1]:
+                tile = tileframes[1][idx2]
+            if idx2 in colorframes[1]:
+                color = colorframes[1][idx2]
+            if idx2 in detailframes[1]:
+                detail = detailframes[1][idx2]
+            if tile is None and color is None and detail is None:
+                continue
+            sequenced_animation.append((-1, tile, color, detail))
+            if frame_index > 0:
+                # insert duration into previous frame
+                duration = tick - last_frame_tick
+                prev_frame = sequenced_animation[frame_index - 1]
+                sequenced_animation[frame_index - 1] = (duration, prev_frame[1], prev_frame[2], prev_frame[3])
+            frame_index += 1
+            last_frame_tick = tick
+        # insert duration into final frame (or remove it)
+        if tick == (total_duration - 1) or tick == max_tick:
+            duration = tick - last_frame_tick
+            last_frame = sequenced_animation[-1]
+            sequenced_animation[-1] = (duration, last_frame[1], last_frame[2], last_frame[3])
+        elif frame_index > max_frames:
+            sequenced_animation.pop()
+
+        finalized_tiles = []
+        finalized_durations = []
+        for frame in sequenced_animation:
+            duration, tile, color, detail = frame
+            # calculate GIF duration
+            duration = (duration * (100 / 60)) // 1  # convert from game's 60fps to gif format's 100fps
+            duration = duration * 10  # convert to 1000ms rate used by PIL Image
+            finalized_durations.append(duration)
+            # determine tile and colors for this animation frame
+            tile = source_tile.filename if (tile is None or tile == 'default') else tile
+            detail = source_tile.raw_detailcolor if (detail is None or detail == 'default') else detail
+            # Some complexity follows: if ColorStringAnimationFrames is not specified or is 'default', the game
+            # uses the Render part ColorString and does NOT touch TileColor. However, if ColorStringAnimationFrames
+            # IS specified, the game will (effectivelY) set the specified color to BOTH ColorString and TileColor:
+            animation_color_is_unspecified = (color is None or color == 'default')
+            color = source_tile.colorstring if animation_color_is_unspecified else color
+            tile_color = source_tile.raw_tilecolor if animation_color_is_unspecified else color
+            # create tile
+            qud_tile = QudTile(tile, color, tile_color, detail, source_tile.qudname, source_tile.raw_transparent)
+            finalized_tiles.append(qud_tile)
+        # generate GIF
+        self._make_gif(finalized_tiles, finalized_durations)
 
     def apply_animated_material_luminous(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialLuminous part."""
@@ -69,6 +185,7 @@ class TileAnimator:
         self._make_gif([frame1and2, frame3], [40, 20])
 
     def apply_gas_animation(self) -> None:
+        """Renders a GIF that replicates the behavior of the Gas part."""
         t = self.qud_object.tile
         glyph1 = StandInTiles.gas_glyph1
         glyph2 = StandInTiles.gas_glyph2
