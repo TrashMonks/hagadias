@@ -5,7 +5,7 @@ import os
 import random
 import re
 from math import gcd
-from typing import Iterator, List, Tuple, Union
+from typing import Iterator, List, Tuple, Union, Optional
 
 import pefile
 
@@ -289,17 +289,54 @@ def strip_oldstyle_qud_colors(text: str) -> str:
     return re.sub('&[rRwWcCbBgGmMyYkKoO]', '', text)
 
 
+def extract_color(colorstr: str, prefix_symbol: str) -> Union[str, None]:
+    """Generic function to extract a color codes and its prefixing symbol."""
+    c = None
+    if colorstr is not None and prefix_symbol in colorstr:
+        val = colorstr.split(prefix_symbol)[1]
+        if len(val) >= 1 and (val[0] in QUD_COLORS):
+            c = f'{prefix_symbol}{val[0]}'
+    return c
+
+
+def extract_background_color(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+    """Extracts the background (^) color from a colorstring, including both the caret and the color character."""
+    bg = extract_color(colorstr, '^')
+    return default if bg is None else bg
+
+
+def extract_background_char(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+    """Extracts the background (^) color from a colorstring, returning only the single character color code."""
+    bg = extract_background_color(colorstr, f'^{default}')
+    return None if bg is None else bg[1]
+
+
+def extract_foreground_color(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+    """Extracts the foreground (&) color from a colorstring, including both the ampersand and the color character."""
+    fg = extract_color(colorstr, '&')
+    return default if fg is None else fg
+
+
+def extract_foreground_char(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+    """Extracts the foreground (&) color from a colorstring, returning only the single character color code."""
+    fg = extract_foreground_color(colorstr, f'&{default}')
+    return None if fg is None else fg[1]
+
+
 def pos_or_neg(num: int) -> str:
+    """Returns a + or - symbol depending on the positivity or negativity of the provided integer."""
     if int(num) >= 0:
         return '+'
     return "-"
 
 
 def lowest_common_multiple(a, b) -> int:
+    """Returns the lowest common multiple (LCM) of two integers."""
     return abs(a*b) // gcd(a, b)
 
 
 def parse_comma_equals_str_into_dict(values: str, output: dict):
+    """Consumes a string in the format '1=baa,2=boo,3=bop' and inserts key/value pairs into the provided dictionary."""
     if values is not None and len(values) > 0:
         for entry in values.split(','):
             info = entry.split('=')
