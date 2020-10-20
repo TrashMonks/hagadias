@@ -1,3 +1,4 @@
+import logging
 from io import BytesIO
 from typing import List, Callable
 from PIL import Image, ImageSequence
@@ -6,6 +7,10 @@ from hagadias.helpers import lowest_common_multiple, extract_foreground_char, ex
     parse_comma_equals_str_into_dict
 from hagadias.qudtile import QudTile, StandInTiles
 from hagadias.tileanimator_creategif import save_transparent_gif
+from hagadias.tilepainter import TilePainter
+
+POWER_TRANSMISSION_PARTS = ['ElectricalPowerTransmission', 'GenericPowerTransmission',
+                            'HydraulicPowerTransmission', 'MechanicalPowerTransmission']
 
 
 class TileAnimator:
@@ -64,6 +69,13 @@ class TileAnimator:
             animators.append(self.apply_gas_animation)
         if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
             animators.append(self.apply_hologram_material)
+        for partname in POWER_TRANSMISSION_PARTS:
+            part = getattr(obj, f'part_{partname}')
+            if part is not None and 'TileBaseFromTag' in part:
+                if 'TileEffects' in part and part['TileEffects'].lower() == 'true':
+                    taswu = 'TileAnimateSuppressWhenUnbroken'  # don't animate this stuff (ex: unbroken metal pipe)
+                    if taswu not in part or part[taswu].lower() != 'true':
+                        animators.append(self.apply_power_transmission)
         if obj.part_Walltrap is not None:
             animators.append(self.apply_walltrap_animation)
         return animators
@@ -268,6 +280,49 @@ class TileAnimator:
         seq3 = [frame3, base, frame2, base, frame7, frame9, base, frame4, base]
         dur3 = [40, 650, 40, 500, 10, 20, 900, 40, 350]
         self._make_gif(seq1 + seq2 + seq3, dur1 + dur2 + dur3)
+
+    def apply_power_transmission(self) -> None:
+        """Renders a GIF loosely based on the behavior of IPowerTransmission parts that have TileEffects enabled.
+
+        To simplify things, we assume that the object is powered and unbroken, ignoring other potential variations."""
+        obj, t = self.qud_object, self.qud_object.tile
+        part, tile_path_start = None, None
+        for partname in POWER_TRANSMISSION_PARTS:
+            part = getattr(obj, f'part_{partname}')
+            if part is not None and 'TileBaseFromTag' in part:
+                if 'TileEffects' in part and part['TileEffects'].lower() == 'true':
+                    tile_path_start = getattr(obj, f"tag_{part['TileBaseFromTag']}_Value")
+                    break
+        if tile_path_start is None or part is None:
+            logging.error(f'Unexpectedly failed to generate .gif for "{obj.name}" - missing Tile rendering tag?')
+            return
+        directory = t.filename.split(tile_path_start)[0]
+
+        # calculate tile path postfixes
+        first_postfix = ''
+        numeral_postfixes = []
+        if 'TileAppendWhenUnbrokenAndPowered' in part:
+            first_postfix += part['TileAppendWhenUnbrokenAndPowered']
+        else:
+            if 'TileAppendWhenPowered' in part:
+                first_postfix += part['TileAppendWhenPowered']
+            if 'TileAppendWhenUnbroken' in part:
+                first_postfix += part['TileAppendWhenUnbroken']
+        if 'TileAnimatePoweredFrames' in part:
+            for num in range(1, int(part['TileAnimatePoweredFrames']) + 1):
+                numeral_postfixes.append(f'_{num}')
+        final_postfix = '_nsew' if TilePainter.is_painted_fence(obj) else ''
+        ext = obj.tag_PaintedFenceExtension_Value
+        ext = ext if ext else '.bmp'
+
+        frame_duration = (100 // len(numeral_postfixes)) * 10  # divide frames evenly across 1000 milliseconds
+        frames = []
+        durations = []
+        for numeral_postfix in numeral_postfixes:
+            f = directory + tile_path_start + first_postfix + numeral_postfix + final_postfix + ext
+            frames.append(QudTile(f, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent))
+            durations.append(frame_duration)
+        self._make_gif(frames, durations)
 
     def apply_walltrap_animation(self) -> None:
         """Renders a GIF loosely based on the behavior of the Walltrap part."""
