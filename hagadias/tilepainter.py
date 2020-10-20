@@ -1,4 +1,4 @@
-# from hagadias.qudobject import QudObject
+from hagadias.helpers import extract_foreground_char, extract_background_char
 from hagadias.qudtile import QudTile
 
 
@@ -11,7 +11,7 @@ class TilePainter:
         deferred until the tile property is accessed.
 
         Parameters:
-            obj: QudObject (Not marked with type because I am unsure how to import QudObject without causing errors)
+            obj: a QudObject
             color: the object's initially calculated ColorString
             tilecolor: the object's initially calculated TileColor
             detail: the object's initially calculated DetailColor
@@ -98,16 +98,12 @@ class TilePainter:
         """Renders a walltrap tile. These are normally colored in the C# code, so we handle them specially."""
         self.file = self.obj.part_Render_Tile
         warmcolor = self.obj.part_Walltrap_WarmColor
-        if warmcolor is None and self.obj.part_WalltrapFire is not None:
-            warmcolor = '^g&r'
-        if warmcolor is not None:
-            if '&' in warmcolor and '^' in warmcolor:
-                fore = warmcolor.split('&')[1][0]
-                back = warmcolor.split('^')[1][0]
-                self.color = '&' + fore + '^' + back
-                self.tilecolor = self.color
-                self.trans = back
-                self.detail = 'transparent'
+        fore = extract_foreground_char(warmcolor, 'r')
+        back = extract_background_char(warmcolor, 'g')
+        self.color = '&' + fore + '^' + back
+        self.tilecolor = self.color
+        self.trans = back
+        self.detail = 'transparent'
 
     @staticmethod
     def parse_paint_path(path: str) -> str:

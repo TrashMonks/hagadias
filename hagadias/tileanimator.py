@@ -2,7 +2,8 @@ from io import BytesIO
 from typing import List, Callable
 from PIL import Image, ImageSequence
 
-from hagadias.helpers import lowest_common_multiple, parse_comma_equals_str_into_dict
+from hagadias.helpers import lowest_common_multiple, extract_foreground_char, extract_background_char, \
+    parse_comma_equals_str_into_dict
 from hagadias.qudtile import QudTile, StandInTiles
 from hagadias.tileanimator_creategif import save_transparent_gif
 
@@ -52,15 +53,17 @@ class TileAnimator:
         if not self.is_valid:
             return animators
         obj = self.qud_object
-        if obj.part_AnimatedMaterialLuminous is not None:
-            animators.append(self.apply_animated_material_luminous)
-        if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
-            animators.append(self.apply_hologram_material)
-        if obj.part_Gas is not None:
-            animators.append(self.apply_gas_animation)
         if obj.part_AnimatedMaterialGeneric is not None or obj.part_AnimatedMaterialGenericAlternate is not None:
             if obj.name != 'Telescope':  # manually excluded objects
                 animators.append(self.apply_animated_material_generic)
+        if obj.part_AnimatedMaterialLuminous is not None:
+            animators.append(self.apply_animated_material_luminous)
+        if obj.part_Gas is not None:
+            animators.append(self.apply_gas_animation)
+        if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
+            animators.append(self.apply_hologram_material)
+        if obj.part_Walltrap is not None:
+            animators.append(self.apply_walltrap_animation)
         return animators
 
     def apply_animated_material_generic(self) -> None:
@@ -225,6 +228,22 @@ class TileAnimator:
         seq3 = [frame3, base, frame2, base, frame7, frame9, base, frame4, base]
         dur3 = [40, 650, 40, 500, 10, 20, 900, 40, 350]
         self._make_gif(seq1 + seq2 + seq3, dur1 + dur2 + dur3)
+
+    def apply_walltrap_animation(self) -> None:
+        """Renders a GIF loosely based on the behavior of the Walltrap part."""
+        tile = self.qud_object.tile
+        frame1 = tile  # WarmColor
+        readycolor = self.qud_object.part_Walltrap_ReadyColor
+        turninterval = self.qud_object.part_Walltrap_TurnInterval
+        turninterval = 3 if turninterval is None else int(turninterval)
+        fore = extract_foreground_char(readycolor, 'R')
+        back = extract_background_char(readycolor, 'g')
+        color_string = '&' + fore + '^' + back
+        tile_color = color_string
+        trans_color = back
+        detail_color = 'transparent'
+        frame2 = QudTile(tile.filename, color_string, tile_color, detail_color, tile.qudname, trans_color)  # ReadyColor
+        self._make_gif([frame1, frame2, frame1], [1600, 1200, turninterval * 1200 - 1600])
 
     def _make_gif(self, qud_tiles: List[QudTile], durations: List[int]) -> Image:
         """Performs the actual GIF Image creation. Resizes the supplied array of QudTile frames, and appends
