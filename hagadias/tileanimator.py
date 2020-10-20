@@ -69,6 +69,8 @@ class TileAnimator:
             animators.append(self.apply_animated_material_luminous)
         if obj.part_AnimatedMaterialMainframeTapeDrive is not None:
             animators.append(self.apply_animated_material_mainframe_tape_drive)
+        if obj.part_AnimatedMaterialRealityStabilizationField is not None:
+            animators.append(self.apply_animated_material_reality_stabilization_field)
         if obj.part_Gas is not None:
             animators.append(self.apply_gas_animation)
         if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
@@ -278,6 +280,41 @@ class TileAnimator:
                 sequence.append(frames[rotation])
                 durations.append(500)
         self._make_gif(sequence, durations)
+
+    def apply_animated_material_reality_stabilization_field(self) -> None:
+        obj, tile = self.qud_object, self.qud_object.tile
+        t_pre = tile.filename.rsplit('_', 1)[0][:-1]
+        t_post = '_' + tile.filename.rsplit('_', 1)[1]
+        tile_paths = [f'{t_pre}1{t_post}', f'{t_pre}2{t_post}', f'{t_pre}3{t_post}', f'{t_pre}4{t_post}']
+        # tile_colors = ['&y^k', '&K^k', '&Y^y', '&Y^K', '&y^k']
+        # tile_details = ['k', 'k', 'y', 'K', 'k']
+        tile_colors = ['&y', '&K', '&Y^y', '&Y^K', '&y']
+        tile_details = [None, None, 'y', 'K', None]
+        color_tick_idxs = [0, 2000, 7000, 12000, 16000]
+        frames = []
+        durations = []
+        path_idx = 0
+        color_idx = 0
+        prev_tick = None
+        for tick in range(0, 36000, 100):
+            update_frame = False
+            if tick % 2400 == 0:
+                path_idx = (tick // 2400) % 4
+                update_frame = True
+            if (tick % 18000) in color_tick_idxs:
+                color_idx = color_tick_idxs.index((tick % 18000))
+                update_frame = True
+            if update_frame is True:
+                path = tile_paths[path_idx]
+                color = tile_colors[color_idx]
+                detail = tile_details[color_idx]
+                frames.append(QudTile(path, color, color, detail, tile.qudname, tile.raw_transparent))
+                if prev_tick is not None:
+                    durations[-1] = tick - prev_tick
+                durations.append(0)
+                prev_tick = tick
+        durations[-1] = 36000 - prev_tick
+        self._make_gif(frames, durations)
 
     def apply_gas_animation(self) -> None:
         """Renders a GIF that replicates the behavior of the Gas part."""
