@@ -122,11 +122,13 @@ class QudObject(NodeMixin):
                 # special handling for stasis fields
                 color, tilecolor, detail, trans = '&C^M', '&C^M', 'M', 'M'
             elif self.is_specified('part_Gas') and self.part_Gas_ColorString is not None:
+                # Cryo gas always retains ^Y bg color. Technically, other gases have ^k bg color if < 50 density.
                 color = tilecolor = self.part_Gas_ColorString
                 detail = None
-                # gastype = self.part_Gas_GasType
-                # if gastype is None or 'Cryo' not in gastype:  # Cryo gas always retains ^Y background color
-                #     color = color.split('^')[0] + '^k'  # other gases have ^k unless they are > 50 density
+            elif self.part_AnimatedMaterialTechlight is not None:
+                color = self.part_AnimatedMaterialTechlight_baseColor
+                color = tilecolor = '&c' if color is None else color
+                detail = 'Y'
             else:
                 # general case
                 color = self.part_Render_ColorString

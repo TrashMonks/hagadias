@@ -71,6 +71,8 @@ class TileAnimator:
             animators.append(self.apply_animated_material_mainframe_tape_drive)
         if obj.part_AnimatedMaterialRealityStabilizationField is not None:
             animators.append(self.apply_animated_material_reality_stabilization_field)
+        if obj.part_AnimatedMaterialTechlight is not None:
+            animators.append(self.apply_animated_material_techlight)
         if obj.part_Gas is not None:
             animators.append(self.apply_gas_animation)
         if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
@@ -315,6 +317,28 @@ class TileAnimator:
                 prev_tick = tick
         durations[-1] = 36000 - prev_tick
         self._make_gif(frames, durations)
+
+    def apply_animated_material_techlight(self) -> None:
+        obj, tile = self.qud_object, self.qud_object.tile
+        base_color = obj.part_AnimatedMaterialTechlight_baseColor
+        base_color = '&c' if base_color is None else base_color
+        frame1 = QudTile(tile.filename, None, base_color, 'Y', tile.qudname, tile.raw_transparent)
+        frame2 = QudTile(tile.filename, None, base_color, 'C', tile.qudname, tile.raw_transparent)
+        frame3 = QudTile(tile.filename, None, base_color, 'B', tile.qudname, tile.raw_transparent)
+        frame4 = QudTile(tile.filename, None, base_color, 'b', tile.qudname, tile.raw_transparent)
+        frame5 = QudTile(tile.filename, None, base_color, 'c', tile.qudname, tile.raw_transparent)
+        frames = [
+            (frame1, 650), (frame2, 10),
+            (frame1, 900), (frame4, 10),
+            (frame1, 750), (frame3, 10),
+            (frame1, 800), (frame2, 10), (frame1, 40), (frame4, 10),
+            (frame1, 1150), (frame2, 10),
+            (frame1, 350), (frame5, 10),
+            (frame1, 1000), (frame2, 10), (frame1, 10), (frame3, 10),
+            (frame1, 200), (frame2, 10),
+            (frame1, 2500), (frame5, 10),
+        ]
+        self._make_gif([f[0] for f in frames], [d[1] for d in frames])
 
     def apply_gas_animation(self) -> None:
         """Renders a GIF that replicates the behavior of the Gas part."""
