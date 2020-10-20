@@ -48,14 +48,17 @@ class TilePainter:
     def paint_fence(self):
         """Paints a fence tile for this object. Assumes that tag_PaintedFence exists."""
         if not self.tilecolor:
-            self.tilecolor = self.color  # defining a tilecolor prevents QudTile from setting trans to 'k'
+            self.tilecolor = self.color
         if self.detail and self.detail == 'k' and '^' in self.tilecolor:
             # detail 'k' means trans layer is used for secondary color (common with fence tiles)
             self.detail = 'transparent'
-            self.trans = self.tilecolor.split('^', 1)[1]
-        elif self.detail is None and '^' in self.tilecolor:
-            bgcolor = self.tilecolor.split('^', 1)[1]
+            self.trans = self.tilecolor.split('^')[1]
+            self.tilecolor = self.tilecolor.split('^')[0]  # remove ^ from tilecolor to prevent QudTile overriding trans
+        elif (self.detail is None or self.detail != 'k') and '^' in self.tilecolor:
+            bgcolor = self.tilecolor.split('^')[1]
+            self.tilecolor = self.tilecolor.split('^')[0]  # remove ^ from tilecolor to prevent QudTile overriding trans
             self.trans = bgcolor if bgcolor != 'k' else self.trans
+        self.color = self.tilecolor
         _ = self.obj.tag_PaintedFenceAtlas_Value
         tileloc = _ if _ else 'Tiles/'
         _ = self.obj.tag_PaintedFenceExtension_Value
