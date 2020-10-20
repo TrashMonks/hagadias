@@ -63,6 +63,8 @@ class TileAnimator:
         if obj.part_AnimatedMaterialGeneric is not None or obj.part_AnimatedMaterialGenericAlternate is not None:
             if obj.name != 'Telescope':  # manually excluded objects
                 animators.append(self.apply_animated_material_generic)
+        if obj.part_AnimatedMaterialForcefield is not None:
+            animators.append(self.apply_animated_material_forcefield)
         if obj.part_AnimatedMaterialLuminous is not None:
             animators.append(self.apply_animated_material_luminous)
         if obj.part_AnimatedMaterialMainframeTapeDrive is not None:
@@ -88,6 +90,35 @@ class TileAnimator:
         frame1and2 = QudTile(tile.filename, '&W', None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
         frame3 = QudTile(tile.filename, '&Y', None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
         self._make_gif([frame1and2, frame3], [40, 20])
+
+    def apply_animated_material_forcefield(self) -> None:
+        """Renders a GIF loosely based on the behavior of the AnimatedMaterialForcefield part."""
+        # tile rotates every 500 ms (_1 to _4), color rotates every 250 ms
+        obj, tile = self.qud_object, self.qud_object.tile
+        tile_prefix = tile.filename.rsplit('_', 1)[0][:-1]
+        tile_postfix = '_' + tile.filename.rsplit('_', 1)[1]
+        tile_numerals = ['1', '1', '2', '2', '3', '3', '4', '4']
+        tile_colors = ['&C', '&c', '&C', '&c']
+        tile_details = [None, 'K', 'c', 'C']
+        forcefield_palette = obj.part_AnimatedMaterialForcefield_Color
+        if forcefield_palette is not None:
+            if forcefield_palette == 'Red':
+                tile_colors = ['&R', '&r', '&R', '&r']
+                tile_details = [None, 'r', 'r', 'r']
+            elif forcefield_palette == 'Blue':
+                tile_colors = ['&B', '&b', '&B', '&b']
+                tile_details = [None, 'K', 'b', 'B']
+        tile_colors = tile_colors + tile_colors
+        tile_details = tile_details + tile_details
+        frames = []
+        durations = []
+        for numeral, color, detail in zip(tile_numerals, tile_colors, tile_details):
+            painter = TilePainter(obj, color, color, detail, tile.raw_transparent)  # apply PaintFence color logic
+            color, detail, trans = painter.tilecolor, painter.detail, painter.trans
+            f = tile_prefix + numeral + tile_postfix  # construct filename
+            frames.append(QudTile(f, color, color, detail, tile.qudname, trans))
+            durations.append(250)
+        self._make_gif(frames, durations)
 
     def apply_animated_material_generic(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialGeneric and
