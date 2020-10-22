@@ -129,6 +129,15 @@ class QudObject(NodeMixin):
                 color = self.part_AnimatedMaterialTechlight_baseColor
                 color = tilecolor = '&c' if color is None else color
                 detail = 'Y'
+            elif self.part_DischargeOnStep is not None:  # Aloe Volta
+                color = tilecolor = '&W'
+                detail = 'w'
+            elif self.part_CrossFlameOnStep is not None:  # Aloe Pyra
+                color = tilecolor = '&W'
+                detail = 'R'
+            elif self.part_FugueOnStep is not None:  # Aloe Fugues
+                color = tilecolor = '&G'
+                detail = 'M'
             else:
                 # general case
                 color = self.part_Render_ColorString
