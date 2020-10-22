@@ -114,6 +114,20 @@ class QudObject(NodeMixin):
         if self.has_tile():
             # determine coloration
             trans = 'transparent'  # default transparency
+            # general case
+            color = self.part_Render_ColorString
+            tilecolor = self.part_Render_TileColor
+            # default detail color when unspecified is black (0, 0, 0)
+            # which matches the overlay UI inventory rendering
+            # ------------------------------------
+            detail = self.part_Render_DetailColor
+            # below uses logic similar to non-overlay UI where default ('k') is
+            # essentially invisible/transparent against the default background color ('k')
+            # ------------------------------------
+            # _ = self.part_Render_DetailColor
+            # detail = _ if _ else 'transparent'
+
+            # apply custom coloration to certain objects and parts
             if (any(self.is_specified(part) for part in HOLO_PARTS)
                     or self.name == "Wraith-Knight Templar"):
                 # special handling for holograms
@@ -138,19 +152,14 @@ class QudObject(NodeMixin):
             elif self.part_FugueOnStep is not None:  # Aloe Fugues
                 color = tilecolor = '&G'
                 detail = 'M'
-            else:
-                # general case
-                color = self.part_Render_ColorString
-                tilecolor = self.part_Render_TileColor
-                # default detail color when unspecified is black (0, 0, 0)
-                # which matches the overlay UI inventory rendering
-                # ------------------------------------
-                detail = self.part_Render_DetailColor
-                # below uses logic similar to non-overlay UI where default ('k') is
-                # essentially invisible/transparent against the default background color ('k')
-                # ------------------------------------
-                # _ = self.part_Render_DetailColor
-                # detail = _ if _ else 'transparent'
+            elif self.part_AnimatedMaterialGeneric is not None:
+                # use the colors from the zero frame of the AnimatedMaterialGeneric part
+                part_detail = self.part_AnimatedMaterialGeneric_DetailColorAnimationFrames
+                part_color = self.part_AnimatedMaterialGeneric_ColorStringAnimationFrames
+                if part_detail is not None and part_detail.startswith('0='):
+                    detail = (part_detail.split(',')[0]).split('=')[1]
+                if part_color is not None and part_color.startswith('0='):
+                    color = tilecolor = (part_color.split(',')[0]).split('=')[1]
 
             # determine file and handle special tile attributes
             file = None
