@@ -118,10 +118,8 @@ class TileAnimator:
         frames = []
         durations = []
         for numeral, color, detail in zip(tile_numerals, tile_colors, tile_details):
-            painter = TilePainter(obj, color, color, detail, tile.raw_transparent)  # apply PaintFence color logic
-            color, detail, trans = painter.tilecolor, painter.detail, painter.trans
             f = tile_prefix + numeral + tile_postfix  # construct filename
-            frames.append(QudTile(f, color, color, detail, tile.qudname, trans))
+            frames.append(QudTile(f, color, color, detail, tile.qudname, tile.raw_transparent))
             durations.append(250)
         self._make_gif(frames, durations)
 

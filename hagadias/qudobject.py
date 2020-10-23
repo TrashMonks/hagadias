@@ -13,10 +13,6 @@ from hagadias.qudtile import QudTile  # noqa E402
 from hagadias.tilepainter import TilePainter  # noqa E402
 from hagadias.tileanimator import TileAnimator, StandInTiles  # noqa E402
 
-HOLO_PARTS = ['part_HologramMaterial',
-              'part_HologramWallMaterial',
-              'part_HologramMaterialPrimary']
-
 
 class QudObject(NodeMixin):
     """Represents a Caves of Qud object blueprint with attribute inheritance.
@@ -112,75 +108,8 @@ class QudObject(NodeMixin):
             return self._tile
         tile = None  # not all objects have tiles
         if self.has_tile():
-            # determine coloration
-            trans = 'transparent'  # default transparency
-            # general case
-            color = self.part_Render_ColorString
-            tilecolor = self.part_Render_TileColor
-            # default detail color when unspecified is black (0, 0, 0)
-            # which matches the overlay UI inventory rendering
-            # ------------------------------------
-            detail = self.part_Render_DetailColor
-            # below uses logic similar to non-overlay UI where default ('k') is
-            # essentially invisible/transparent against the default background color ('k')
-            # ------------------------------------
-            # _ = self.part_Render_DetailColor
-            # detail = _ if _ else 'transparent'
-
-            # apply custom coloration to certain objects and parts
-            if (any(self.is_specified(part) for part in HOLO_PARTS)
-                    or self.name == "Wraith-Knight Templar"):
-                # special handling for holograms
-                color, tilecolor, detail = '&B', '&B', 'b'
-            elif self.is_specified('part_AnimatedMaterialStasisfield'):
-                # special handling for stasis fields
-                color, tilecolor, detail, trans = '&C^M', '&C^M', 'M', 'M'
-            elif self.is_specified('part_Gas') and self.part_Gas_ColorString is not None:
-                # Cryo gas always retains ^Y bg color. Technically, other gases have ^k bg color if < 50 density.
-                color = tilecolor = self.part_Gas_ColorString
-                detail = None
-            elif self.part_AnimatedMaterialTechlight is not None:
-                color = self.part_AnimatedMaterialTechlight_baseColor
-                color = tilecolor = '&c' if color is None else color
-                detail = 'Y'
-            elif self.part_DischargeOnStep is not None:  # Aloe Volta
-                color = tilecolor = '&W'
-                detail = 'w'
-            elif self.part_CrossFlameOnStep is not None:  # Aloe Pyra
-                color = tilecolor = '&W'
-                detail = 'R'
-            elif self.part_FugueOnStep is not None:  # Aloe Fugues
-                color = tilecolor = '&G'
-                detail = 'M'
-            elif self.part_AnimatedMaterialGeneric is not None:
-                # use the colors from the zero frame of the AnimatedMaterialGeneric part
-                part_detail = self.part_AnimatedMaterialGeneric_DetailColorAnimationFrames
-                part_color = self.part_AnimatedMaterialGeneric_ColorStringAnimationFrames
-                if part_detail is not None and part_detail.startswith('0='):
-                    detail = (part_detail.split(',')[0]).split('=')[1]
-                if part_color is not None and part_color.startswith('0='):
-                    color = tilecolor = (part_color.split(',')[0]).split('=')[1]
-
-            # determine file and handle special tile attributes
-            file = None
-            if (self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete") or \
-               (self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete") or \
-               self.part_Walltrap is not None:
-                # painted tile rendering
-                painter = TilePainter(self, color, tilecolor, detail, trans)
-                self._tile = painter.tile
-                return self._tile
-            else:
-                # normal rendering
-                file = self.part_Render_Tile
-            if self.part_RandomTile:
-                file = self.part_RandomTile_Tiles.split(',')[0]
-            if file is not None:
-                tile = QudTile(file, color, tilecolor, detail, self.name, raw_transparent=trans)
-            else:
-                standin_tile_provider = StandInTiles.get_tile_provider_for(self)
-                if standin_tile_provider is not None:
-                    tile = QudTile(None, color, tilecolor, detail, self.name, trans, standin_tile_provider)
+            painter = TilePainter(self)
+            tile = painter.tile
         self._tile = tile
         return tile
 

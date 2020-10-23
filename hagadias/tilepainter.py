@@ -1,30 +1,35 @@
 from hagadias.helpers import extract_foreground_char, extract_background_char
-from hagadias.qudtile import QudTile
+from hagadias.qudtile import QudTile, StandInTiles
+
+HOLO_PARTS = ['part_HologramMaterial',
+              'part_HologramWallMaterial',
+              'part_HologramMaterialPrimary']
 
 
 class TilePainter:
 
-    def __init__(self, obj, color: str, tilecolor: str, detail: str, trans: str):
-        """Create a new TilePainter instance and calculate the details needed for painted tile creation.
+    def __init__(self, obj):
+        """Create a TilePainter instance for this object and calculate the details needed to color and render a tile.
 
-        Determines the colors and filepath that are required to create the painted tile. Actual tile creation is
+        Determines the colors and filepath that are required to create the tile. Actual tile creation is
         deferred until the tile property is accessed.
 
         Parameters:
             obj: a QudObject
-            color: the object's initially calculated ColorString
-            tilecolor: the object's initially calculated TileColor
-            detail: the object's initially calculated DetailColor
-            trans: the object's initially calculated transparent (background) color
         """
-        # obj is a QudObject, but I don't know how to import QudObject without causing errors
-        self.obj = obj
-        self.color = color
-        self.tilecolor = tilecolor
-        self.detail = detail
-        self.trans = trans
-        self.file = ''
+
         self._tile = None
+
+        self.obj = obj
+        self.color = None
+        self.tilecolor = None
+        self.detail = None
+        self.trans = None
+        self.file = None
+        self.standin = None
+
+        self.apply_primer()
+
         if obj.tag_PaintedFence and obj.tag_PaintedFence_Value != "*delete":  # fence must be prioritized over wall
             self.paintpath = self.parse_paint_path(obj.tag_PaintedFence_Value)
             self.paint_fence()
@@ -34,16 +39,78 @@ class TilePainter:
         elif obj.part_Walltrap is not None:
             self.paint_walltrap()
 
+        if self.file is None or self.file == '':
+            self.standin = StandInTiles.get_tile_provider_for(self)
+
     @property
     def tile(self):
         """Retrieves the painted QudTile for this object."""
         if self._tile is not None:
             return self._tile
-        if self.file == '':
-            return None
-        self._tile = QudTile(self.file, self.color, self.tilecolor, self.detail, self.obj.name
-                             , raw_transparent=self.trans)
+        if self.file is None or self.file == '':
+            if not self.standin:
+                return None
+            self._tile = QudTile(None, self.color, self.tilecolor, self.detail, self.obj.name, self.trans, self.standin)
+        else:
+            self._tile = QudTile(self.file, self.color, self.tilecolor, self.detail, self.obj.name, self.trans)
         return self._tile
+
+    def apply_primer(self):
+        """Analyzes this object's tile metadata and defines its basic colors and filepaths. Most of the time this
+        just uses the values specified in the object's Render part, but we also handle various exceptions and
+        unique cases related to coloring the tile during this initial analysis."""
+
+        # general case
+        self.trans = 'transparent'  # default transparency
+        self.color = self.obj.part_Render_ColorString
+        self.tilecolor = self.obj.part_Render_TileColor
+        self.detail = self.obj.part_Render_DetailColor
+
+        # below uses logic similar to non-overlay UI where default ('k') is
+        # essentially invisible/transparent against the default background color ('k')
+        # ------------------------------------
+        # _ = self.part_Render_DetailColor
+        # detail = _ if _ else 'transparent'
+
+        # determine tile filepath
+        self.file = self.obj.part_Render_Tile
+        if self.obj.part_RandomTile:
+            self.file = self.obj.part_RandomTile_Tiles.split(',')[0]
+
+        # apply special coloration to certain objects and parts
+        if any(self.obj.is_specified(part) for part in HOLO_PARTS) or self.obj.name == "Wraith-Knight Templar":
+            # special handling for holograms
+            self.color, self.tilecolor, self.detail = '&B', '&B', 'b'
+        elif self.obj.is_specified('part_AnimatedMaterialStasisfield'):
+            # special handling for stasis fields
+            self.color, self.tilecolor, self.detail, self.trans = '&C^M', '&C^M', 'M', 'M'
+        elif self.obj.is_specified('part_Gas') and self.obj.part_Gas_ColorString is not None:
+            # Cryo gas always retains ^Y bg color. Technically, other gases have ^k bg color if < 50 density,
+            # but we will paint the "dense" version with their additional color
+            self.color = self.tilecolor = self.obj.part_Gas_ColorString
+            self.detail = None
+        elif self.obj.part_AnimatedMaterialTechlight is not None:
+            self.color = self.obj.part_AnimatedMaterialTechlight_baseColor
+            self.color = self.tilecolor = '&c' if self.color is None else self.color
+            self.detail = 'Y'
+        elif self.obj.part_DischargeOnStep is not None:  # Aloe Volta
+            self.color = self.tilecolor = '&W'
+            self.detail = 'w'
+        elif self.obj.part_CrossFlameOnStep is not None:  # Aloe Pyra
+            self.color = self.tilecolor = '&W'
+            self.detail = 'R'
+        elif self.obj.part_FugueOnStep is not None:  # Aloe Fugues
+            self.color = self.tilecolor = '&G'
+            self.detail = 'M'
+        elif self.obj.part_AnimatedMaterialGeneric is not None:
+            # use the colors from the zero frame of the AnimatedMaterialGeneric part, because when these are
+            # present, the object's Render part colors are never used.
+            part_detail = self.obj.part_AnimatedMaterialGeneric_DetailColorAnimationFrames
+            part_color = self.obj.part_AnimatedMaterialGeneric_ColorStringAnimationFrames
+            if part_detail is not None and part_detail.startswith('0='):
+                self.detail = (part_detail.split(',')[0]).split('=')[1]
+            if part_color is not None and part_color.startswith('0='):
+                self.color = self.tilecolor = (part_color.split(',')[0]).split('=')[1]
 
     def paint_fence(self):
         """Paints a fence tile for this object. Assumes that tag_PaintedFence exists."""
