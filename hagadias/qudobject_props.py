@@ -223,6 +223,13 @@ class QudObjectProps(QudObject):
             return False  # it's interesting if an item can't be disassembled but can be built
 
     @property
+    def chairlevel(self) -> Union[int, None]:
+        """The level of this chair, used to determine the power of the Sitting effect."""
+        if self.part_Chair is not None:
+            level = int_or_none(self.part_Chair_Level)
+            return 0 if level is None else level
+
+    @property
     def carrybonus(self) -> Union[int, None]:
         """The carry weight bonus."""
         return int_or_none(self.part_Armor_CarryBonus)
