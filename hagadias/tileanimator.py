@@ -78,6 +78,8 @@ class TileAnimator:
             animators.append(self.apply_gas_animation)
         if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
             animators.append(self.apply_hologram_material)
+        if obj.part_PhaseSticky is not None:
+            animators.append(self.apply_phase_sticky)
         for partname in POWER_TRANSMISSION_PARTS:
             part = getattr(obj, f'part_{partname}')
             if part is not None and 'TileBaseFromTag' in part:
@@ -380,6 +382,19 @@ class TileAnimator:
         seq3 = [frame3, base, frame2, base, frame7, frame9, base, frame4, base]
         dur3 = [40, 650, 40, 500, 10, 20, 900, 40, 350]
         self._make_gif(seq1 + seq2 + seq3, dur1 + dur2 + dur3)
+
+    def apply_phase_sticky(self) -> None:
+        """Renders a GIF loosely based on the behavior of the PhaseSticky part."""
+        tile = self.qud_object.tile
+        frame1 = QudTile(tile.filename, '&k', '&k', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame2 = QudTile(tile.filename, '&K', '&K', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame3 = QudTile(tile.filename, '&c', '&c', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame4 = tile
+        frame5 = QudTile(tile.filename, '&y', '&y', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame6 = tile
+        frames = [frame1, frame2, frame3, frame4, frame5, frame6]
+        durations = [40, 40, 40, 40, 40, 40]
+        self._make_gif(frames, durations)
 
     def apply_power_transmission(self) -> None:
         """Renders a GIF loosely based on the behavior of IPowerTransmission parts that have TileEffects enabled.
