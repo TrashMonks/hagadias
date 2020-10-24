@@ -78,7 +78,15 @@ class TilePainter:
             self.file = self.obj.part_RandomTile_Tiles.split(',')[0]
 
         # apply special coloration to certain objects and parts
-        if any(self.obj.is_specified(part) for part in HOLO_PARTS) or self.obj.name == "Wraith-Knight Templar":
+        if self.obj.part_Harvestable is not None:
+            # show ripe color for harvestables
+            ripe_color = self.obj.part_Harvestable_RipeColor
+            self.color = self.color if ripe_color is None else ripe_color
+            ripe_tilecolor = self.obj.part_Harvestable_RipeTileColor
+            self.tilecolor = self.tilecolor if ripe_tilecolor is None else ripe_tilecolor
+            ripe_detail = self.obj.part_Harvestable_RipeDetailColor
+            self.detail = self.detail if ripe_detail is None else ripe_detail
+        elif any(self.obj.is_specified(part) for part in HOLO_PARTS) or self.obj.name == "Wraith-Knight Templar":
             # special handling for holograms
             self.color, self.tilecolor, self.detail = '&B', '&B', 'b'
         elif self.obj.is_specified('part_AnimatedMaterialStasisfield'):
