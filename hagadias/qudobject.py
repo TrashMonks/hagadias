@@ -2,7 +2,8 @@
 QudObject.part_name_attribute"""
 import sys
 from copy import deepcopy
-from typing import Tuple, Union
+from typing import Tuple, Union, List
+
 # Force Python XML parser:
 sys.modules['_elementtree'] = None
 from xml.etree.ElementTree import Element  # noqa E402
@@ -109,9 +110,32 @@ class QudObject(NodeMixin):
         tile = None  # not all objects have tiles
         if self.has_tile():
             painter = TilePainter(self)
-            tile = painter.tile
+            tile = painter.tile()
         self._tile = tile
         return tile
+
+    @property
+    def tiles(self) -> List[QudTile]:
+        """Return all of the QudTiles for this object, including any alternate tiles. If you want to first
+        check whether more than one tile exists, you can call <QudObject>.number_of_tiles().
+
+        Created on-demand and cached in self._alltiles after first call."""
+        return self.tiles_and_metadata()[0]
+
+    def tiles_and_metadata(self) -> Tuple[List[QudTile], List]:
+        """Returns all of the QudTiles for this object, along with associated TilePainterMetadata. If you want
+        to first check whether more than one tile exists, you can call <QudObject>.number_of_tiles().
+
+        Created on-demand and cached in self._alltiles and self._allmetadata after first call."""
+        if hasattr(self, '_alltiles') and hasattr(self, '_allmetadata'):
+            return self._alltiles, self._allmetadata
+        alltiles, metadata = [], []
+        if TilePainter.tile_count(self) > 0:
+            painter = TilePainter(self)
+            alltiles, metadata = painter.all_tiles_and_metadata()
+        self._alltiles: List[QudTile] = alltiles
+        self._allmetadata: List = metadata
+        return alltiles, metadata
 
     def has_tile(self) -> bool:
         """Returns true if this object qualifies for tile rendering."""
@@ -127,17 +151,23 @@ class QudObject(NodeMixin):
             return True
         return False
 
-    @property
-    def gif_image(self):
+    def number_of_tiles(self) -> int:
+        """Returns the number of tiles that this object has."""
+        return TilePainter.tile_count(self)
+
+    def gif_image(self, index: int):
         """Returns the rendered GIF for this QudObject, which is a PIL Image object.
 
         Created on demand and then cached in self._gif after first call."""
-        if not hasattr(self, '_gif'):
-            if not self.has_gif_tile():
-                self._gif = None
-            else:
-                self._gif = TileAnimator(self).gif
-        return self._gif
+        if not self.has_gif_tile():
+            return None
+        if not hasattr(self, '_tile_gifs'):
+            self._tile_gifs = [None] * self.number_of_tiles()
+        if index >= len(self._tile_gifs):
+            return None
+        if self._tile_gifs[index] is None and index < len(self.tiles):
+            self._tile_gifs[index] = TileAnimator(self, self.tiles[index]).gif
+        return self._tile_gifs[index]
 
     def has_gif_tile(self) -> bool:
         """Returns true if this object qualifies for GIF rendering."""
