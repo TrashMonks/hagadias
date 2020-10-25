@@ -1,6 +1,6 @@
 import logging
 from io import BytesIO
-from typing import List, Callable
+from typing import List, Callable, Union
 from PIL import Image, ImageSequence
 
 from hagadias.helpers import lowest_common_multiple, extract_foreground_char, extract_background_char, \
@@ -15,13 +15,14 @@ POWER_TRANSMISSION_PARTS = ['ElectricalPowerTransmission', 'GenericPowerTransmis
 
 class TileAnimator:
 
-    def __init__(self, qud_object):
+    def __init__(self, qud_object, qud_tile: QudTile = None):
         """Create a new TileAnimator for the specified QudObject.
 
         TileAnimator can create a GIF for the QudObject if it qualifies for GIF rendering. The creation
         of a GIF is deferred until the .gif property is accessed. For this reason, you can inexpensively
         instantiate a TileAnimator simply to check the .has_gif property for a particular QudObject."""
         self.qud_object = qud_object
+        self.qud_tile: Union[QudTile, None] = qud_tile
         self._gif_image = None
 
     @property
@@ -29,7 +30,7 @@ class TileAnimator:
         """Basic validation check for this TileAnimator's QudObject. True if the object has a valid tile image."""
         if not self.qud_object.has_tile():
             return False
-        if self.qud_object.tile.hasproblems:
+        if self.qud_tile is not None and self.qud_tile.hasproblems:
             return False
         return True
 
@@ -48,8 +49,9 @@ class TileAnimator:
         save this GIF to a file or bytestream, you should call GifHelper.save() to ensure that all
         frames and animation delays are properly preserved."""
         if self._gif_image is None:
-            for animation_applicator in self.get_animators():
-                animation_applicator()
+            if self.qud_tile is not None:
+                for animation_applicator in self.get_animators():
+                    animation_applicator()
         return self._gif_image
 
     def get_animators(self) -> List[Callable]:
@@ -93,7 +95,7 @@ class TileAnimator:
 
     def apply_animated_material_electric(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialElectric part."""
-        tile = self.qud_object.tile
+        tile = self.qud_tile
         frame1and2 = QudTile(tile.filename, '&W', None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
         frame3 = QudTile(tile.filename, '&Y', None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
         self._make_gif([frame1and2, frame3], [40, 20])
@@ -101,7 +103,7 @@ class TileAnimator:
     def apply_animated_material_forcefield(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialForcefield part."""
         # tile rotates every 500 ms (_1 to _4), color rotates every 250 ms
-        obj, tile = self.qud_object, self.qud_object.tile
+        obj, tile = self.qud_object, self.qud_tile
         tile_prefix = tile.filename.rsplit('_', 1)[0][:-1]
         tile_postfix = '_' + tile.filename.rsplit('_', 1)[1]
         tile_numerals = ['1', '1', '2', '2', '3', '3', '4', '4']
@@ -128,7 +130,7 @@ class TileAnimator:
     def apply_animated_material_generic(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialGeneric and
         AnimatedMaterialGenericAlternate parts."""
-        source_tile = self.qud_object.tile
+        source_tile = self.qud_tile
         max_frames = 40  # set an upper limit to animation length to limit .gif size
         anim_parts = []
         if self.qud_object.part_AnimatedMaterialGeneric is not None:
@@ -241,14 +243,14 @@ class TileAnimator:
 
     def apply_animated_material_luminous(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialLuminous part."""
-        tile = self.qud_object.tile
-        frame1and2 = QudTile(tile.filename, '&Y', None, 'C', tile.qudname, tile.raw_transparent)
-        frame3 = QudTile(tile.filename, '&C', None, 'C', tile.qudname, tile.raw_transparent)
+        tile = self.qud_tile
+        frame1and2 = QudTile(tile.filename, '&Y', '&Y', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame3 = QudTile(tile.filename, '&C', '&C', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
         self._make_gif([frame1and2, frame3], [40, 20])
 
     def apply_animated_material_mainframe_tape_drive(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialMainframeTapeDrive."""
-        t = self.qud_object.tile
+        t = self.qud_tile
         pre = t.filename.split('-')[0][:-1]
         post = '-' + t.filename.split('-')[1]
         file1, file2, file3, file4 = f'{pre}1{post}', f'{pre}2{post}', f'{pre}3{post}', f'{pre}4{post}'
@@ -285,7 +287,7 @@ class TileAnimator:
         self._make_gif(sequence, durations)
 
     def apply_animated_material_reality_stabilization_field(self) -> None:
-        obj, tile = self.qud_object, self.qud_object.tile
+        obj, tile = self.qud_object, self.qud_tile
         t_pre = tile.filename.rsplit('_', 1)[0][:-1]
         t_post = '_' + tile.filename.rsplit('_', 1)[1]
         tile_paths = [f'{t_pre}1{t_post}', f'{t_pre}2{t_post}', f'{t_pre}3{t_post}', f'{t_pre}4{t_post}']
@@ -320,7 +322,7 @@ class TileAnimator:
         self._make_gif(frames, durations)
 
     def apply_animated_material_techlight(self) -> None:
-        obj, tile = self.qud_object, self.qud_object.tile
+        obj, tile = self.qud_object, self.qud_tile
         base_color = obj.part_AnimatedMaterialTechlight_baseColor
         base_color = '&c' if base_color is None else base_color
         frame1 = QudTile(tile.filename, None, base_color, 'Y', tile.qudname, tile.raw_transparent)
@@ -343,7 +345,7 @@ class TileAnimator:
 
     def apply_gas_animation(self) -> None:
         """Renders a GIF that replicates the behavior of the Gas part."""
-        t = self.qud_object.tile
+        t = self.qud_tile
         glyph1 = StandInTiles.gas_glyph1
         glyph2 = StandInTiles.gas_glyph2
         glyph3 = StandInTiles.gas_glyph3
@@ -362,7 +364,7 @@ class TileAnimator:
 
         We could potentially also add an 'apply_hologram_material_random' method if we want to randomize the
         animation. For example, perhaps Cryptogull could apply randomized holographic animation to any tile."""
-        tile = self.qud_object.tile
+        tile = self.qud_tile
         glyph1 = StandInTiles.hologram_material_glyph1
         glyph2 = StandInTiles.hologram_material_glyph2
         glyph3 = StandInTiles.hologram_material_glyph3
@@ -385,7 +387,7 @@ class TileAnimator:
 
     def apply_phase_sticky(self) -> None:
         """Renders a GIF loosely based on the behavior of the PhaseSticky part."""
-        tile = self.qud_object.tile
+        tile = self.qud_tile
         frame1 = QudTile(tile.filename, '&k', '&k', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
         frame2 = QudTile(tile.filename, '&K', '&K', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
         frame3 = QudTile(tile.filename, '&c', '&c', tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
@@ -400,7 +402,7 @@ class TileAnimator:
         """Renders a GIF loosely based on the behavior of IPowerTransmission parts that have TileEffects enabled.
 
         To simplify things, we assume that the object is powered and unbroken, ignoring other potential variations."""
-        obj, t = self.qud_object, self.qud_object.tile
+        obj, t = self.qud_object, self.qud_tile
         part, tile_path_start = None, None
         for partname in POWER_TRANSMISSION_PARTS:
             part = getattr(obj, f'part_{partname}')
@@ -441,7 +443,7 @@ class TileAnimator:
 
     def apply_walltrap_animation(self) -> None:
         """Renders a GIF loosely based on the behavior of the Walltrap part."""
-        tile = self.qud_object.tile
+        tile = self.qud_tile
         frame1 = tile  # WarmColor
         readycolor = self.qud_object.part_Walltrap_ReadyColor
         turninterval = self.qud_object.part_Walltrap_TurnInterval
