@@ -101,7 +101,8 @@ class QudObject(NodeMixin):
 
     @property
     def tile(self) -> QudTile:
-        """Return a QudTile colored to match the in-game representation.
+        """Return a QudTile colored to match the in-game representation. This is only the 'primary' tile for
+        objects that have more than one tile. Use <QudObject>.tiles to retrieve the full tile collection.
 
         Created on-demand to speed load times; cached in self._tile after first call."""
         if hasattr(self, '_tile'):
@@ -116,15 +117,17 @@ class QudObject(NodeMixin):
 
     @property
     def tiles(self) -> List[QudTile]:
-        """Return all of the QudTiles for this object, including any alternate tiles. If you want to first
+        """Returns all of the QudTiles for this object, including any alternate tiles. If you want to first
         check whether more than one tile exists, you can call <QudObject>.number_of_tiles().
 
         Created on-demand and cached in self._alltiles after first call."""
         return self.tiles_and_metadata()[0]
 
     def tiles_and_metadata(self) -> Tuple[List[QudTile], List]:
-        """Returns all of the QudTiles for this object, along with associated TilePainterMetadata. If you want
-        to first check whether more than one tile exists, you can call <QudObject>.number_of_tiles().
+        """Returns all of the QudTiles for this object including any alternate tiles, along with a corresponding
+        TilePainterMetadata array with metadata about each tile. If you want to first check whether more than one
+        tile exists, you can call <QudObject>.number_of_tiles(). The TilePainterMetadata includes some suggestions
+        for file naming or labeling the images when there are more than one.
 
         Created on-demand and cached in self._alltiles and self._allmetadata after first call."""
         if hasattr(self, '_alltiles') and hasattr(self, '_allmetadata'):
@@ -152,13 +155,15 @@ class QudObject(NodeMixin):
         return False
 
     def number_of_tiles(self) -> int:
-        """Returns the number of tiles that this object has."""
+        """Returns the number of tiles that this object has. Some objects have many variant tiles."""
         return TilePainter.tile_count(self)
 
     def gif_image(self, index: int):
-        """Returns the rendered GIF for this QudObject, which is a PIL Image object.
+        """Returns the rendered GIF for this QudObject, which is a PIL Image object. Accepts an index
+        which corresponds to the object's tile of the same index, if the object has multiple tiles. Objects
+        with multiple tiles may also have multiple GIFs.
 
-        Created on demand and then cached in self._gif after first call."""
+        Created on demand and then cached in self._tile_gifs after first call."""
         if not self.has_gif_tile():
             return None
         if not hasattr(self, '_tile_gifs'):

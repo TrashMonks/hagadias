@@ -48,7 +48,8 @@ class TilePainter:
             self.standin = StandInTiles.get_tile_provider_for(self)
 
     def tile(self, tile_index: int = 0) -> Union[QudTile, None]:
-        """Retrieves the painted QudTile for this object."""
+        """Retrieves the painted QudTile for this object. If an index is supplied for an object that has multiple
+        tiles, returns the alternate tile at the specified index."""
         if tile_index >= len(self._tiles):
             return None
         if self._tiles[tile_index] is not None:
@@ -66,6 +67,8 @@ class TilePainter:
         return self._tiles[tile_index]
 
     def all_tiles_and_metadata(self) -> Tuple[List[QudTile], List]:
+        """Returns a list of QudTiles representing all the tile variations for this object, as well as a
+        corrsponding list of TilePainterMetadata for each of those tiles."""
         qud_tiles: List[QudTile] = []
         metadata: List[TilePainterMetadata] = []
         for idx, entry in enumerate(self._tiles):
@@ -137,9 +140,11 @@ class TilePainter:
                 self.color = self.tilecolor = (part_color.split(',')[0]).split('=')[1]
 
     def _stylize_tile_variant(self, tile_index: int = 0):
-        """Morphs a tile into one of its variants, based on provided zero-based tile index.
+        """Morphs a tile into one of its variants, based on the provided zero-based tile index. This function
+        controls the logic used to order an object's alternate tiles, and it also defines the TilePainterMetadata
+        associated with each tile as it generates it, storing that metadata in the self._tiles_metadata List.
 
-        Also defines some metadata for the tile."""
+        The logic here should be kept in sync with the logic used in TilePainter.tile_count()"""
         harvestable_variants = self.obj.part_Harvestable is not None \
             and not any(self.obj.is_specified(part) for part in HOLO_PARTS)
         meta_postfix = ''
@@ -231,6 +236,7 @@ class TilePainter:
         self.detail = 'transparent'
 
     def _paint_harvestable(self, is_ripe: bool) -> None:
+        """Renders either the ripe or the unripe variant for an object with the Harvestable part."""
         if is_ripe:
             ripe_color = self.obj.part_Harvestable_RipeColor
             self.color = self.color if ripe_color is None else ripe_color
@@ -248,15 +254,22 @@ class TilePainter:
 
     @staticmethod
     def parse_paint_path(path: str) -> str:
+        """Accepts a value from part_PaintedFence_Value or part_PaintedWall_Value, and retrieves the tile that
+        should be used for that painted fence or wall. Rarely, these parts have a comma delimited list of
+        possible tiles that can be used."""
         return path.split(',')[0]
 
     @staticmethod
     def is_painted_fence(qud_object) -> bool:
+        """Returns true if this object is a painted fence."""
         return qud_object.tag_PaintedFence is not None and qud_object.tag_PaintedFence_Value != "*delete"
 
     @staticmethod
     def tile_count(qud_object) -> int:
-        """Retrieves the total number of tiles that are available for this object."""
+        """Retrieves the total number of tiles that are available for this object. Some objects have
+        alternate tiles.
+
+        The logic here should be kept in sync with the logic used in <TilePainter>._stylize_tile_variant()"""
         if not qud_object.has_tile():
             return 0
         tile_count = 1
@@ -281,6 +294,8 @@ class TilePainter:
 class TilePainterMetadata:
 
     def __init__(self, qud_object, postfix, tiletype):
+        """Stores basic metadata for a tile, such as the filename that should be used for saving the tile as well
+        as the type of tile, such as 'harvestable' or 'random sprite #7'."""
         self.postfix = postfix
         self.type = tiletype
         self.obj_id = qud_object.name
@@ -290,19 +305,23 @@ class TilePainterMetadata:
         self._has_gif = qud_object.has_gif_tile()
 
     def is_animated(self):
+        """Whether this tile has a corresponding animated GIF"""
         return self._has_gif
 
     @property
     def filename(self) -> str:
+        """The recommended filename for this tile."""
         return self._filename_noextension() + '.png'
 
     @property
     def gif_filename(self) -> str:
+        """The recommended filename for this tile's GIF."""
         if not self.is_animated():
             return None
         return self._filename_noextension() + ' animated.gif'
 
     def _filename_noextension(self) -> str:
+        """The recommended base filename with no extension."""
         if self._file_noex is None:
             if self._base_filename is None or self._base_filename == 'none':
                 raise Exception(f'Error: tile for "{self.obj_id}" does not have a filename.')

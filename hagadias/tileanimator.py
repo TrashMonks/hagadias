@@ -16,18 +16,23 @@ POWER_TRANSMISSION_PARTS = ['ElectricalPowerTransmission', 'GenericPowerTransmis
 class TileAnimator:
 
     def __init__(self, qud_object, qud_tile: QudTile = None):
-        """Create a new TileAnimator for the specified QudObject.
+        """Create a new TileAnimator for the specified QudObject and QudTile. The QudTile represents which
+        variation of this object you want to animate, since some objects have multiple tiles. TileAnimator
+        can create a GIF for the object if it has an animated part that qualifies for GIF rendering.
 
-        TileAnimator can create a GIF for the QudObject if it qualifies for GIF rendering. The creation
-        of a GIF is deferred until the .gif property is accessed. For this reason, you can inexpensively
-        instantiate a TileAnimator simply to check the .has_gif property for a particular QudObject."""
+        QudTile MUST be specified if you plan to generate a GIF. If you are creating this object temporarily,
+        such as to simply check the has_gif() property for an object, it is okay to leave QudTile unspecified.
+
+        The creation of a GIF is deferred until the .gif property is accessed. For this reason, you can inexpensively
+        instantiate a TileAnimator simply to check the .has_gif() property for a particular QudObject."""
         self.qud_object = qud_object
         self.qud_tile: Union[QudTile, None] = qud_tile
         self._gif_image = None
 
     @property
     def is_valid(self) -> bool:
-        """Basic validation check for this TileAnimator's QudObject. True if the object has a valid tile image."""
+        """Basic validation check for this TileAnimator's QudObject and QudTile. True if the tile is valid or if
+        no tile was specified (the latter should only be the case if you don't plan on generating a GIF)."""
         if not self.qud_object.has_tile():
             return False
         if self.qud_tile is not None and self.qud_tile.hasproblems:
