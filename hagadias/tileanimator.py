@@ -60,7 +60,12 @@ class TileAnimator:
         return self._gif_image
 
     def get_animators(self) -> List[Callable]:
-        """Returns all of the animation methods that are relevant to this object."""
+        """Returns all of the animation methods that are relevant to this object.
+
+        A note about GIF rendering: if you are trying to make a frame play as fast as possible, set the frame
+        duration to 20. Anything lower will result in slower frames than expected, due to some weird historical
+        issues with how the GIF format has been interpreted by browsers and gif players. There's some more context
+        here if you're interested: https://stackoverflow.com/q/64473278/3541707"""
         animators = []
         if not self.is_valid:
             return animators
@@ -230,6 +235,8 @@ class TileAnimator:
             # calculate GIF duration
             duration = (duration * (100 / 60)) // 1  # convert from game's 60fps to gif format's 100fps
             duration = duration * 10  # convert to 1000ms rate used by PIL Image
+            if duration < 20:
+                duration = 20  # minimum render duration
             finalized_durations.append(duration)
             # determine tile and colors for this animation frame
             tile = source_tile.filename if (tile is None or tile == 'default') else tile
@@ -320,10 +327,13 @@ class TileAnimator:
                 detail = tile_details[color_idx]
                 frames.append(QudTile(path, color, color, detail, tile.qudname, tile.raw_transparent))
                 if prev_tick is not None:
-                    durations[-1] = tick - prev_tick
+                    duration = tick - prev_tick
+                    duration = 20 if duration < 20 else duration  # minimum render duration
+                    durations[-1] = duration
                 durations.append(0)
                 prev_tick = tick
         durations[-1] = 36000 - prev_tick
+        durations[-1] = 20 if durations[-1] < 20 else durations[-1]  # minimum render duration
         self._make_gif(frames, durations)
 
     def apply_animated_material_techlight(self) -> None:
@@ -336,15 +346,15 @@ class TileAnimator:
         frame4 = QudTile(tile.filename, None, base_color, 'b', tile.qudname, tile.raw_transparent)
         frame5 = QudTile(tile.filename, None, base_color, 'c', tile.qudname, tile.raw_transparent)
         frames = [
-            (frame1, 650), (frame2, 10),
-            (frame1, 900), (frame4, 10),
-            (frame1, 750), (frame3, 10),
-            (frame1, 800), (frame2, 10), (frame1, 40), (frame4, 10),
-            (frame1, 1150), (frame2, 10),
-            (frame1, 350), (frame5, 10),
-            (frame1, 1000), (frame2, 10), (frame1, 10), (frame3, 10),
-            (frame1, 200), (frame2, 10),
-            (frame1, 2500), (frame5, 10),
+            (frame1, 650), (frame2, 20),
+            (frame1, 900), (frame4, 20),
+            (frame1, 750), (frame3, 20),
+            (frame1, 800), (frame2, 20), (frame1, 40), (frame4, 20),
+            (frame1, 1150), (frame2, 20),
+            (frame1, 350), (frame5, 20),
+            (frame1, 1000), (frame2, 20), (frame1, 20), (frame3, 20),
+            (frame1, 200), (frame2, 20),
+            (frame1, 2500), (frame5, 20),
         ]
         self._make_gif([f[0] for f in frames], [d[1] for d in frames])
 
@@ -383,11 +393,11 @@ class TileAnimator:
         frame8 = QudTile(tile.filename, '&Y', '&Y', 'b', tile.qudname, tile.raw_transparent)
         frame9 = QudTile(tile.filename, '&B', '&B', 'Y', tile.qudname, tile.raw_transparent)
         seq1 = [base, frame2, base, frame3, base, frame9, frame5, base, frame4, base, frame2, frame3, base]
-        dur1 = [550, 40, 200, 40, 1100, 30, 10, 780, 40, 480, 40, 40, 900]
+        dur1 = [550, 40, 200, 40, 1100, 30, 20, 780, 40, 480, 40, 40, 900]
         seq2 = [frame2, base, frame4, base, frame2, base, frame3, base, frame8, base, frame4, base]
         dur2 = [40, 1100, 40, 850, 40, 500, 40, 1300, 40, 700, 40, 1250]
         seq3 = [frame3, base, frame2, base, frame7, frame9, base, frame4, base]
-        dur3 = [40, 650, 40, 500, 10, 20, 900, 40, 350]
+        dur3 = [40, 650, 40, 500, 20, 20, 900, 40, 350]
         self._make_gif(seq1 + seq2 + seq3, dur1 + dur2 + dur3)
 
     def apply_phase_sticky(self) -> None:
@@ -438,6 +448,7 @@ class TileAnimator:
         ext = ext if ext else '.bmp'
 
         frame_duration = (100 // len(numeral_postfixes)) * 10  # divide frames evenly across 1000 milliseconds
+        frame_duration = 20 if frame_duration < 20 else frame_duration  # minimum render duration
         frames = []
         durations = []
         for numeral_postfix in numeral_postfixes:
@@ -460,7 +471,9 @@ class TileAnimator:
         trans_color = back
         detail_color = 'transparent'
         frame2 = QudTile(tile.filename, color_string, tile_color, detail_color, tile.qudname, trans_color)  # ReadyColor
-        self._make_gif([frame1, frame2, frame1], [1600, 1200, turninterval * 1200 - 1600])
+        final_frame_duration = turninterval * 1200 - 1600
+        final_frame_duration = 20 if final_frame_duration < 20 else final_frame_duration
+        self._make_gif([frame1, frame2, frame1], [1600, 1200, final_frame_duration])
 
     def _make_gif(self, qud_tiles: List[QudTile], durations: List[int]) -> Image:
         """Performs the actual GIF Image creation. Resizes the supplied array of QudTile frames, and appends
