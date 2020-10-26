@@ -380,7 +380,7 @@ class TileAnimator:
         frame4 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent, glyph4)
         self._make_gif([frame1, frame2, frame3, frame4], [250, 250, 250, 250])
 
-    def apply_hologram_material(self, is_concealed: bool) -> None:
+    def apply_hologram_material(self, is_concealed: bool = False) -> None:
         """Renders a GIF loosely based on the behavior of the HologramMaterial part.
 
         This particular method uses a preset algorithm, which (1) ensures we'll know when the existing wiki image
