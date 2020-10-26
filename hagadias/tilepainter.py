@@ -120,15 +120,9 @@ class TilePainter:
             self.color = self.obj.part_AnimatedMaterialTechlight_baseColor
             self.color = self.tilecolor = '&c' if self.color is None else self.color
             self.detail = 'Y'
-        elif self.obj.part_DischargeOnStep is not None:  # Aloe Volta
-            self.color = self.tilecolor = '&W'
-            self.detail = 'w'
-        elif self.obj.part_CrossFlameOnStep is not None:  # Aloe Pyra
-            self.color = self.tilecolor = '&W'
-            self.detail = 'R'
-        elif self.obj.part_FugueOnStep is not None:  # Aloe Fugues
-            self.color = self.tilecolor = '&G'
-            self.detail = 'M'
+        elif self.obj.part_DischargeOnStep is not None or self.obj.part_CrossFlameOnStep is not None \
+                or self.obj.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, and Aloe Pyra
+            self._paint_aloe(is_ready=True)
         elif self.obj.part_AnimatedMaterialGeneric is not None:
             # use the colors from the zero frame of the AnimatedMaterialGeneric part, because when these are
             # present, the object's Render part colors are never used.
@@ -147,11 +141,13 @@ class TilePainter:
         The logic here should be kept in sync with the logic used in TilePainter.tile_count()"""
         harvestable_variants = self.obj.part_Harvestable is not None \
             and not any(self.obj.is_specified(part) for part in HOLO_PARTS)
+        aloe_variants = self.obj.part_DischargeOnStep is not None or self.obj.part_CrossFlameOnStep is not None \
+            or self.obj.part_FugueOnStep is not None
         meta_postfix = ''
         meta_type = ''
         if self.obj.part_RandomTile is not None:
             random_tiles = self.obj.part_RandomTile_Tiles.split(',')
-            adjusted_randomtile_index = tile_index if not harvestable_variants else (tile_index // 2)
+            adjusted_randomtile_index = tile_index if not (harvestable_variants or aloe_variants) else (tile_index // 2)
             if adjusted_randomtile_index < len(random_tiles):
                 self.file = self.obj.part_RandomTile_Tiles.split(',')[adjusted_randomtile_index]
                 meta_type = f'random sprite #{adjusted_randomtile_index + 1}'
@@ -169,6 +165,12 @@ class TilePainter:
             #     meta_tooltip = f'<br>{meta_tooltip}' if len(meta_tooltip) > 0 else meta_tooltip
             #     meta_tooltip = 'can be harvested for ingredients' + meta_tooltip
             meta_postfix += ' ripe' if is_ripe else ' unripe'
+        elif aloe_variants:  # Aloe Volta, Aloe Fugues, and Aloe Pyra
+            is_ready = tile_index % 2 == 0
+            self._paint_aloe(is_ready=is_ready)
+            ready_string = 'ready' if is_ready else 'cooldown'
+            meta_type = f'{ready_string}, {meta_type}' if len(meta_type) > 0 else ready_string
+            meta_postfix += f' {ready_string}'
         if self._tiles_metadata[tile_index] is None:
             meta_postfix = None if meta_postfix == '' else meta_postfix
             meta_type = 'default' if meta_type == '' else meta_type
@@ -252,6 +254,30 @@ class TilePainter:
             unripe_detail = self.obj.part_Harvestable_UnripeDetailColor
             self.detail = self.detail if unripe_detail is None else unripe_detail
 
+    def _paint_aloe(self, is_ready: bool) -> None:
+        """Renders either the 'Ready' or the 'Cooldown' variant of an aloe plant."""
+        if is_ready:
+            if self.obj.part_DischargeOnStep is not None:  # Aloe Volta
+                self.color = self.tilecolor = '&W'
+                self.detail = 'w'
+            elif self.obj.part_CrossFlameOnStep is not None:  # Aloe Pyra
+                self.color = self.tilecolor = '&W'
+                self.detail = 'R'
+            elif self.obj.part_FugueOnStep is not None:  # Aloe Fugues
+                self.color = self.tilecolor = '&G'
+                self.detail = 'M'
+        else:
+            if self.obj.part_DischargeOnStep is not None:
+                self.color = self.tilecolor = '&w'
+                self.detail = 'w'
+            elif self.obj.part_CrossFlameOnStep is not None:
+                self.color = self.tilecolor = '&w'
+                self.detail = 'r'
+            elif self.obj.part_FugueOnStep is not None:
+                self.color = self.tilecolor = '&g'
+                self.detail = 'm'
+
+
     @staticmethod
     def parse_paint_path(path: str) -> str:
         """Accepts a value from part_PaintedFence_Value or part_PaintedWall_Value, and retrieves the tile that
@@ -288,6 +314,9 @@ class TilePainter:
                 ripe_detail = qud_object.part_Harvestable_RipeDetailColor
                 if ripe_detail is not None and unripe_detail is not None and ripe_detail != unripe_detail:
                     tile_count *= 2
+        elif qud_object.part_DischargeOnStep is not None or qud_object.part_CrossFlameOnStep is not None \
+                or qud_object.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, and Aloe Pyra
+            tile_count *= 2
         return tile_count
 
 
