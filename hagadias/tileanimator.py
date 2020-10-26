@@ -86,6 +86,8 @@ class TileAnimator:
             animators.append(self.apply_animated_material_reality_stabilization_field)
         if obj.part_AnimatedMaterialTechlight is not None:
             animators.append(self.apply_animated_material_techlight)
+        if obj.part_ConcealedHologramMaterial is not None:
+            animators.append(self.apply_concealed_hologram_material)
         if obj.part_Gas is not None:
             animators.append(self.apply_gas_animation)
         if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
@@ -358,6 +360,13 @@ class TileAnimator:
         ]
         self._make_gif([f[0] for f in frames], [d[1] for d in frames])
 
+    def apply_concealed_hologram_material(self) -> None:
+        """Renders a GIF loosely based on the behavior of the ConcealedHologramMaterial part.
+
+        This effect is identical to HologramMaterial except that the tile retains its original colors most of
+        the time, instead of having the base hologram colors (&B, b) most of the time."""
+        self.apply_hologram_material(is_concealed=True)
+
     def apply_gas_animation(self) -> None:
         """Renders a GIF that replicates the behavior of the Gas part."""
         t = self.qud_tile
@@ -371,7 +380,7 @@ class TileAnimator:
         frame4 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent, glyph4)
         self._make_gif([frame1, frame2, frame3, frame4], [250, 250, 250, 250])
 
-    def apply_hologram_material(self) -> None:
+    def apply_hologram_material(self, is_concealed: bool) -> None:
         """Renders a GIF loosely based on the behavior of the HologramMaterial part.
 
         This particular method uses a preset algorithm, which (1) ensures we'll know when the existing wiki image
@@ -383,7 +392,10 @@ class TileAnimator:
         glyph1 = StandInTiles.hologram_material_glyph1
         glyph2 = StandInTiles.hologram_material_glyph2
         glyph3 = StandInTiles.hologram_material_glyph3
-        base = QudTile(tile.filename, '&B', '&B', 'b', tile.qudname, tile.raw_transparent)  # base most of the time
+        if is_concealed:
+            base = tile
+        else:
+            base = QudTile(tile.filename, '&B', '&B', 'b', tile.qudname, tile.raw_transparent)  # base most of the time
         frame2 = QudTile(tile.filename, '&C', '&C', 'c', tile.qudname, tile.raw_transparent)  # 2-4 somewhat common
         frame3 = QudTile(tile.filename, '&c', '&c', 'b', tile.qudname, tile.raw_transparent)
         frame4 = QudTile(tile.filename, '&b', '&b', 'C', tile.qudname, tile.raw_transparent)
@@ -393,11 +405,11 @@ class TileAnimator:
         frame8 = QudTile(tile.filename, '&Y', '&Y', 'b', tile.qudname, tile.raw_transparent)
         frame9 = QudTile(tile.filename, '&B', '&B', 'Y', tile.qudname, tile.raw_transparent)
         seq1 = [base, frame2, base, frame3, base, frame9, frame5, base, frame4, base, frame2, frame3, base]
-        dur1 = [550, 40, 200, 40, 1100, 30, 20, 780, 40, 480, 40, 40, 900]
+        dur1 = [550, 40, 200, 40, 1100, 30, 30, 780, 40, 480, 40, 40, 900]
         seq2 = [frame2, base, frame4, base, frame2, base, frame3, base, frame8, base, frame4, base]
         dur2 = [40, 1100, 40, 850, 40, 500, 40, 1300, 40, 700, 40, 1250]
         seq3 = [frame3, base, frame2, base, frame7, frame9, base, frame4, base]
-        dur3 = [40, 650, 40, 500, 20, 20, 900, 40, 350]
+        dur3 = [40, 650, 40, 500, 30, 20, 900, 40, 350]
         self._make_gif(seq1 + seq2 + seq3, dur1 + dur2 + dur3)
 
     def apply_phase_sticky(self) -> None:
