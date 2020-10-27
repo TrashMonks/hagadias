@@ -132,6 +132,8 @@ class TilePainter:
                 self.detail = (part_detail.split(',')[0]).split('=')[1]
             if part_color is not None and part_color.startswith('0='):
                 self.color = self.tilecolor = (part_color.split(',')[0]).split('=')[1]
+        elif self.obj.part_PistonPressElement is not None:
+            self.file = 'Items/sw_crusher_s_press.bmp'
 
     def _stylize_tile_variant(self, tile_index: int = 0):
         """Morphs a tile into one of its variants, based on the provided zero-based tile index. This function
@@ -171,6 +173,11 @@ class TilePainter:
             ready_string = 'ready' if is_ready else 'cooldown'
             meta_type = f'{ready_string}, {meta_type}' if len(meta_type) > 0 else ready_string
             meta_postfix += f' {ready_string}'
+        elif self.obj.part_PistonPressElement is not None:
+            paths = ['Items/sw_crusher_s_press.bmp', 'Items/sw_crusher_s_extend.bmp', 'Items/sw_crusher_s_closed.png']
+            types = ['ready', 'extended (base)', 'extended (top)']
+            postfixes = [' ready', ' extended base', ' extended top']
+            self.file, meta_type, meta_postfix = paths[tile_index], types[tile_index], postfixes[tile_index]
         if self._tiles_metadata[tile_index] is None:
             meta_postfix = None if meta_postfix == '' else meta_postfix
             meta_type = 'default' if meta_type == '' else meta_type
@@ -298,6 +305,8 @@ class TilePainter:
         The logic here should be kept in sync with the logic used in <TilePainter>._stylize_tile_variant()"""
         if not qud_object.has_tile():
             return 0
+        if qud_object.part_PistonPressElement is not None:
+            return 3
         tile_count = 1
         if qud_object.part_RandomTile is not None:
             tile_count = len(qud_object.part_RandomTile_Tiles.split(','))

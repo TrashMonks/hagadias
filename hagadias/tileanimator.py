@@ -11,6 +11,7 @@ from hagadias.tilepainter import TilePainter
 
 POWER_TRANSMISSION_PARTS = ['ElectricalPowerTransmission', 'GenericPowerTransmission',
                             'HydraulicPowerTransmission', 'MechanicalPowerTransmission']
+ANIMATEDMATERIALGENERIC_EXCLUSIONS = ['Telescope', 'Full-Scale Recompositer', 'PistonPressElement']
 
 
 class TileAnimator:
@@ -74,7 +75,7 @@ class TileAnimator:
             animators.append(self.apply_animated_material_electric)
         if obj.part_AnimatedMaterialGeneric is not None or obj.part_AnimatedMaterialGenericAlternate is not None:
             if obj.part_CatacombsExitTeleporter is None:  # manually excluded parts
-                if obj.name != 'Telescope' and obj.name != 'Full-Scale Recompositer':  # manually excluded objects
+                if obj.name not in ANIMATEDMATERIALGENERIC_EXCLUSIONS:  # manually excluded objects
                     animators.append(self.apply_animated_material_generic)
         if obj.part_AnimatedMaterialForcefield is not None:
             animators.append(self.apply_animated_material_forcefield)

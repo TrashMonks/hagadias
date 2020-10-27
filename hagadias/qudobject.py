@@ -144,11 +144,13 @@ class QudObject(NodeMixin):
         """Returns true if this object qualifies for tile rendering."""
         if self.tag_BaseObject:
             return False
-        if self.part_Render_Tile or self.part_RandomTile:
+        if self.part_Render_Tile or self.part_RandomTile is not None:
             return True
         if self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete":
             return True
         if self.tag_PaintedWall and self.tag_PaintedWall_Value != "*delete":
+            return True
+        if self.part_PistonPressElement is not None:
             return True
         if StandInTiles.get_tile_provider_for(self) is not None:
             return True
