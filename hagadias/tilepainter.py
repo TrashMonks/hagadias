@@ -155,6 +155,16 @@ class TilePainter:
                 meta_type = f'random sprite #{adjusted_randomtile_index + 1}'
                 # meta_tooltip = 'this object generates with a random sprite'
                 meta_postfix = f' variation {adjusted_randomtile_index}' if adjusted_randomtile_index > 0 else ''
+        if self.obj.part_Door is not None:
+            is_closed, double_door_alt = tile_index % 2 == 0, (tile_index // 2) % 2 == 1
+            self._paint_door(is_closed=is_closed, double_door_alt=double_door_alt)
+            meta_type = 'closed' if is_closed else 'open'
+            if self.obj.inherits_from('Double Door'):
+                if '_w_' in self.file or '_w.' in self.file:
+                    meta_type += ' (west)'
+                elif '_e_' in self.file or '_e.' in self.file:
+                    meta_type += ' (east)'
+            meta_postfix = f' {meta_type}'
         # TODO: account for RandomColors part here
         if harvestable_variants:
             is_ripe = tile_index % 2 == 0
@@ -284,6 +294,22 @@ class TilePainter:
                 self.color = self.tilecolor = '&g'
                 self.detail = 'm'
 
+    def _paint_door(self, is_closed: bool = False, double_door_alt: bool = False) -> None:
+        if is_closed:
+            closed_tile = self.obj.part_Door_ClosedTile
+            self.file = 'Tiles/sw_door_basic.bmp' if closed_tile is None else closed_tile
+        else:
+            open_tile = self.obj.part_Door_OpenTile
+            self.file = 'Tiles/sw_door_basic_open.bmp' if open_tile is None else open_tile
+        if double_door_alt:
+            if '_w_' in self.file:
+                self.file = self.file.replace('_w_', '_e_')
+            elif '_e_' in self.file:
+                self.file = self.file.replace('_e_', '_w_')
+            elif '_w.' in self.file:
+                self.file = self.file.replace('_w.', '_e.')
+            elif '_e.' in self.file:
+                self.file = self.file.replace('_e.', '_w.')
 
     @staticmethod
     def parse_paint_path(path: str) -> str:
@@ -310,10 +336,20 @@ class TilePainter:
         tile_count = 1
         if qud_object.part_RandomTile is not None:
             tile_count = len(qud_object.part_RandomTile_Tiles.split(','))
-        # TODO: account for RandomColors part here
+        if qud_object.part_Door is not None:  # Door part overwrites the tile, so it would override RandomTile
+            tile_count = 2
+            if qud_object.inherits_from('Double Door'):
+                dirs = ['_w_', '_w.', '_e_', '_e.']
+                if (qud_object.part_Door_ClosedTile is not None and
+                        any(d in qud_object.part_Door_ClosedTile for d in dirs)) or \
+                        (qud_object.part_Door_OpenTile is not None and
+                         any(d in qud_object.part_Door_OpenTile for d in dirs)):
+                    tile_count = 4
+            tile_count = 4 if qud_object.inherits_from('Double Door') else 2
         if any(qud_object.is_specified(part) for part in HOLO_PARTS):
             return tile_count  # hologram overrides colors, so any dynamic colors below don't matter
-        if qud_object.part_Harvestable is not None:
+        # TODO: account for RandomColors part here
+        if qud_object.part_Harvestable is not None:  # Harvestable applies two alternate color schemes
             ripe_tilecolor = qud_object.part_Harvestable_RipeTileColor
             unripe_tilecolor = qud_object.part_Harvestable_UnripeTileColor
             if ripe_tilecolor is not None and unripe_tilecolor is not None and ripe_tilecolor != unripe_tilecolor:
@@ -325,7 +361,7 @@ class TilePainter:
                     tile_count *= 2
         elif qud_object.part_DischargeOnStep is not None or qud_object.part_CrossFlameOnStep is not None \
                 or qud_object.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, and Aloe Pyra
-            tile_count *= 2
+            tile_count *= 2  # Aloe Volta also has RandomTile
         return tile_count
 
 
