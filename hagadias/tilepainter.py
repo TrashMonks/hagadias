@@ -165,6 +165,11 @@ class TilePainter:
                 elif '_e_' in self.file or '_e.' in self.file:
                     meta_type += ' (east)'
             meta_postfix = f' {meta_type}'
+        if self.obj.part_Hangable_HangingTile is not None:
+            is_hanging = tile_index % 2 == 0
+            self.file = self.obj.part_Hangable_HangingTile if is_hanging else self.obj.part_Render_Tile
+            meta_type = 'hanging' if is_hanging else 'unhung'
+            meta_postfix = f' {meta_type}'
         # TODO: account for RandomColors part here
         if harvestable_variants:
             is_ripe = tile_index % 2 == 0
@@ -346,6 +351,8 @@ class TilePainter:
                          any(d in qud_object.part_Door_OpenTile for d in dirs)):
                     tile_count = 4
             tile_count = 4 if qud_object.inherits_from('Double Door') else 2
+        if qud_object.part_Hangable_HangingTile is not None:
+            tile_count = 2
         if any(qud_object.is_specified(part) for part in HOLO_PARTS):
             return tile_count  # hologram overrides colors, so any dynamic colors below don't matter
         # TODO: account for RandomColors part here
