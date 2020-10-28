@@ -1,4 +1,5 @@
 import logging
+import random
 from io import BytesIO
 from typing import List, Callable, Union
 from PIL import Image, ImageSequence
@@ -381,7 +382,7 @@ class TileAnimator:
         frame4 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor, t.qudname, t.raw_transparent, glyph4)
         self._make_gif([frame1, frame2, frame3, frame4], [250, 250, 250, 250])
 
-    def apply_hologram_material(self, is_concealed: bool = False) -> None:
+    def apply_hologram_material(self, is_concealed: bool = False, random_sequence: bool = False) -> None:
         """Renders a GIF loosely based on the behavior of the HologramMaterial part.
 
         This particular method uses a preset algorithm, which (1) ensures we'll know when the existing wiki image
@@ -402,16 +403,48 @@ class TileAnimator:
         frame4 = QudTile(tile.filename, '&b', '&b', 'C', tile.qudname, tile.raw_transparent)
         frame5 = QudTile(None, '&c', '&c', 'b', tile.qudname, tile.raw_transparent, glyph1)  # 5-8 less common
         frame6 = QudTile(None, '&C', '&C', 'b', tile.qudname, tile.raw_transparent, glyph2)
-        frame7 = QudTile(None, '&B', '&B', 'b', tile.qudname, tile.raw_transparent, glyph3)
+        frame7 = QudTile(None, '&Y', '&Y', 'b', tile.qudname, tile.raw_transparent, glyph3)
         frame8 = QudTile(tile.filename, '&Y', '&Y', 'b', tile.qudname, tile.raw_transparent)
-        frame9 = QudTile(tile.filename, '&B', '&B', 'Y', tile.qudname, tile.raw_transparent)
-        seq1 = [base, frame2, base, frame3, base, frame9, frame5, base, frame4, base, frame2, frame3, base]
-        dur1 = [550, 40, 200, 40, 1100, 30, 30, 780, 40, 480, 40, 40, 900]
-        seq2 = [frame2, base, frame4, base, frame2, base, frame3, base, frame8, base, frame4, base]
-        dur2 = [40, 1100, 40, 850, 40, 500, 40, 1300, 40, 700, 40, 1250]
-        seq3 = [frame3, base, frame2, base, frame7, frame9, base, frame4, base]
-        dur3 = [40, 650, 40, 500, 30, 20, 900, 40, 350]
-        self._make_gif(seq1 + seq2 + seq3, dur1 + dur2 + dur3)
+        frame9 = QudTile(tile.filename, '&Y', '&Y', 'c', tile.qudname, tile.raw_transparent)
+        frames = []
+        durations = []
+        if random_sequence:
+            altframes_common = [frame2, frame3, frame4]
+            altframes_rare = [frame8, frame9]
+            baseframe = True
+            fullflicker_chance = 12
+            for i in range(40):  # frame limit
+                if baseframe:
+                    frames.append(base)
+                    durations.append(random.randint(300, 700) + random.randint(-100, 300))
+                    baseframe = not baseframe
+                else:
+                    if random.randint(1, fullflicker_chance) == 1:
+                        fullflicker_chance = 200  # significantly reduce chance
+                        frames.extend([frame6, frame5, frame7])
+                        durations.extend([20, 20, 20])
+                    else:
+                        if random.randint(1, 18) > 1:
+                            frames.append(random.choice(altframes_common))
+                        else:
+                            frames.append(random.choice(altframes_rare))
+                        if random.randint(1, 8) > 1:
+                            durations.append(40)
+                        else:
+                            durations.append(50 if random.randint(1, 10) > 7 else 30)
+                    if random.randint(1, 5) > 1:
+                        baseframe = not baseframe
+        else:
+            frames.extend([base, frame2, base, frame3, base, frame9, frame6, frame5, frame7, base, frame4, base])
+            durations.extend([550, 40, 200, 40, 1100, 30, 20, 20, 20, 780, 40, 480])
+            frames.extend([frame2, frame3, base, frame4, base, frame4, base, frame2, base, frame3, base, frame8, base])
+            durations.extend([30, 40, 900, 50, 1100, 40, 850, 40, 500, 50, 1300, 40, 700])
+            frames.extend([frame4, base, frame3, base, frame2, base, frame3, base, frame4, base])
+            durations.extend([40, 1250, 40, 650, 40, 500, 30, 900, 40, 350])
+        self._make_gif(frames, durations)
+
+    def apply_hologram_material_random(self) -> None:
+        self.apply_hologram_material(random_sequence=True)
 
     def apply_phase_sticky(self) -> None:
         """Renders a GIF loosely based on the behavior of the PhaseSticky part."""
