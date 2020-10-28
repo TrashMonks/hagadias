@@ -45,7 +45,7 @@ class TilePainter:
             self._paint_walltrap()
 
         if self.file is None or self.file == '':
-            self.standin = StandInTiles.get_tile_provider_for(self)
+            self.standin = StandInTiles.get_tile_provider_for(obj)
 
     def tile(self, tile_index: int = 0) -> Union[QudTile, None]:
         """Retrieves the painted QudTile for this object. If an index is supplied for an object that has multiple
