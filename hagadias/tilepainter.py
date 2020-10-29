@@ -85,7 +85,13 @@ class TilePainter:
     def _apply_primer(self):
         """Analyzes this object's tile metadata and defines its basic colors and filepaths. Most of the time this
         just uses the values specified in the object's Render part, but we also handle various exceptions and
-        unique cases related to coloring the tile during this initial analysis."""
+        unique cases related to coloring the tile during this initial analysis.
+
+        When this function finishes, an object should have at least some basic tile properties defined to avoid
+        raising errors later in the process. The result of this function doesn't necessarily need to match the final
+        rendered tile, however, because it will also be passed through _stylize_tile_variant(). Thus, _apply_primer()
+        is particularly important for objects that have no part_Render_Tile defined or that have other special logic
+        but don't define styles in _stylize_tile_variant()."""
 
         # general case
         self.trans = 'transparent'  # default transparency
