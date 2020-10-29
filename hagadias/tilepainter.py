@@ -185,6 +185,17 @@ class TilePainter:
             self.file = self.obj.part_Hangable_HangingTile if is_hanging else self.obj.part_Render_Tile
             meta_type = 'hanging' if is_hanging else 'unhung'
             meta_postfix = f' {meta_type}'
+        if self.obj.part_Examiner_UnknownTile is not None:
+            # TODO: this is a bit precarious and probably won't work right if an item also has an additional alternate
+            #       tile source, such as RandomTile. All existing tiles work fine, but this could use some refactoring.
+            complexity = self.obj.complexity
+            if complexity is not None and complexity > 0:
+                understanding = self.obj.part_Examiner_Understanding
+                if understanding is None or int(understanding) < complexity:
+                    is_identified = tile_index % 2 == 0
+                    self.file = self.file if is_identified else self.obj.part_Examiner_UnknownTile
+                    meta_type = 'identified' if is_identified else 'unidentified'
+                    meta_postfix = f' {meta_type}'
         # TODO: account for RandomColors part here
         if harvestable_variants:
             is_ripe = tile_index % 2 == 0
@@ -391,6 +402,12 @@ class TilePainter:
                 tile_count = 4 if qud_object.part_DoubleEnclosing is not None else 2
         if qud_object.part_Hangable_HangingTile is not None:
             tile_count = 2
+        if qud_object.part_Examiner_UnknownTile is not None:
+            complexity = qud_object.complexity
+            if complexity is not None and complexity > 0:
+                understanding = qud_object.part_Examiner_Understanding
+                if understanding is None or int(understanding) < complexity:
+                    tile_count += 1
         if any(qud_object.is_specified(part) for part in HOLO_PARTS):
             return tile_count  # hologram overrides colors, so any dynamic colors below don't matter
         # TODO: account for RandomColors part here
