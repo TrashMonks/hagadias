@@ -909,8 +909,9 @@ class QudObjectProps(QudObject):
         """The max strength bonus + our base PV."""
         pv = self.pv
         if pv is not None:
-            if self.part_MeleeWeapon_MaxStrengthBonus is not None:
-                pv += int(self.part_MeleeWeapon_MaxStrengthBonus)
+            if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
+                if self.part_MeleeWeapon_MaxStrengthBonus is not None:
+                    pv += int(self.part_MeleeWeapon_MaxStrengthBonus)
         return pv
 
     @property
