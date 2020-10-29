@@ -8,6 +8,8 @@ HOLO_PARTS = ['part_HologramMaterial', 'part_HologramWallMaterial', 'part_Hologr
 ENCLOSING_RENDER_PARTS = ['part_Enclosing_OpenTile', 'part_Enclosing_ClosedTile',
                           'part_Enclosing_OpenColor', 'part_Enclosing_ClosedColor',
                           'part_Enclosing_OpenTileColor', 'part_Enclosing_ClosedTileColor']
+TONIC_NAMES_AND_COLORS = ['milky,&Y', 'smokey,&K', 'turquoise,&C', 'cobalt,&b', 'violet,&m',
+                          'rosey,&R', 'mossy,&g', 'muddy,&w', 'gold-flecked,&W', 'platinum,&y']
 
 
 class TilePainter:
@@ -198,6 +200,11 @@ class TilePainter:
                         self.file = self.file if is_identified else self.obj.part_Examiner_UnknownTile
                         meta_type = 'identified' if is_identified else 'unidentified'
                         meta_postfix = f' {meta_type}'
+        if self.obj.part_Examiner_UnknownDisplayName == '*med':
+            tonic_name, tonic_color = TONIC_NAMES_AND_COLORS[tile_index].split(',')
+            self.color = self.tilecolor = tonic_color
+            meta_type = f'a small {tonic_name} tube'
+            meta_postfix = f' {tonic_name}'
         # TODO: account for RandomColors part here
         if harvestable_variants:
             is_ripe = tile_index % 2 == 0
@@ -386,6 +393,8 @@ class TilePainter:
             return 0
         if qud_object.part_PistonPressElement is not None:
             return 3
+        if qud_object.part_Examiner_UnknownDisplayName == '*med':  # tonics, which generate with 1/10 random colors
+            return 10
         tile_count = 1
         if qud_object.part_RandomTile is not None:
             tile_count = len(qud_object.part_RandomTile_Tiles.split(','))
