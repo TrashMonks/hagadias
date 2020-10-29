@@ -134,6 +134,9 @@ class TilePainter:
                 self.color = self.tilecolor = (part_color.split(',')[0]).split('=')[1]
         elif self.obj.part_PistonPressElement is not None:
             self.file = 'Items/sw_crusher_s_press.bmp'
+        elif self.obj.name == 'PondDown':  # 'small crack' in Joppa
+            self.color = self.tilecolor = '&Y'  # Applied by the HiddenRender part
+            self.trans = 'b'  # Applied by the RenderLiquidBackground part
 
     def _stylize_tile_variant(self, tile_index: int = 0):
         """Morphs a tile into one of its variants, based on the provided zero-based tile index. This function
