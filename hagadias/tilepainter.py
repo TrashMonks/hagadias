@@ -104,11 +104,8 @@ class TilePainter:
         if self.obj.part_RandomTile:
             self.file = self.obj.part_RandomTile_Tiles.split(',')[0]
 
-        # apply special coloration to certain objects and parts
-        if self.obj.part_Harvestable is not None:
-            # show ripe color for harvestables
-            self._paint_harvestable(is_ripe=True)
-        elif any(self.obj.is_specified(part) for part in HOLO_PARTS) or self.obj.name == "Wraith-Knight Templar":
+        # apply special initial tile properties to certain objects and parts
+        if any(self.obj.is_specified(part) for part in HOLO_PARTS) or self.obj.name == "Wraith-Knight Templar":
             # special handling for holograms
             self.color, self.tilecolor, self.detail = '&B', '&B', 'b'
         elif self.obj.is_specified('part_AnimatedMaterialStasisfield'):
@@ -123,9 +120,6 @@ class TilePainter:
             self.color = self.obj.part_AnimatedMaterialTechlight_baseColor
             self.color = self.tilecolor = '&c' if self.color is None else self.color
             self.detail = 'Y'
-        elif self.obj.part_DischargeOnStep is not None or self.obj.part_CrossFlameOnStep is not None \
-                or self.obj.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, and Aloe Pyra
-            self._paint_aloe(is_ready=True)
         elif self.obj.part_AnimatedMaterialGeneric is not None:
             # use the colors from the zero frame of the AnimatedMaterialGeneric part, because when these are
             # present, the object's Render part colors are never used.
