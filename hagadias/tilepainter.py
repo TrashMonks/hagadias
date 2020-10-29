@@ -398,7 +398,7 @@ class TilePainterMetadata:
         return self._filename_noextension() + '.png'
 
     @property
-    def gif_filename(self) -> str:
+    def gif_filename(self) -> Union[str, None]:
         """The recommended filename for this tile's GIF."""
         if not self.is_animated():
             return None
