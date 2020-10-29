@@ -4,9 +4,10 @@ from typing import List, Union, Optional, Tuple
 from hagadias.helpers import extract_foreground_char, extract_background_char
 from hagadias.qudtile import QudTile, StandInTiles
 
-HOLO_PARTS = ['part_HologramMaterial',
-              'part_HologramWallMaterial',
-              'part_HologramMaterialPrimary']
+HOLO_PARTS = ['part_HologramMaterial', 'part_HologramWallMaterial', 'part_HologramMaterialPrimary']
+ENCLOSING_RENDER_PARTS = ['part_Enclosing_OpenTile', 'part_Enclosing_ClosedTile',
+                          'part_Enclosing_OpenColor', 'part_Enclosing_ClosedColor',
+                          'part_Enclosing_OpenTileColor', 'part_Enclosing_ClosedTileColor']
 
 
 class TilePainter:
@@ -168,6 +169,17 @@ class TilePainter:
                 elif '_e_' in self.file or '_e.' in self.file:
                     meta_type += ' (east)'
             meta_postfix = f' {meta_type}'
+        if self.obj.part_Enclosing is not None:
+            if any(getattr(self.obj, part) is not None for part in ENCLOSING_RENDER_PARTS):
+                is_closed, double_enclosing_alt = tile_index % 2 == 0, (tile_index // 2) % 2 == 1
+                self._paint_enclosing(is_closed=is_closed, double_enclosing_alt=double_enclosing_alt)
+                meta_type = 'closed' if is_closed else 'open'
+                if self.obj.part_DoubleEnclosing is not None:
+                    if '_w.' in self.file:
+                        meta_type += ' (west)'
+                    elif '_e.' in self.file:
+                        meta_type += ' (east)'
+                meta_postfix = f' {meta_type}'
         if self.obj.part_Hangable_HangingTile is not None:
             is_hanging = tile_index % 2 == 0
             self.file = self.obj.part_Hangable_HangingTile if is_hanging else self.obj.part_Render_Tile
@@ -310,14 +322,34 @@ class TilePainter:
             open_tile = self.obj.part_Door_OpenTile
             self.file = 'Tiles/sw_door_basic_open.bmp' if open_tile is None else open_tile
         if double_door_alt:
-            if '_w_' in self.file:
-                self.file = self.file.replace('_w_', '_e_')
-            elif '_e_' in self.file:
-                self.file = self.file.replace('_e_', '_w_')
-            elif '_w.' in self.file:
-                self.file = self.file.replace('_w.', '_e.')
-            elif '_e.' in self.file:
-                self.file = self.file.replace('_e.', '_w.')
+            self._invert_filename_direction()
+
+    def _paint_enclosing(self, is_closed: bool = False, double_enclosing_alt: bool = False) -> None:
+        if is_closed:
+            self.color = self.color if self.obj.part_Enclosing_ClosedColor is None \
+                else self.obj.part_Enclosing_ClosedColor
+            self.tilecolor = self.tilecolor if self.obj.part_Enclosing_ClosedTileColor is None \
+                else self.obj.part_Enclosing_ClosedTileColor
+            self.file = self.file if self.obj.part_Enclosing_ClosedTile is None \
+                else self.obj.part_Enclosing_ClosedTile
+        else:
+            self.color = self.color if self.obj.part_Enclosing_OpenColor is None \
+                else self.obj.part_Enclosing_OpenColor
+            self.tilecolor = self.tilecolor if self.obj.part_Enclosing_OpenTileColor is None \
+                else self.obj.part_Enclosing_OpenTileColor
+            self.file = self.file if self.obj.part_Enclosing_OpenTile is None \
+                else self.obj.part_Enclosing_OpenTile
+        if double_enclosing_alt:
+            self._invert_filename_direction()
+
+    def _invert_filename_direction(self) -> bool:
+        start_dirs = ['_w_', '_w.', '_e_', '_e.']
+        transform_dirs = ['_e_', '_e.', '_w_', '_w.']
+        for dir1, dir2 in zip(start_dirs, transform_dirs):
+            if dir1 in self.file:
+                self.file = self.file.replace(dir1, dir2)
+                return True
+        return False
 
     @staticmethod
     def parse_paint_path(path: str) -> str:
@@ -354,6 +386,9 @@ class TilePainter:
                          any(d in qud_object.part_Door_OpenTile for d in dirs)):
                     tile_count = 4
             tile_count = 4 if qud_object.inherits_from('Double Door') else 2
+        if qud_object.part_Enclosing is not None:
+            if any(getattr(qud_object, part) is not None for part in ENCLOSING_RENDER_PARTS):
+                tile_count = 4 if qud_object.part_DoubleEnclosing is not None else 2
         if qud_object.part_Hangable_HangingTile is not None:
             tile_count = 2
         if any(qud_object.is_specified(part) for part in HOLO_PARTS):
