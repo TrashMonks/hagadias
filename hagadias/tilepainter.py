@@ -192,10 +192,12 @@ class TilePainter:
             if complexity is not None and complexity > 0:
                 understanding = self.obj.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
-                    is_identified = tile_index % 2 == 0
-                    self.file = self.file if is_identified else self.obj.part_Examiner_UnknownTile
-                    meta_type = 'identified' if is_identified else 'unidentified'
-                    meta_postfix = f' {meta_type}'
+                    unknown_name = self.obj.part_Examiner_UnknownDisplayName
+                    if unknown_name is None or unknown_name != '*med':  # tonics excluded due to their random coloring
+                        is_identified = tile_index % 2 == 0
+                        self.file = self.file if is_identified else self.obj.part_Examiner_UnknownTile
+                        meta_type = 'identified' if is_identified else 'unidentified'
+                        meta_postfix = f' {meta_type}'
         # TODO: account for RandomColors part here
         if harvestable_variants:
             is_ripe = tile_index % 2 == 0
@@ -407,7 +409,9 @@ class TilePainter:
             if complexity is not None and complexity > 0:
                 understanding = qud_object.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
-                    tile_count += 1
+                    unknown_name = qud_object.part_Examiner_UnknownDisplayName
+                    if unknown_name is None or unknown_name != '*med':  # tonics excluded due to their random coloring
+                        tile_count += 1
         if any(qud_object.is_specified(part) for part in HOLO_PARTS):
             return tile_count  # hologram overrides colors, so any dynamic colors below don't matter
         # TODO: account for RandomColors part here
