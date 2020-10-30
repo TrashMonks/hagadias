@@ -968,7 +968,10 @@ class QudObjectProps(QudObject):
     def movespeed(self) -> Union[int, None]:
         """The movespeed of a creature."""
         if self.inherits_from('Creature'):
-            return int_or_none(self.stat_MoveSpeed_Value)
+            ms = int_or_none(self.stat_MoveSpeed_Value)
+            if ms is not None:
+                ms = 200 - ms  # https://bitbucket.org/bbucklew/cavesofqud-public-issue-tracker/issues/2634
+                return ms
 
     @property
     def movespeedbonus(self) -> Union[int, None]:
