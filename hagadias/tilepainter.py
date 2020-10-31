@@ -228,6 +228,18 @@ class TilePainter:
             types = ['ready', 'extended (base)', 'extended (top)']
             postfixes = [' ready', ' extended base', ' extended top']
             self.file, meta_type, meta_postfix = paths[tile_index], types[tile_index], postfixes[tile_index]
+        elif self.obj.name == 'MachineWallHotTubing':
+            types = ['hot', 'hot (glowing in the dark)', 'empty']
+            postfixes = [' hot', ' hot glowing', ' empty']
+            if tile_index == 1:
+                fg = self.obj.part_DrawInTheDark_ForegroundTileColor
+                bg = self.obj.part_DrawInTheDark_BackgroundTileColor
+                if fg is not None and bg is not None:
+                    self.color = self.tilecolor = f'&{fg}^{bg}'
+            if tile_index == 2:
+                self.color = self.tilecolor = '&y^c'  # MachineWallEmptyTubing
+            meta_type = types[tile_index]
+            meta_postfix = postfixes[tile_index]
         if self._tiles_metadata[tile_index] is None:
             meta_postfix = None if meta_postfix == '' else meta_postfix
             meta_type = 'default' if meta_type == '' else meta_type
@@ -392,6 +404,8 @@ class TilePainter:
         if not qud_object.has_tile():
             return 0
         if qud_object.part_PistonPressElement is not None:
+            return 3
+        if qud_object.name == 'MachineWallHotTubing':
             return 3
         if qud_object.part_Examiner_UnknownDisplayName == '*med':  # tonics, which generate with 1/10 random colors
             return 10
