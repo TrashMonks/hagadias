@@ -1400,9 +1400,7 @@ class QudObjectProps(QudObject):
     @property
     def weight(self) -> Union[int, None]:
         """The weight of the object."""
-        if self.part_Physics_Takeable is None or self.part_Physics_Takeable == 'true':
-            # weight is shown only for takeable objects (for instance, it's not shown for gases, walls, or creatures)
-            return int_or_none(self.part_Physics_Weight)
+        return int_or_none(self.part_Physics_Weight)
 
     @property
     def willpower(self) -> Union[str, None]:
