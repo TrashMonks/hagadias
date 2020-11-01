@@ -1400,6 +1400,10 @@ class QudObjectProps(QudObject):
     @property
     def weight(self) -> Union[int, None]:
         """The weight of the object."""
+        if self.inherits_from('InertObject') or self.inherits_from('CosmeticObject') or \
+                (self.part_Physics_IsReal is not None and self.part_Physics_IsReal == 'false') or \
+                self.tag_IgnoresGravity is not None or self.tag_ExcavatoryTerrainFeature is not None:
+            return None
         return int_or_none(self.part_Physics_Weight)
 
     @property
