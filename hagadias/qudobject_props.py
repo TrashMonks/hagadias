@@ -1122,6 +1122,29 @@ class QudObjectProps(QudObject):
             return int_or_none(self.part_Armor_SpeedBonus)
 
     @property
+    def realitydistortionbased(self) -> Union[bool, None]:
+        projectile = self.projectile_object()
+        if projectile is not None:
+            projectile_rd_info = projectile.part_TreatAsSolid_RealityDistortionBased
+            if projectile_rd_info is not None and projectile_rd_info == 'true':
+                return True
+            projectile_vamp_rd_info = projectile.part_VampiricWeapon_RealityDistortionBased
+            if projectile_vamp_rd_info is not None and projectile_vamp_rd_info == 'true':
+                return True
+        if self.part_MechanicalWings_IsRealityDistortionBased is not None:
+            if self.part_MechanicalWings_IsRealityDistortionBased == 'true':
+                return True
+        if self.part_DeploymentGrenade_UsabilityEvent is not None:
+            if self.part_DeploymentGrenade_UsabilityEvent == 'CheckRealityDistortionUsability':
+                return True
+        if self.part_Displacer is not None:
+            return True
+        if self.part_EngulfingClones is not None:
+            return True
+        if self.part_GreaterVoider is not None:
+            return True
+
+    @property
     def reflect(self) -> Union[int, None]:
         """If it reflects, what percentage of damage is reflected."""
         return int_or_none(self.part_ModGlassArmor_Tier)
