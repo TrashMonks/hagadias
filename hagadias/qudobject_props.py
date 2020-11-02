@@ -1449,3 +1449,52 @@ class QudObjectProps(QudObject):
         if self.name == 'Hooks':
             wornon = 'Feet'  # manual fix
         return wornon
+
+    @property
+    def xpvalue(self) -> Union[int, None]:
+        level = self.lv
+        try:
+            # there's one object that uses an sValue for "Level" ('Barathrumite Tinker' => '18-29')
+            # that object and its children are not wiki-enabled, but would raise an exception here.
+            level = int_or_none(level)
+        except ValueError:
+            level = None
+        if level is None:
+            return None
+        xp_value = getattr(self, 'stat_XPValue_sValue')
+        if not xp_value:
+            xp_value = getattr(self, 'stat_XPValue_Value')
+        if not xp_value:
+            return None
+        xp = xp_value
+        if xp == '*XP':
+            role = self.role
+            role = 'Minion' if role is None else role
+            if role == 'Minion':
+                xp = level * 10
+            elif role == 'Leader':
+                xp = level * 50
+            elif role == 'Hero':
+                xp = level * 100
+            else:
+                xp = level * 25
+        else:
+            xp = int_or_none(xp)
+            if xp is None:
+                return None
+        xp_override = getattr(self, 'property_*XPValue_Value')  # overrides XPValue stat if present
+        if xp_override is not None:
+            xp = int(xp_override)
+        return xp
+
+    @property
+    def xptier(self) -> Union[int, None]:
+        level = self.lv
+        try:
+            # there's one object that uses an sValue for "Level" ('Barathrumite Tinker' => '18-29')
+            # that object and its children are not wiki-enabled, but would raise an exception here.
+            level = int_or_none(level)
+        except ValueError:
+            return None
+        if level is not None:
+            return level // 5
