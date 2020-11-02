@@ -1139,6 +1139,8 @@ class QudObjectProps(QudObject):
                 return True
         if self.part_Displacer is not None:
             return True
+        if self.part_SpaceTimeVortex is not None:
+            return True
         if self.part_EngulfingClones is not None:
             return True
         if self.part_GreaterVoider is not None:
