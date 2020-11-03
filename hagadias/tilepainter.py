@@ -15,10 +15,11 @@ TONIC_NAMES_AND_COLORS = ['milky,&Y', 'smokey,&K', 'turquoise,&C', 'cobalt,&b', 
 class TilePainter:
 
     def __init__(self, obj):
-        """Create a TilePainter instance for this object and calculate the details needed to color and render a tile.
+        """Create a TilePainter instance for this object and calculate the details needed to
+        color and render a tile.
 
-        Determines the colors and filepath that are required to create the tile. Actual tile creation is
-        deferred until the tile property is accessed.
+        Determines the colors and filepath that are required to create the tile. Actual tile
+        creation is deferred until the tile property is accessed.
 
         Parameters:
             obj: a QudObject
@@ -38,7 +39,8 @@ class TilePainter:
 
         self._apply_primer()
 
-        if obj.tag_PaintedFence and obj.tag_PaintedFence_Value != "*delete":  # fence must be prioritized over wall
+        # fence must be prioritized over wall
+        if obj.tag_PaintedFence and obj.tag_PaintedFence_Value != "*delete":
             self.paintpath = self.parse_paint_path(obj.tag_PaintedFence_Value)
             self._paint_fence()
         elif obj.tag_PaintedWall and obj.tag_PaintedWall_Value != "*delete":
@@ -51,8 +53,8 @@ class TilePainter:
             self.standin = StandInTiles.get_tile_provider_for(obj)
 
     def tile(self, tile_index: int = 0) -> Union[QudTile, None]:
-        """Retrieves the painted QudTile for this object. If an index is supplied for an object that has multiple
-        tiles, returns the alternate tile at the specified index."""
+        """Retrieves the painted QudTile for this object. If an index is supplied for an object that
+        has multiple tiles, returns the alternate tile at the specified index."""
         if tile_index >= len(self._tiles):
             return None
         if self._tiles[tile_index] is not None:
@@ -70,8 +72,8 @@ class TilePainter:
         return self._tiles[tile_index]
 
     def all_tiles_and_metadata(self) -> Tuple[List[QudTile], List]:
-        """Returns a list of QudTiles representing all the tile variations for this object, as well as a
-        corrsponding list of TilePainterMetadata for each of those tiles."""
+        """Returns a list of QudTiles representing all the tile variations for this object, as well
+        as a corrsponding list of TilePainterMetadata for each of those tiles."""
         qud_tiles: List[QudTile] = []
         metadata: List[TilePainterMetadata] = []
         for idx, entry in enumerate(self._tiles):
@@ -83,15 +85,17 @@ class TilePainter:
         return qud_tiles, metadata
 
     def _apply_primer(self):
-        """Analyzes this object's tile metadata and defines its basic colors and filepaths. Most of the time this
-        just uses the values specified in the object's Render part, but we also handle various exceptions and
-        unique cases related to coloring the tile during this initial analysis.
+        """Analyzes this object's tile metadata and defines its basic colors and filepaths. Most
+        of the time this just uses the values specified in the object's Render part, but we also
+        handle various exceptions and unique cases related to coloring the tile during this
+        initial analysis.
 
-        When this function finishes, an object should have at least some basic tile properties defined to avoid
-        raising errors later in the process. The result of this function doesn't necessarily need to match the final
-        rendered tile, however, because it will also be passed through _stylize_tile_variant(). Thus, _apply_primer()
-        is particularly important for objects that have no part_Render_Tile defined or that have other special logic
-        but don't define styles in _stylize_tile_variant()."""
+        When this function finishes, an object should have at least some basic tile properties
+        defined to avoid raising errors later in the process. The result of this function doesn't
+        necessarily need to match the final rendered tile, however, because it will also be
+        passed through _stylize_tile_variant(). Thus, _apply_primer() is particularly important
+        for objects that have no part_Render_Tile defined or that have other special logic but
+        don't define styles in _stylize_tile_variant(). """
 
         # general case
         self.trans = 'transparent'  # default transparency
@@ -111,15 +115,16 @@ class TilePainter:
             self.file = self.obj.part_RandomTile_Tiles.split(',')[0]
 
         # apply special initial tile properties to certain objects and parts
-        if any(self.obj.is_specified(part) for part in HOLO_PARTS) or self.obj.name == "Wraith-Knight Templar":
+        if any(self.obj.is_specified(part) for part in HOLO_PARTS) or \
+                self.obj.name == "Wraith-Knight Templar":
             # special handling for holograms
             self.color, self.tilecolor, self.detail = '&B', '&B', 'b'
         elif self.obj.is_specified('part_AnimatedMaterialStasisfield'):
             # special handling for stasis fields
             self.color, self.tilecolor, self.detail, self.trans = '&C^M', '&C^M', 'M', 'M'
         elif self.obj.is_specified('part_Gas') and self.obj.part_Gas_ColorString is not None:
-            # Cryo gas always retains ^Y bg color. Technically, other gases have ^k bg color if < 50 density,
-            # but we will paint the "dense" version with their additional color
+            # Cryo gas always retains ^Y bg color. Technically, other gases have ^k bg color if < 50
+            # density, but we will paint the "dense" version with their additional color
             self.color = self.tilecolor = self.obj.part_Gas_ColorString
             self.detail = None
         elif self.obj.part_AnimatedMaterialTechlight is not None:
@@ -127,8 +132,8 @@ class TilePainter:
             self.color = self.tilecolor = '&c' if self.color is None else self.color
             self.detail = 'Y'
         elif self.obj.part_AnimatedMaterialGeneric is not None:
-            # use the colors from the zero frame of the AnimatedMaterialGeneric part, because when these are
-            # present, the object's Render part colors are never used.
+            # use the colors from the zero frame of the AnimatedMaterialGeneric part, because
+            # when these are present, the object's Render part colors are never used.
             part_detail = self.obj.part_AnimatedMaterialGeneric_DetailColorAnimationFrames
             part_color = self.obj.part_AnimatedMaterialGeneric_ColorStringAnimationFrames
             if part_detail is not None and part_detail.startswith('0='):
@@ -142,25 +147,29 @@ class TilePainter:
             self.trans = 'b'  # Applied by the RenderLiquidBackground part
 
     def _stylize_tile_variant(self, tile_index: int = 0):
-        """Morphs a tile into one of its variants, based on the provided zero-based tile index. This function
-        controls the logic used to order an object's alternate tiles, and it also defines the TilePainterMetadata
-        associated with each tile as it generates it, storing that metadata in the self._tiles_metadata List.
+        """Morphs a tile into one of its variants, based on the provided zero-based tile index.
+        This function controls the logic used to order an object's alternate tiles, and it also
+        defines the TilePainterMetadata associated with each tile as it generates it,
+        storing that metadata in the self._tiles_metadata List.
 
         The logic here should be kept in sync with the logic used in TilePainter.tile_count()"""
         harvestable_variants = self.obj.part_Harvestable is not None \
             and not any(self.obj.is_specified(part) for part in HOLO_PARTS)
-        aloe_variants = self.obj.part_DischargeOnStep is not None or self.obj.part_CrossFlameOnStep is not None \
+        aloe_variants = self.obj.part_DischargeOnStep is not None or \
+            self.obj.part_CrossFlameOnStep is not None \
             or self.obj.part_FugueOnStep is not None
         meta_postfix = ''
         meta_type = ''
         if self.obj.part_RandomTile is not None:
             random_tiles = self.obj.part_RandomTile_Tiles.split(',')
-            adjusted_randomtile_index = tile_index if not (harvestable_variants or aloe_variants) else (tile_index // 2)
+            adjusted_randomtile_index = tile_index if not (harvestable_variants or aloe_variants) \
+                else (tile_index // 2)
             if adjusted_randomtile_index < len(random_tiles):
                 self.file = self.obj.part_RandomTile_Tiles.split(',')[adjusted_randomtile_index]
                 meta_type = f'random sprite #{adjusted_randomtile_index + 1}'
                 # meta_tooltip = 'this object generates with a random sprite'
-                meta_postfix = f' variation {adjusted_randomtile_index}' if adjusted_randomtile_index > 0 else ''
+                meta_postfix = f' variation {adjusted_randomtile_index}' \
+                    if adjusted_randomtile_index > 0 else ''
         if self.obj.part_Door is not None:
             is_closed, double_door_alt = tile_index % 2 == 0, (tile_index // 2) % 2 == 1
             self._paint_door(is_closed=is_closed, double_door_alt=double_door_alt)
@@ -174,7 +183,8 @@ class TilePainter:
         if self.obj.part_Enclosing is not None:
             if any(getattr(self.obj, part) is not None for part in ENCLOSING_RENDER_PARTS):
                 is_closed, double_enclosing_alt = tile_index % 2 == 0, (tile_index // 2) % 2 == 1
-                self._paint_enclosing(is_closed=is_closed, double_enclosing_alt=double_enclosing_alt)
+                self._paint_enclosing(is_closed=is_closed,
+                                      double_enclosing_alt=double_enclosing_alt)
                 meta_type = 'closed' if is_closed else 'open'
                 if self.obj.part_DoubleEnclosing is not None:
                     if '_w.' in self.file:
@@ -184,20 +194,24 @@ class TilePainter:
                 meta_postfix = f' {meta_type}'
         if self.obj.part_Hangable_HangingTile is not None:
             is_hanging = tile_index % 2 == 0
-            self.file = self.obj.part_Hangable_HangingTile if is_hanging else self.obj.part_Render_Tile
+            self.file = self.obj.part_Hangable_HangingTile if is_hanging \
+                else self.obj.part_Render_Tile
             meta_type = 'hanging' if is_hanging else 'unhung'
             meta_postfix = f' {meta_type}'
         if self.obj.part_Examiner_UnknownTile is not None:
-            # TODO: this is a bit precarious and probably won't work right if an item also has an additional alternate
-            #       tile source, such as RandomTile. All existing tiles work fine, but this could use some refactoring.
+            # TODO: this is a bit precarious and probably won't work right if an item also has an
+            #  additional alternate tile source, such as RandomTile. All existing tiles work
+            #  fine, but this could use some refactoring.
             complexity = self.obj.complexity
             if complexity is not None and complexity > 0:
                 understanding = self.obj.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
                     unknown_name = self.obj.part_Examiner_UnknownDisplayName
-                    if unknown_name is None or unknown_name != '*med':  # tonics excluded due to their random coloring
+                    if unknown_name is None or unknown_name != '*med':
+                        # tonics excluded due to their random coloring
                         is_identified = tile_index % 2 == 0
-                        self.file = self.file if is_identified else self.obj.part_Examiner_UnknownTile
+                        self.file = self.file if is_identified \
+                            else self.obj.part_Examiner_UnknownTile
                         meta_type = 'identified' if is_identified else 'unidentified'
                         meta_postfix = f' {meta_type}'
         if self.obj.part_Examiner_UnknownDisplayName == '*med':
@@ -224,10 +238,12 @@ class TilePainter:
             meta_type = f'{ready_string}, {meta_type}' if len(meta_type) > 0 else ready_string
             meta_postfix += f' {ready_string}'
         elif self.obj.part_PistonPressElement is not None:
-            paths = ['Items/sw_crusher_s_press.bmp', 'Items/sw_crusher_s_extend.bmp', 'Items/sw_crusher_s_closed.png']
+            paths = ['Items/sw_crusher_s_press.bmp', 'Items/sw_crusher_s_extend.bmp',
+                     'Items/sw_crusher_s_closed.png']
             types = ['ready', 'extended (base)', 'extended (top)']
             postfixes = [' ready', ' extended base', ' extended top']
-            self.file, meta_type, meta_postfix = paths[tile_index], types[tile_index], postfixes[tile_index]
+            self.file, meta_type, meta_postfix = \
+                paths[tile_index], types[tile_index], postfixes[tile_index]
         elif self.obj.name == 'MachineWallHotTubing':
             types = ['hot', 'hot (glowing in the dark)', 'empty']
             postfixes = [' hot', ' hot glowing', ' empty']
@@ -244,7 +260,8 @@ class TilePainter:
             meta_postfix = None if meta_postfix == '' else meta_postfix
             meta_type = 'default' if meta_type == '' else meta_type
             # meta_tooltip = None if meta_tooltip == '' else meta_tooltip
-            self._tiles_metadata[tile_index] = TilePainterMetadata(self.obj, meta_postfix, meta_type)
+            self._tiles_metadata[tile_index] = \
+                TilePainterMetadata(self.obj, meta_postfix, meta_type)
 
     def _paint_fence(self):
         """Paints a fence tile for this object. Assumes that tag_PaintedFence exists."""
@@ -254,10 +271,12 @@ class TilePainter:
             # detail 'k' means trans layer is used for secondary color (common with fence tiles)
             self.detail = 'transparent'
             self.trans = self.tilecolor.split('^')[1]
-            self.tilecolor = self.tilecolor.split('^')[0]  # remove ^ from tilecolor to prevent QudTile overriding trans
+            # remove ^ from tilecolor to prevent QudTile overriding trans
+            self.tilecolor = self.tilecolor.split('^')[0]
         elif (self.detail is None or self.detail != 'k') and '^' in self.tilecolor:
             bgcolor = self.tilecolor.split('^')[1]
-            self.tilecolor = self.tilecolor.split('^')[0]  # remove ^ from tilecolor to prevent QudTile overriding trans
+            # remove ^ from tilecolor to prevent QudTile overriding trans
+            self.tilecolor = self.tilecolor.split('^')[0]
             self.trans = bgcolor if bgcolor != 'k' else self.trans
         self.color = self.tilecolor
         _ = self.obj.tag_PaintedFenceAtlas_Value
@@ -265,9 +284,11 @@ class TilePainter:
         _ = self.obj.tag_PaintedFenceExtension_Value
         tileext = _ if _ else '.bmp'
         tilename = self.paintpath
-        # the following works for all the existing HydraulicPowerTransmission and MechanicalPowerTransmission objects.
-        # This logic may need to be updated if additional objects are added to the game. These two parts inherit from
-        # the same base (IPowerTransmission) but the logic for rendering IPowerTransmission objects is very complex.
+        # the following works for all the existing HydraulicPowerTransmission and
+        # MechanicalPowerTransmission objects. This logic may need to be updated if additional
+        # objects are added to the game. These two parts inherit from the same base
+        # (IPowerTransmission) but the logic for rendering IPowerTransmission objects is very
+        # complex.
         if self.obj.part_HydraulicPowerTransmission:
             if self.obj.part_HydraulicPowerTransmission_TileEffects == 'true':
                 powered = self.obj.part_HydraulicPowerTransmission_TileAppendWhenPowered
@@ -296,7 +317,8 @@ class TilePainter:
         self.file = tileloc + self.paintpath + '-00000000' + tileext
 
     def _paint_walltrap(self):
-        """Renders a walltrap tile. These are normally colored in the C# code, so we handle them specially."""
+        """Renders a walltrap tile. These are normally colored in the C# code, so we handle them
+        specially. """
         self.file = self.obj.part_Render_Tile
         warmcolor = self.obj.part_Walltrap_WarmColor
         fore = extract_foreground_char(warmcolor, 'r')
@@ -385,34 +407,38 @@ class TilePainter:
 
     @staticmethod
     def parse_paint_path(path: str) -> str:
-        """Accepts a value from part_PaintedFence_Value or part_PaintedWall_Value, and retrieves the tile that
-        should be used for that painted fence or wall. Rarely, these parts have a comma delimited list of
-        possible tiles that can be used."""
+        """Accepts a value from part_PaintedFence_Value or part_PaintedWall_Value, and retrieves
+        the tile that should be used for that painted fence or wall. Rarely, these parts have a
+        comma delimited list of possible tiles that can be used. """
         return path.split(',')[0]
 
     @staticmethod
     def is_painted_fence(qud_object) -> bool:
         """Returns true if this object is a painted fence."""
-        return qud_object.tag_PaintedFence is not None and qud_object.tag_PaintedFence_Value != "*delete"
+        return qud_object.tag_PaintedFence is not None and \
+            qud_object.tag_PaintedFence_Value != "*delete"
 
     @staticmethod
     def tile_count(qud_object) -> int:
         """Retrieves the total number of tiles that are available for this object. Some objects have
         alternate tiles.
 
-        The logic here should be kept in sync with the logic used in <TilePainter>._stylize_tile_variant()"""
+        The logic here should be kept in sync with the logic used in
+        <TilePainter>._stylize_tile_variant() """
         if not qud_object.has_tile():
             return 0
         if qud_object.part_PistonPressElement is not None:
             return 3
         if qud_object.name == 'MachineWallHotTubing':
             return 3
-        if qud_object.part_Examiner_UnknownDisplayName == '*med':  # tonics, which generate with 1/10 random colors
+        if qud_object.part_Examiner_UnknownDisplayName == '*med':
+            # tonics, which generate with 1/10 random colors
             return 10
         tile_count = 1
         if qud_object.part_RandomTile is not None:
             tile_count = len(qud_object.part_RandomTile_Tiles.split(','))
-        if qud_object.part_Door is not None:  # Door part overwrites the tile, so it would override RandomTile
+        if qud_object.part_Door is not None:
+            # Door part overwrites the tile, so it would override RandomTile
             tile_count = 2
             if qud_object.inherits_from('Double Door'):
                 dirs = ['_w_', '_w.', '_e_', '_e.']
@@ -433,23 +459,27 @@ class TilePainter:
                 understanding = qud_object.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
                     unknown_name = qud_object.part_Examiner_UnknownDisplayName
-                    if unknown_name is None or unknown_name != '*med':  # tonics excluded due to their random coloring
+                    if unknown_name is None or unknown_name != '*med':
+                        # tonics excluded due to their random coloring
                         tile_count += 1
         if any(qud_object.is_specified(part) for part in HOLO_PARTS):
             return tile_count  # hologram overrides colors, so any dynamic colors below don't matter
         # TODO: account for RandomColors part here
-        if qud_object.part_Harvestable is not None:  # Harvestable applies two alternate color schemes
+        if qud_object.part_Harvestable is not None:  # Harvestable applies 2 alternate color schemes
             ripe_tilecolor = qud_object.part_Harvestable_RipeTileColor
             unripe_tilecolor = qud_object.part_Harvestable_UnripeTileColor
-            if ripe_tilecolor is not None and unripe_tilecolor is not None and ripe_tilecolor != unripe_tilecolor:
+            if ripe_tilecolor is not None and unripe_tilecolor is not None and \
+                    ripe_tilecolor != unripe_tilecolor:
                 tile_count *= 2  # for example, Grave Moss has RandomTile and Harvestable
             else:
                 unripe_detail = qud_object.part_Harvestable_UnripeDetailColor
                 ripe_detail = qud_object.part_Harvestable_RipeDetailColor
-                if ripe_detail is not None and unripe_detail is not None and ripe_detail != unripe_detail:
+                if ripe_detail is not None and unripe_detail is not None and \
+                        ripe_detail != unripe_detail:
                     tile_count *= 2
-        elif qud_object.part_DischargeOnStep is not None or qud_object.part_CrossFlameOnStep is not None \
-                or qud_object.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, and Aloe Pyra
+        elif qud_object.part_DischargeOnStep is not None or \
+                qud_object.part_CrossFlameOnStep is not None \
+                or qud_object.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, & Aloe Pyra
             tile_count *= 2  # Aloe Volta also has RandomTile
         return tile_count
 
@@ -457,8 +487,8 @@ class TilePainter:
 class TilePainterMetadata:
 
     def __init__(self, qud_object, postfix, tiletype):
-        """Stores basic metadata for a tile, such as the filename that should be used for saving the tile as well
-        as the type of tile, such as 'harvestable' or 'random sprite #7'."""
+        """Stores basic metadata for a tile, such as the filename that should be used for saving
+        the tile as well as the type of tile, such as 'harvestable' or 'random sprite #7'. """
         self.postfix = postfix
         self.type = tiletype
         self.obj_id = qud_object.name

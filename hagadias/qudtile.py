@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from hagadias.constants import QUD_COLORS, QUD_VIRIDIAN
+from hagadias.constants import QUD_COLORS
 
 TILE_COLOR = (0, 0, 0, 255)
 DETAIL_COLOR = (255, 255, 255, 255)
@@ -37,14 +37,16 @@ class QudTile:
         """Loads and colors a tile, creating the corresponding PIL Image object.
 
         Args:
-            filename: filename of the tile source image. Set to None if the image_provider parameter is specified.
+            filename: filename of the tile source image. Set to None if the image_provider parameter
+            is specified.
             colorstring: the ColorString associated with this tile.
             raw_tilecolor: the TileColor associated with this tile.
             raw_detailcolor: the DetailColor associated with this tile.
             qudname: name of the Qud object. Used only for debug purposes.
             raw_transparent: an override color to use to fill the transparent pixels of the source.
-            image_provider: a method that returns a PIL Image object. Can be used instead of a filename. If
-                            specified, QudTile will call Image.copy() to avoid altering the provided image.
+            image_provider: a method that returns a PIL Image object. Can be used instead of a
+                            filename. If specified, QudTile will call Image.copy() to avoid altering
+                            the provided image.
         """
         self.hasproblems = False  # set True if problems with tile generation encountered
         self.filename = filename
@@ -89,7 +91,8 @@ class QudTile:
                     image_cache[filename] = self.image.copy()
                     self._color_image()
                 except FileNotFoundError:
-                    logging.warning(f'Couldn\'t render tile for {self.qudname}: {filename} not found')
+                    logging.warning(f'Couldn\'t render tile for {self.qudname}: ' +
+                                    f'{filename} not found')
                     self.hasproblems = True
                     self.image = blank_image
 
@@ -160,9 +163,11 @@ class QudTile:
 
 
 class StandInTiles:
-    """Provides PIL Image representations of certain Code Page 437 characters that are used for animations.
+    """Provides PIL Image representations of certain Code Page 437 characters that are used for
+    animations.
 
-    Methods in this class return an uncolored tile image constructed from only black and transparent pixels.
+    Methods in this class return an uncolored tile image constructed from only black and transparent
+    pixels.
     """
     _hologram_material_glyph1: Image = None
     _hologram_material_glyph2: Image = None
@@ -174,18 +179,21 @@ class StandInTiles:
 
     @staticmethod
     def get_tile_provider_for(qud_object):
-        """Returns a method that can provide a stand-in tile for the specified QudObject, if one is available. Enables
-        specifying tiles for things that don't actually have a tile specified in ObjectBlueprints.xml, but for which
-        it makes sense to 'fake' a tile by drawing their code page 437 character. The prime example is gases.
+        """Returns a method that can provide a stand-in tile for the specified QudObject, if one is
+        available. Enables specifying tiles for things that don't actually have a tile specified in
+        ObjectBlueprints.xml, but for which it makes sense to 'fake' a tile by drawing their code
+        page 437 character. The prime example is gases.
 
-        We could consider loading this from config eventually, but I doubt there will be many things that use it."""
+        We could consider loading this from config eventually, but I doubt there will be many things
+        that use it."""
         if getattr(qud_object, 'part_Gas') is not None:
             return StandInTiles.gas_glyph1
         return None
 
     @staticmethod
     def hologram_material_glyph1() -> Image:
-        """Creates a PIL Image representation of the  |  character, which is used by HologramMaterial animations."""
+        """Creates a PIL Image representation of the  |  character, which is used by
+        HologramMaterial animations."""
         if StandInTiles._hologram_material_glyph1 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
             draw = ImageDraw.Draw(image)
@@ -195,7 +203,8 @@ class StandInTiles:
 
     @staticmethod
     def hologram_material_glyph2() -> Image:
-        """Creates a PIL Image representation of the  _  character, which is used by HologramMaterial animations."""
+        """Creates a PIL Image representation of the  _  character, which is used by
+        HologramMaterial animations."""
         if StandInTiles._hologram_material_glyph2 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
             draw = ImageDraw.Draw(image)
@@ -205,7 +214,8 @@ class StandInTiles:
 
     @staticmethod
     def hologram_material_glyph3() -> Image:
-        """Creates a PIL Image representation of the  -  character, which is used by HologramMaterial animations."""
+        """Creates a PIL Image representation of the  -  character, which is used by
+        HologramMaterial animations."""
         if StandInTiles._hologram_material_glyph3 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
             draw = ImageDraw.Draw(image)
@@ -215,7 +225,8 @@ class StandInTiles:
 
     @staticmethod
     def gas_glyph1() -> Image:
-        """Creates a PIL Image representation of the  ░  character, which is used by Gas animations."""
+        """Creates a PIL Image representation of the  ░  character, which is used by Gas
+        animations."""
         if StandInTiles._gas_glyph1 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
             draw = ImageDraw.Draw(image)
@@ -233,7 +244,8 @@ class StandInTiles:
 
     @staticmethod
     def gas_glyph2() -> Image:
-        """Creates a PIL Image representation of the  ▒  character, which is used by Gas animations."""
+        """Creates a PIL Image representation of the  ▒  character, which is used by Gas
+        animations."""
         if StandInTiles._gas_glyph2 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
             draw = ImageDraw.Draw(image)
@@ -248,7 +260,8 @@ class StandInTiles:
 
     @staticmethod
     def gas_glyph3() -> Image:
-        """Creates a PIL Image representation of the  ▓  character, which is used by Gas animations."""
+        """Creates a PIL Image representation of the  ▓  character, which is used by Gas
+        animations."""
         if StandInTiles._gas_glyph3 is None:
             image = Image.new('RGBA', (16, 24), color=TILE_COLOR)
             draw = ImageDraw.Draw(image)
@@ -266,7 +279,8 @@ class StandInTiles:
 
     @staticmethod
     def gas_glyph4() -> Image:
-        """Creates a PIL Image representation of the  █  character, which is used by Gas animations."""
+        """Creates a PIL Image representation of the  █  character, which is used by Gas
+        animations."""
         if StandInTiles._gas_glyph4 is None:
             image = Image.new('RGBA', (16, 24), color=TILE_COLOR)
             StandInTiles._gas_glyph4 = image

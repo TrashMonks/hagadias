@@ -970,7 +970,8 @@ class QudObjectProps(QudObject):
         if self.inherits_from('Creature'):
             ms = int_or_none(self.stat_MoveSpeed_Value)
             if ms is not None:
-                ms = 200 - ms  # https://bitbucket.org/bbucklew/cavesofqud-public-issue-tracker/issues/2634
+                # https://bitbucket.org/bbucklew/cavesofqud-public-issue-tracker/issues/2634
+                ms = 200 - ms
                 return ms
 
     @property
@@ -1056,11 +1057,16 @@ class QudObjectProps(QudObject):
     @property
     def poisononhit(self) -> Union[str, None]:
         if self.part_PoisonOnHit:
-            pct = self.part_PoisonOnHit_Chance if self.part_PoisonOnHit_Chance is not None else '100'
-            save = self.part_PoisonOnHit_Strength if self.part_PoisonOnHit_Strength is not None else '15'
-            dmg = self.part_PoisonOnHit_DamageIncrement if self.part_PoisonOnHit_DamageIncrement is not None else '3d3'
-            duration = self.part_PoisonOnHit_Duration if self.part_PoisonOnHit_Duration is not None else '6-9'
-            return f'{pct}% to poison on hit, toughness save {save}. {dmg} damage for {duration} turns.'
+            pct = self.part_PoisonOnHit_Chance
+            save = self.part_PoisonOnHit_Strength
+            dmg = self.part_PoisonOnHit_DamageIncrement
+            duration = self.part_PoisonOnHit_Duration
+            pct = pct if pct is not None else '100'
+            save = save if save is not None else '15'
+            dmg = dmg if dmg is not None else '3d3'
+            duration = duration if duration is not None else '6-9'
+            return f'{pct}% to poison on hit, toughness save {save}.' + \
+                ' {dmg} damage for {duration} turns.'
 
     @property
     def preservedinto(self) -> Union[str, None]:
@@ -1110,7 +1116,8 @@ class QudObjectProps(QudObject):
             return True
         if self.part_Gaslight and int(self.part_Gaslight_ChargeUse) > 0:
             return True
-        if self.part_Projectile_Attributes == "Vorpal":  # TODO: not sure if this works [use projectile_object()?]
+        if self.part_Projectile_Attributes == "Vorpal":
+            # FIXME: this seems like it won't actually works [use projectile_object() instead?]
             return True
 
     @property
@@ -1244,7 +1251,8 @@ class QudObjectProps(QudObject):
             # add some if-exclusions for things that shouldn't say 'can be walked over/through':
             if self.inheritingfrom == 'Door':  # security doors
                 return None
-            if self.part_ThrownWeapon is not None:  # thrown weapons for some reason often specify Solid="false"
+            if self.part_ThrownWeapon is not None:
+                # thrown weapons for some reason often specify Solid="false"
                 if 'Boulder' not in self.name:
                     return None
             return False
@@ -1427,7 +1435,8 @@ class QudObjectProps(QudObject):
         """The weight of the object."""
         if self.inherits_from('InertObject') or self.inherits_from('CosmeticObject') or \
                 (self.part_Physics_IsReal is not None and self.part_Physics_IsReal == 'false') or \
-                self.tag_IgnoresGravity is not None or self.tag_ExcavatoryTerrainFeature is not None:
+                self.tag_IgnoresGravity is not None or \
+                self.tag_ExcavatoryTerrainFeature is not None:
             return None
         return int_or_none(self.part_Physics_Weight)
 

@@ -1,9 +1,10 @@
 # This code adapted from https://github.com/python-pillow/Pillow/issues/4644 to resolve an issue
 # described in https://github.com/python-pillow/Pillow/issues/4640
 #
-# There is a long-standing issue with the Pillow library that messes up GIF transparency by replacing the
-# transparent pixels with black pixels (among other issues) when the GIF is saved using PIL.Image.save().
-# This code works around the issue and allows us to properly generate transparent GIFs.
+# There is a long-standing issue with the Pillow library that messes up GIF transparency by
+# replacing the transparent pixels with black pixels (among other issues) when the GIF is saved
+# using PIL.Image.save(). This code works around the issue and allows us to properly generate
+# transparent GIFs.
 
 from typing import Tuple, List, Union
 from collections import defaultdict
@@ -64,7 +65,8 @@ class TransparentAnimatedGifConverter(object):
         del(self._img_p_parsedpalette[0])
 
     def _get_unused_color(self) -> tuple:
-        """ Return a color for the palette that does not collide with any other already in the palette."""
+        """ Return a color for the palette that does not collide with any other already in the
+        palette."""
         used_colors = set(self._img_p_parsedpalette.values())
         while True:
             new_color = (randrange(256), randrange(256), randrange(256))
@@ -72,8 +74,8 @@ class TransparentAnimatedGifConverter(object):
                 return new_color
 
     def _process_palette(self):
-        """Adjust palette to have the zeroth color set as transparent. Basically, get another palette
-        index for the zeroth color."""
+        """Adjust palette to have the zeroth color set as transparent. Basically, get another
+        palette index for the zeroth color."""
         self._set_parsed_palette()
         if 0 in self._img_p_used_palette_idxs:
             self._remap_palette_idx_zero()
@@ -111,7 +113,8 @@ class TransparentAnimatedGifConverter(object):
         return self._img_p
 
 
-def _create_animated_gif(images: List[Image], durations: Union[int, List[int]]) -> Tuple[Image, dict]:
+def _create_animated_gif(images: List[Image], durations: Union[int, List[int]]) \
+        -> Tuple[Image, dict]:
     """If the image is a GIF, create an its thumbnail here."""
     save_kwargs = dict()
     new_images: List[Image] = []
@@ -137,15 +140,18 @@ def _create_animated_gif(images: List[Image], durations: Union[int, List[int]]) 
 
 
 def save_transparent_gif(images: List[Image], durations: Union[int, List[int]], save_file):
-    """Creates a transparent GIF, adjusting to avoid transparency issues that are present in the PIL library
+    """Creates a transparent GIF, adjusting to avoid transparency issues that are present in the
+    PIL library.
 
-    Note that this does NOT work for partial alpha. The partial alpha gets discarded and replaced by solid colors.
+    Note that this does NOT work for partial alpha. The partial alpha gets discarded and replaced by
+    solid colors.
 
     Parameters:
         images: a list of PIL Image objects that compose the GIF frames
-        durations: an int or List[int] that describes the animation durations for the frames of this GIF
-        save_file: A filename (string), pathlib.Path object or file object. (This parameter corresponds
-                   and is passed to the PIL.Image.save() method.)
+        durations: an int or List[int] that describes the animation durations for the frames of this
+                   GIF
+        save_file: A filename (string), pathlib.Path object or file object. (This parameter
+                   corresponds and is passed to the PIL.Image.save() method.)
     Returns:
         Image - The PIL Image object (after first saving the image to the specified target)
     """

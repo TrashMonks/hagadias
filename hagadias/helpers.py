@@ -300,25 +300,25 @@ def extract_color(colorstr: str, prefix_symbol: str) -> Union[str, None]:
 
 
 def extract_background_color(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
-    """Extracts the background (^) color from a colorstring, including both the caret and the color character."""
+    """Extracts background (^) color from a colorstring, including both caret and color char."""
     bg = extract_color(colorstr, '^')
     return default if bg is None else bg
 
 
 def extract_background_char(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
-    """Extracts the background (^) color from a colorstring, returning only the single character color code."""
+    """Extracts background (^) color from a colorstring, returning only the color char."""
     bg = extract_background_color(colorstr, f'^{default}')
     return None if bg is None else bg[1]
 
 
 def extract_foreground_color(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
-    """Extracts the foreground (&) color from a colorstring, including both the ampersand and the color character."""
+    """Extracts foreground (&) color from a colorstring, including both ampersand and color char."""
     fg = extract_color(colorstr, '&')
     return default if fg is None else fg
 
 
 def extract_foreground_char(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
-    """Extracts the foreground (&) color from a colorstring, returning only the single character color code."""
+    """Extracts foreground (&) color from a colorstring, returning only the color char."""
     fg = extract_foreground_color(colorstr, f'&{default}')
     return None if fg is None else fg[1]
 
@@ -336,7 +336,8 @@ def lowest_common_multiple(a, b) -> int:
 
 
 def parse_comma_equals_str_into_dict(values: str, output: dict):
-    """Consumes a string in the format '1=baa,2=boo,3=bop' and inserts key/value pairs into the provided dictionary."""
+    """Consumes a string in the format '1=baa,2=boo,3=bop' and inserts key/value pairs into the
+    provided dictionary."""
     if values is not None and len(values) > 0:
         for entry in values.split(','):
             info = entry.split('=')
