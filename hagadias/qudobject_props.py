@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import Union, Tuple, List
 
-from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME
+from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
+    CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words
 from hagadias.dicebag import DiceBag
@@ -506,11 +507,37 @@ class QudObjectProps(QudObject):
             if self.intproperty_GenotypeBasedDescription:
                 desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
+            # cybernetics infixes
+            cybernetic_rules = '{{rules|'
+            for part in CYBERNETICS_HARDCODED_INFIXES:
+                if self.is_specified(f'part_{part}'):
+                    cybernetic_rules += f'{CYBERNETICS_HARDCODED_INFIXES[part]}\n\n'
+                    break
+            # BehaviorDescriptions (predominantly cybernetics, but also includes some other items)
             for part in BEHAVIOR_DESCRIPTION_PARTS:
                 if self.is_specified(f'part_{part}'):
                     behavior_desc = getattr(self, f'part_{part}_BehaviorDescription')
                     if behavior_desc is not None and behavior_desc != '':
-                        desc_extra.append('{{rules|' + behavior_desc + '}}')
+                        cybernetic_rules += behavior_desc
+            # additional cybernetics postfixes
+            if self.part_Cybernetics2BaseItem_Slots is not None:
+                body_parts = self.part_Cybernetics2BaseItem_Slots
+                body_parts = body_parts.replace(',', ', ')
+                cost = self.part_Cybernetics2BaseItem_Cost
+                if len(desc_extra) > 0 or len(cybernetic_rules) > len('{{rules|'):
+                    cybernetic_rules += '\n\n'
+                txt = ''
+                if self.tag_CyberneticsDestroyOnRemoval is not None:
+                    txt += 'Destroyed when uninstalled.\n'
+                txt += f'Target body parts: {body_parts}\n'
+                txt += f'License points: {cost}\n'
+                txt += 'Only compatible with True Kin genotypes'
+                for part in CYBERNETICS_HARDCODED_POSTFIXES:
+                    if self.is_specified(f'part_{part}'):
+                        txt += f'\n{CYBERNETICS_HARDCODED_POSTFIXES[part]}'
+                        break
+                cybernetic_rules += txt + '}}'
+                desc_extra.append(cybernetic_rules)
             if self.part_RulesDescription:
                 if self.part_RulesDescription_AltForGenotype == "True Kin":
                     desc_extra.append(f"[Mutant]\n{{{{rules|{self.part_RulesDescription_Text}}}}}")
@@ -520,7 +547,9 @@ class QudObjectProps(QudObject):
                     desc_extra.append(f"{{{{rules|{self.part_RulesDescription_Text}}}}}")
             if self.part_AddsTelepathyOnEquip:
                 desc_extra.append("Grants you Telepathy.")
-            if self.part_ReduceEnergyCosts:
+            if self.part_ReduceEnergyCosts and \
+                    (self.part_ReduceEnergyCosts_GenerateShortDescription is None or
+                     self.part_ReduceEnergyCosts_GenerateShortDescription == 'true'):
                 num = int(self.part_ReduceEnergyCosts_PercentageReduction)
                 pre = '' if (int(self.part_ReduceEnergyCosts_ChargeUse) == 0) else 'when powered, '
                 temp = f"{pre}provides {num}% reduction in " \

@@ -154,6 +154,30 @@ FACTION_ID_TO_NAME = {
     'Worms': 'worms'
 }
 
+CYBERNETICS_HARDCODED_INFIXES = {
+    "Cybernetics2MedassistModule": "{{c|Current loadout:}}{{y| no injectors}}"
+}
+
+CYBERNETICS_HARDCODED_POSTFIXES = {
+    "Cybernetics2AnomalyFumigator":
+        "Compute power on the local lattice increases this item's effectiveness.",
+    "Cybernetics2CommunicationsInterlock":
+        "Compute power on the local lattice increases this item's effectiveness.",
+    "Cybernetics2CustomVisage": "+300 reputation with <chosen faction>",
+    "Cybernetics2HighFidelityMatterRecompositer":
+        "Compute power on the local lattice reduces this item's cooldown.",
+    "Cybernetics2InflatableAxons":
+        "Compute power on the local lattice increases this item's effectiveness.",
+    "Cybernetics2MatterRecompositer":
+        "Compute power on the local lattice reduces this item's cooldown.",
+    "Cybernetics2NocturnalApex":
+        "Compute power on the local lattice increases this item's effectiveness.",
+    "Cybernetics2OnboardRecoilerTeleporter":
+        "Compute power on the local lattice reduces this item's cooldown.",
+    "Cybernetics2PenetratingRadar":
+        "Compute power on the local lattice increases this item's range."
+}
+
 QUD_COLORS = {'r': (166, 74, 46),  # dark red
               'R': (215, 66, 0),  # bright red
               'w': (152, 135, 95),  # brown
