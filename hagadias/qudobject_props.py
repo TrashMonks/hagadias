@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Union, Tuple, List
 
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
-from hagadias.helpers import cp437_to_unicode, int_or_none,\
+from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
@@ -1066,7 +1066,7 @@ class QudObjectProps(QudObject):
             dmg = dmg if dmg is not None else '3d3'
             duration = duration if duration is not None else '6-9'
             return f'{pct}% to poison on hit, toughness save {save}.' + \
-                ' {dmg} damage for {duration} turns.'
+                   ' {dmg} damage for {duration} turns.'
 
     @property
     def preservedinto(self) -> Union[str, None]:
