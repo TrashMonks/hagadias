@@ -344,3 +344,16 @@ def parse_comma_equals_str_into_dict(values: str, output: dict):
             val = int_or_none(info[0])
             if val is not None and len(info) == 2:
                 output[val] = info[1]
+
+
+def make_list_from_words(wds: List[str]) -> str:
+    """Converts a python list into a grammatical string list."""
+    if wds is None or len(wds) == 0:
+        return ''
+    if len(wds) == 1:
+        return wds[0]
+    if len(wds) == 2:
+        return f'{wds[0]} and {wds[1]}'
+    else:
+        last_wd = wds.pop()
+        return f'{", ".join(wds)}, and {last_wd}'

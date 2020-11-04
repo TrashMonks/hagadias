@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Union, Tuple, List
 
-from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS
+from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
-    strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg
+    strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
@@ -18,6 +18,8 @@ ACTIVE_CHARS = ['Creature', 'ActivePlant']
 # make them different from active characters. Usually immobile and have no attributes.
 INACTIVE_CHARS = ['BaseFungus', 'Baetyl', 'Wall', 'Furniture']
 ALL_CHARS = ACTIVE_CHARS + INACTIVE_CHARS
+BEHAVIOR_DESCRIPTION_PARTS = ['LatchesOn', 'SapChargeOnHit', 'TemperatureAdjuster', 'Toolbox',
+                              'Cybernetics2BaseItem', 'FollowersGetTeleport', 'IntPropertyChanger']
 
 
 class QudObjectProps(QudObject):
@@ -416,7 +418,27 @@ class QudObjectProps(QudObject):
             pass  # hide items with default description
         elif self.part_Description_Short:
             desc = self.part_Description_Short
-            if self.inherits_from("Item"):  # append armor resistances and attributes
+            if self.inherits_from("Item"):  # append resistances, attributes, and other rules text
+                # reputation
+                if self.part_AddsRep is not None:
+                    factions = self.part_AddsRep_Faction.split(',')
+                    rep_value = self.part_AddsRep_Value
+                    for faction in factions:
+                        amt = rep_value
+                        if ':' in faction:
+                            vals = faction.split(':')
+                            amt = vals[1]
+                            faction = vals[0]
+                        if amt[0] not in ['+', '-']:
+                            amt = f'+{amt}'
+                        if faction == '*allvisiblefactions':
+                            txt = f'{amt} reputation with every faction'
+                        else:
+                            if faction in FACTION_ID_TO_NAME:
+                                faction = FACTION_ID_TO_NAME[faction]
+                            txt = f'{amt} reputation with {faction}'
+                        desc_extra.append('{{rules|' + txt + '}}')
+                # resists
                 resists = []
                 attrs = {'heat': ['R', 1],
                          'cold': ['C', 1],
@@ -433,17 +455,62 @@ class QudObjectProps(QudObject):
                 for attr in attrs:
                     resist = getattr(self, f'{attr}')
                     if resist:
-                        resist_str = f"{pos_or_neg(resist)}{resist} " + attr.title() \
-                                   + (" Resistance" if attrs[attr][1] == 1 else "")
+                        if str(resist)[0] not in ['+', '-']:
+                            resist_str = f'{pos_or_neg(resist)}{resist}'
+                        else:
+                            resist_str = str(resist)
+                        attr_name = attr if attr != 'movespeedbonus' else 'move speed'
+                        resist_str = f"{resist_str} " + attr_name.title() + \
+                                     (" Resistance" if attrs[attr][1] == 1 else "")
                         resists.append(f"{{{{{attrs[attr][0]}|{resist_str}}}}}")
                 if len(resists) > 0:
                     desc_extra.append('\n'.join(resists))
+                # carrybonus
+                carry_bonus = self.carrybonus
+                if carry_bonus:
+                    if carry_bonus > 0:
+                        carry_bonus = f'+{carry_bonus}'
+                    desc_extra.append('{{rules|' + carry_bonus + '% carry capacity}}')
+                # shields
+                if self.part_Shield is not None:
+                    desc_extra.append('{{rules|Shields only grant their AV when you ' +
+                                      'successfully block an attack.}}')
+                # add item-specific rules text, if applicable
+                if self.name == 'Rocket Skates':
+                    rule1 = 'Replaces Sprint with Power Skate (unlimited duration).'
+                    rule2 = 'Emits plumes of fire when the wearer moves while power skating.'
+                    desc_extra.append('{{rules|' + rule1 + '}}')
+                    desc_extra.append('{{rules|' + rule2 + '}}')
+                elif self.name == 'Banner of the Holy Rhombus':
+                    desc_extra.append('{{rules|Bestows the {{r|war trance}} effect to the' +
+                                      ' Putus Templar who can see this item.')
+                elif self.part_PartsGas is not None:
+                    chance = self.part_PartsGas_Chance
+                    if chance is not None:
+                        rule = f'{chance}% chance per turn to repel gases near its '
+                    else:
+                        rule = 'Repels gases near its '
+                    rule += 'wielder or wearer.' if self.name == 'Wrist Fan' else 'user.'
+                    desc_extra.append('{{rules|' + rule + '}}')
+                # add rules text for save modifier, if applicable
+                if self.part_SaveModifier is not None:
+                    if self.part_SaveModifier_ShowInShortDescription is None or \
+                            self.part_SaveModifier_ShowInShortDescription == 'true':
+                        amt = self.part_SaveModifier_Amount
+                        amt = '1' if amt is None else amt
+                        vs = self.part_SaveModifier_Vs
+                        save_mod_str = f'{amt} on saves'
+                        if vs is not None and vs != '':
+                            save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
+                        desc_extra.append('{{rules|' + save_mod_str + '.}}')
             if self.intproperty_GenotypeBasedDescription:
                 desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
-            if self.part_Cybernetics2BaseItem:
-                desc_extra.append("{{rules|" + self.part_Cybernetics2BaseItem_BehaviorDescription +
-                                  "}}")
+            for part in BEHAVIOR_DESCRIPTION_PARTS:
+                if self.is_specified(f'part_{part}'):
+                    behavior_desc = getattr(self, f'part_{part}_BehaviorDescription')
+                    if behavior_desc is not None and behavior_desc != '':
+                        desc_extra.append('{{rules|' + behavior_desc + '}}')
             if self.part_RulesDescription:
                 if self.part_RulesDescription_AltForGenotype == "True Kin":
                     desc_extra.append(f"[Mutant]\n{{{{rules|{self.part_RulesDescription_Text}}}}}")
@@ -465,7 +532,7 @@ class QudObjectProps(QudObject):
                 desc_extra.append(self.part_BonusPostfix_Postfix)
         if desc is not None:
             if len(desc_extra) > 0:
-                desc += '\n\n' + '\n\n'.join(desc_extra)
+                desc += '\n\n' + '\n'.join(desc_extra)
             desc = desc.replace('\r\n', '\n')  # currently, only the description for Bear
         return desc
 
