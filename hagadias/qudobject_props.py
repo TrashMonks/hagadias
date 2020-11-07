@@ -940,6 +940,14 @@ class QudObjectProps(QudObject):
                 return True
 
     @property
+    def leakswhenbroken(self) -> Union[str, None]:
+        """If this object leaks liquid when broken, the dice string for % amount per turn leaked."""
+        if self.part_LeakWhenBroken is not None:
+            amt = self.part_LeakWhenBroken_PercentPerTurn
+            amt = '10-20' if amt is None else amt  # 10-20% is default
+            return amt
+
+    @property
     def lightprojectile(self) -> Union[bool, None]:
         """If the gun fires light projectiles (heat immune creatures will not take damage)."""
         if self.tag_Light is not None:
