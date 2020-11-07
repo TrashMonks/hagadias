@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Union, Tuple, List
 
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
-    CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES
+    CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
+    CHARGE_USE_REASONS
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words
 from hagadias.dicebag import DiceBag
@@ -252,6 +253,8 @@ class QudObjectProps(QudObject):
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
                 charge += int(chg)
+        if self.name in HARDCODED_CHARGE_USE:
+            charge = HARDCODED_CHARGE_USE[self.name]
         if charge > 0:
             return charge
 
@@ -303,6 +306,13 @@ class QudObjectProps(QudObject):
                 if func is not None:
                     funcs.append(func)
                     detailedfuncs.append(func + ' [' + chg + ']')
+        if self.name in CHARGE_USE_REASONS:
+            func = CHARGE_USE_REASONS[self.name]
+            funcs.append(func)
+            if self.name in HARDCODED_CHARGE_USE:
+                detailedfuncs.append(f'{func} [{HARDCODED_CHARGE_USE[self.name]}]')
+            else:
+                detailedfuncs.append(func)
         if len(funcs) == 0:
             return None
         elif len(funcs) == 1:

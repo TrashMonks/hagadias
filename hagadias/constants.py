@@ -178,6 +178,13 @@ CYBERNETICS_HARDCODED_POSTFIXES = {
         "Compute power on the local lattice increases this item's range."
 }
 
+HARDCODED_CHARGE_USE = {
+    'Neuro Animator': 5000
+}
+CHARGE_USE_REASONS = {
+    'Neuro Animator': 'Object Animation'
+}
+
 QUD_COLORS = {'r': (166, 74, 46),  # dark red
               'R': (215, 66, 0),  # bright red
               'w': (152, 135, 95),  # brown
