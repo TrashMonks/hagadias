@@ -486,6 +486,22 @@ class QudObjectProps(QudObject):
                 if self.part_Shield is not None:
                     desc_extra.append('{{rules|Shields only grant their AV when you ' +
                                       'successfully block an attack.}}')
+                # compute nodes
+                if self.part_ComputeNode is not None:
+                    if self.part_ComputeNode_WorksOnEquipper == 'true':
+                        power = self.part_ComputeNode_Power
+                        power = '20' if power is None else power
+                        desc_extra.append('{{rules|When equipped and powered, provides ' + power +
+                                          ' units of compute power to the local lattice.}}')
+                # active light source
+                if self.part_ActiveLightSource is not None:
+                    if self.part_ActiveLightSource_WorksOnEquipper == 'true':
+                        if self.part_ActiveLightSource_ShowInShortDescription is None or \
+                                self.part_ActiveLightSource_ShowInShortDescription == 'true':
+                            radius = self.part_ActiveLightSource_Radius
+                            radius = '5' if radius is None else radius
+                            desc_extra.append('{{rules|When equipped, provides light in radius ' +
+                                              radius + '.}}')
                 # add item-specific rules text, if applicable
                 if self.name == 'Rocket Skates':
                     rule1 = 'Replaces Sprint with Power Skate (unlimited duration).'
@@ -547,6 +563,8 @@ class QudObjectProps(QudObject):
                         txt += f'\n{CYBERNETICS_HARDCODED_POSTFIXES[part]}'
                         break
                 cybernetic_rules += txt + '}}'
+            # append rules if we found any
+            if len(cybernetic_rules) > len('{{rules|'):
                 desc_extra.append(cybernetic_rules)
             if self.part_RulesDescription:
                 if self.part_RulesDescription_AltForGenotype == "True Kin":
