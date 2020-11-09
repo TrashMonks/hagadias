@@ -976,7 +976,10 @@ class QudObjectProps(QudObject):
     @property
     def lightradius(self) -> Union[int, None]:
         """Radius of light the object gives off."""
-        return int_or_none(self.part_LightSource_Radius)
+        val = int_or_none(self.part_LightSource_Radius)
+        if val is None:
+            val = int_or_none(self.part_ActiveLightSource_Radius)
+        return val
 
     @property
     def liquidgen(self) -> Union[int, None]:
