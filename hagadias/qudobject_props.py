@@ -111,7 +111,9 @@ class QudObjectProps(QudObject):
     @property
     def accuracy(self) -> Union[int, None]:
         """How accurate the gun is."""
-        return int_or_none(self.part_MissileWeapon_WeaponAccuracy)
+        if self.part_MissileWeapon is not None:
+            accuracy = self.part_MissileWeapon_WeaponAccuracy
+            accuracy = 0 if accuracy is None else accuracy  # 0 is default if unspecified
 
     @property
     def acid(self) -> Union[int, None]:
