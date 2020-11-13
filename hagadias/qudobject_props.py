@@ -1120,6 +1120,12 @@ class QudObjectProps(QudObject):
                 return -int(bonus)
 
     @property
+    def mutatedplant(self) -> Union[bool, None]:
+        """Whether this object is a MutatedPlant"""
+        if self.inherits_from('MutatedPlant'):
+            return True
+
+    @property
     def mutations(self) -> Union[List[Tuple[str, int]], None]:
         """The mutations the creature has along with their level.
 
