@@ -145,6 +145,10 @@ class TilePainter:
         elif self.obj.name == 'PondDown':  # 'small crack' in Joppa
             self.color = self.tilecolor = '&Y'  # Applied by the HiddenRender part
             self.trans = 'b'  # Applied by the RenderLiquidBackground part
+        elif self.obj.part_JiltedLoverProperties is not None:
+            part_color = self.obj.part_JiltedLoverProperties_Color
+            part_color = part_color if part_color is not None else 'g'
+            self.color = self.tilecolor = f'&{part_color}'
 
     def _stylize_tile_variant(self, tile_index: int = 0):
         """Morphs a tile into one of its variants, based on the provided zero-based tile index.
