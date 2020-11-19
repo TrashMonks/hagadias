@@ -201,6 +201,17 @@ class TilePainter:
                     elif '_e.' in self.file:
                         meta_type += ' (east)'
                 meta_postfix = f' {meta_type}'
+        if self.obj.part_DoubleContainer is not None and ('_w.' in self.file or '_e.' in self.file):
+            idx = tile_index % 2
+            if '_w.' in self.file and idx == 1:
+                self.file = self.file.replace('_w.', '_e.')
+            if '_e.' in self.file and idx == 0:
+                self.file = self.file.replace('_e.', '_w.')
+            if '_w.' in self.file:
+                meta_type += ' (west)'
+            elif '_e.' in self.file:
+                meta_type += ' (east)'
+            meta_postfix += f' {meta_type}'
         if self.obj.part_Hangable_HangingTile is not None:
             is_hanging = tile_index % 2 == 0
             self.file = self.obj.part_Hangable_HangingTile if is_hanging \
@@ -505,6 +516,8 @@ class TilePainter:
                 qud_object.part_CrossFlameOnStep is not None \
                 or qud_object.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, & Aloe Pyra
             tile_count *= 2  # Aloe Volta also has RandomTile
+        elif qud_object.part_DoubleContainer is not None:
+            tile_count *= 2
         return tile_count
 
 
