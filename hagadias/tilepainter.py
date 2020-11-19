@@ -140,6 +140,11 @@ class TilePainter:
                 self.detail = (part_detail.split(',')[0]).split('=')[1]
             if part_color is not None and part_color.startswith('0='):
                 self.color = self.tilecolor = (part_color.split(',')[0]).split('=')[1]
+        elif self.obj.part_SultanShrine is not None:
+            self.detail = 'g'
+            self.color = self.tilecolor = extract_foreground_char(self.color, 'y')
+            self.trans = 'transparent'
+            self.file = 'Terrain/sw_sultanstatue_1.bmp'
         elif self.obj.part_PistonPressElement is not None:
             self.file = 'Items/sw_crusher_s_press.bmp'
         elif self.obj.name == 'PondDown':  # 'small crack' in Joppa
@@ -241,6 +246,19 @@ class TilePainter:
             ready_string = 'ready' if is_ready else 'cooldown'
             meta_type = f'{ready_string}, {meta_type}' if len(meta_type) > 0 else ready_string
             meta_postfix += f' {ready_string}'
+        elif self.obj.part_SultanShrine is not None:
+            idx = tile_index % 8 + 1
+            descriptive_idx = tile_index % 16 + 1
+            is_rare = ((tile_index // 8) % 2) == 1
+            color_list = ['g', 'r', 'c', 'w', 'Y']
+            color_names = ['under sky', 'caves/red', 'caves/cerulean', 'caves/brown', 'caves/white']
+            color_idx = tile_index // 16
+            self.detail = color_list[color_idx]
+            self.color = self.tilecolor = extract_foreground_char(self.color, 'y')
+            self.trans = 'transparent'
+            self.file = 'Terrain/sw_sultanstatue_' + ('rare_' if is_rare else '') + f'{idx}.bmp'
+            meta_type = f'sprite #{descriptive_idx}, {color_names[color_idx]}'
+            meta_postfix = f' variant {descriptive_idx}, {color_list[color_idx]}'
         elif self.obj.part_PistonPressElement is not None:
             paths = ['Items/sw_crusher_s_press.bmp', 'Items/sw_crusher_s_extend.bmp',
                      'Items/sw_crusher_s_closed.png']
@@ -438,6 +456,8 @@ class TilePainter:
         if qud_object.part_Examiner_UnknownDisplayName == '*med':
             # tonics, which generate with 1/10 random colors
             return 10
+        if qud_object.part_SultanShrine is not None:
+            return 80
         tile_count = 1
         if qud_object.part_RandomTile is not None:
             tile_count = len(qud_object.part_RandomTile_Tiles.split(','))
