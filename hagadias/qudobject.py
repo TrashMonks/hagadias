@@ -61,13 +61,9 @@ class QudObject(NodeMixin):
         self.name = blueprint.get('Name')
         self.blueprint = blueprint
         qindex[self.name] = self
-        parent_name = blueprint.get('Inherits')
-        if parent_name:
-            self.parent = qindex[parent_name]
-        else:
-            self.parent = None
         self.attributes = {}
         self.all_attributes = {}
+        self.inherited = {}
         for element in blueprint:
             element_tag = element.tag
             if 'Name' not in element.attrib:
@@ -97,7 +93,6 @@ class QudObject(NodeMixin):
             else:
                 # normal case: just assign the attributes dictionary to this <tag>-Name combo
                 self.attributes[element_tag][element_name] = element.attrib
-        self.all_attributes, self.inherited = self.resolve_inheritance()
 
     @property
     def tile(self) -> QudTile:
@@ -183,11 +178,13 @@ class QudObject(NodeMixin):
         """Returns true if this object qualifies for GIF rendering."""
         return TileAnimator(self).has_gif
 
-    def resolve_inheritance(self) -> Tuple[dict, dict]:
-        """Compute and return dictionaries with all inherited tags and attributes.
+    def resolve_inheritance(self) -> None:
+        """Compute dictionaries with all inherited tags and attributes. This method should be
+        called only after all objects are loaded from XML (in other words, a two-pass load should
+        be performed, which mimics the logic the game uses when loading ObjectBlueprints.xml)
 
-        Returns a 2-tuple of dictionaries. The first contains the computed attributes for this
-        QudObject. The second contains the computed attributes for its parent.
+        Resolves two internal object dictionaries. The first contains the computed attributes for
+        this QudObject. The second contains the computed attributes for its parent.
 
         Recurses back all the way to the root Object and combines all data into
         the returned dict. Attributes of tags in children overwrite ancestors.
@@ -200,8 +197,12 @@ class QudObject(NodeMixin):
             <part Name="Render" DisplayName="watervine farmer" ...
         overwrites the DisplayName but not the rest of the Render dict.
         """
+        parent_name = self.blueprint.get('Inherits')
+        self.parent = self.qindex[parent_name] if parent_name else None
         if self.parent is None:
-            return self.attributes, {}
+            self.all_attributes = self.attributes
+            self.inherited = {}
+            return
         inherited = self.parent.all_attributes
         all_attributes = deepcopy(self.attributes)
         removes_parts = 'removepart' in all_attributes
@@ -226,7 +227,8 @@ class QudObject(NodeMixin):
                     else:
                         # we already had this defined for us - don't overwrite
                         pass
-        return all_attributes, inherited
+        self.all_attributes = all_attributes
+        self.inherited = inherited
 
     def ui_inheritance_path(self) -> str:
         """Return a textual representation of this object's inheritance path."""

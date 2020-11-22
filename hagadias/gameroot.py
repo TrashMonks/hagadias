@@ -116,6 +116,8 @@ class GameRoot:
         # they need access to their parent by name lookup during creation for inheritance
         # calculations.
         qindex = {}  # fast lookup of name->QudObject
+
+        # first pass - load xml data into dictionary structure
         for element in raw:
             # parsing 'ends' at the close tag, so add 9 bytes to include '</object>'
             start, stop = element._start_byte_index, element._end_byte_index + 9
@@ -128,6 +130,11 @@ class GameRoot:
             obj = cls(element, source, full_source, qindex)
         tail = contents_b[last_stop:].decode('utf-8')
         obj.source = source + tail  # add tail of file to the XML source of last object loaded
+
+        # second pass - resolve object inheritance
+        for object_id, qud_object in qindex.items():
+            qud_object.resolve_inheritance()
+
         qud_object_root = qindex['Object']
         self.qud_object_root = qud_object_root
         self.qindex = qindex
