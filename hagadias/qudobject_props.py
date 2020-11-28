@@ -468,6 +468,8 @@ class QudObjectProps(QudObject):
                 for attr in attrs:
                     resist = getattr(self, f'{attr}')
                     if resist:
+                        if self.name == 'Stopsvaalinn' and attr == 'ego':
+                            continue  # Stopsvaalinn's ego bonus is already displayed in rule text
                         if str(resist)[0] not in ['+', '-']:
                             resist_str = f'{pos_or_neg(resist)}{resist}'
                         else:
@@ -685,7 +687,9 @@ class QudObjectProps(QudObject):
 
     @property
     def ego(self) -> Union[str, None]:
-        """The ego the mutation effects, or the ego of the creature."""
+        """The creature's ego stat or the ego bonus supplied by a piece of equipment."""
+        if self.name == 'Stopsvaalinn':
+            return "1"
         val = self.attribute_helper('Ego')
         return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
 
