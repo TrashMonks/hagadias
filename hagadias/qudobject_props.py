@@ -453,31 +453,38 @@ class QudObjectProps(QudObject):
                         desc_extra.append('{{rules|' + txt + '}}')
                 # resists
                 resists = []
-                attrs = {'heat': ['R', 1],
-                         'cold': ['C', 1],
-                         'electrical': ['W', 1],
-                         'acid': ['G', 1],
-                         'willpower': ['C', 0],
-                         'ego': ['C', 0],
-                         'agility': ['C', 0],
-                         'toughness': ['C', 0],
-                         'strength': ['C', 0],
-                         'intelligence': ['C', 0],
-                         'quickness': ['C', 0],
-                         'movespeedbonus': ['C', 0]}
+                # attributes [positiveColor, negativeColor, isResistance]
+                attrs = {'heat': ['R', 'R', True],
+                         'cold': ['C', 'C', True],
+                         'electrical': ['W', 'W', True],
+                         'acid': ['G', 'G', True],
+                         'willpower': ['C', 'R', False],
+                         'ego': ['C', 'R', False],
+                         'agility': ['C', 'R', False],
+                         'toughness': ['C', 'R', False],
+                         'strength': ['C', 'R', False],
+                         'intelligence': ['C', 'R', False],
+                         'quickness': ['C', 'R', False],
+                         'movespeedbonus': ['C', 'R', False]}
                 for attr in attrs:
                     resist = getattr(self, f'{attr}')
                     if resist:
                         if self.name == 'Stopsvaalinn' and attr == 'ego':
                             continue  # Stopsvaalinn's ego bonus is already displayed in rule text
+                        if self.name == 'Cyclopean Prism':  # special handling for amaranthine prism
+                            if attr == 'ego':
+                                resist = '+1'
+                            elif attr == 'willpower':
+                                resist = '-1'
                         if str(resist)[0] not in ['+', '-']:
                             resist_str = f'{pos_or_neg(resist)}{resist}'
                         else:
                             resist_str = str(resist)
                         attr_name = attr if attr != 'movespeedbonus' else 'move speed'
+                        attr_color = attrs[attr][0] if resist_str[0] != '-' else attrs[attr][1]
                         resist_str = f"{resist_str} " + attr_name.title() + \
-                                     (" Resistance" if attrs[attr][1] == 1 else "")
-                        resists.append(f"{{{{{attrs[attr][0]}|{resist_str}}}}}")
+                                     (" Resistance" if attrs[attr][2] is True else "")
+                        resists.append(f"{{{{{attr_color}|{resist_str}}}}}")
                 if len(resists) > 0:
                     desc_extra.append('\n'.join(resists))
                 # carrybonus
@@ -577,8 +584,8 @@ class QudObjectProps(QudObject):
                                       self.part_RulesDescription_GenotypeAlt + "}}")
                 else:
                     desc_extra.append(f"{{{{rules|{self.part_RulesDescription_Text}}}}}")
-            if self.part_AddsTelepathyOnEquip:
-                desc_extra.append("Grants you Telepathy.")
+            if self.part_AddsTelepathyOnEquip is not None:
+                desc_extra.insert(0, "{{rules|Grants you Telepathy.}}")
             if self.part_ReduceEnergyCosts and \
                     (self.part_ReduceEnergyCosts_GenerateShortDescription is None or
                      self.part_ReduceEnergyCosts_GenerateShortDescription == 'true'):
@@ -1213,7 +1220,7 @@ class QudObjectProps(QudObject):
             dmg = dmg if dmg is not None else '3d3'
             duration = duration if duration is not None else '6-9'
             return f'{pct}% to poison on hit, toughness save {save}.' + \
-                   ' {dmg} damage for {duration} turns.'
+                   f' {dmg} damage for {duration} turns.'
 
     @property
     def preservedinto(self) -> Union[str, None]:
