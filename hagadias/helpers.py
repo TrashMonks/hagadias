@@ -61,10 +61,51 @@ def get_dll_version_string(path, throwaway):
     raise ValueError
 
 
+def int_or_default(value, default=0) -> int:
+    """Return the result of int(value), or else a default if value is None or is not an int."""
+    if value is None:
+        return default
+    try:
+        value = int(value)
+    except ValueError:
+        return default
+    return value
+
+
 def int_or_none(value) -> Union[int, None]:
-    """Return the result of int(value), or None if value is None."""
+    """Return the result of int(value), or else None if value is None or is not an int."""
     if value is not None:
-        return int(value)
+        try:
+            value = int(value)
+        except ValueError:
+            return None
+        return value
+
+
+def str_or_default(value, default) -> str:
+    """Return the result of str(value), or else a default if value is None or an empty string."""
+    if value is None:
+        return default
+    value = str(value)
+    return value if value else default
+
+
+def bool_or_default(value, default=False) -> bool:
+    """Returns value if value is a bool.
+    Returns true if value is a string equal to 'yes' or 'true' (case insensitive).
+    Returns false if value is a string equal to 'no' or 'false' (case insensitive).
+    Otherwise, returns the default."""
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        value = value.lower().strip()
+        if value == 'yes' or value == 'true':
+            return True
+        if value == 'no' or value == 'false':
+            return False
+    return default
 
 
 def repair_invalid_linebreaks(contents):
