@@ -6,7 +6,8 @@ from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
     CHARGE_USE_REASONS
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
-    strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words
+    strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
+    str_or_default, int_or_default, bool_or_default
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
@@ -430,6 +431,11 @@ class QudObjectProps(QudObject):
         if self.part_Description_Short == 'A hideous specimen.':
             pass  # hide items with default description
         elif self.part_Description_Short:
+            # TODO: Refactor or break into a separate file.
+            # Note that the order of description rules below is meaningful - it attempts to do the
+            # best job possible mimicking the order of rules on items in game. It's probably
+            # not possible to perfectly represent everything unless we actually iterate over the
+            # object's parts in XML order (and output associated rules in that same order)
             desc = self.part_Description_Short
             if self.inherits_from("Item"):  # append resistances, attributes, and other rules text
                 # reputation
@@ -451,6 +457,45 @@ class QudObjectProps(QudObject):
                                 faction = FACTION_ID_TO_NAME[faction]
                             txt = f'{amt} reputation with {faction}'
                         desc_extra.append('{{rules|' + txt + '}}')
+                # missile weapon rules
+                if self.part_MissileWeapon is not None:
+                    skill = str_or_default(self.part_MissileWeapon_Skill, 'Rifle')
+                    if skill == 'Rifle':
+                        skill = 'Bows & Rifles'
+                    elif skill == 'HeavyWeapons':
+                        skill = 'Heavy Weapon'
+                    accuracy = int_or_default(self.part_MissileWeapon_WeaponAccuracy, 0)
+                    accuracy_str = 'Very Low'
+                    if accuracy <= 0:
+                        accuracy_str = 'Very High'
+                    elif accuracy < 5:
+                        accuracy_str = 'High'
+                    elif accuracy < 10:
+                        accuracy_str = 'Medium'
+                    elif accuracy < 25:
+                        accuracy_str = 'Low'
+                    ammoper = int_or_default(self.part_MissileWeapon_AmmoPerAction, 1)
+                    shotsper = int_or_default(self.part_MissileWeapon_ShotsPerAction, 1)
+                    showshots = bool_or_default(self.part_MissileWeapon_bShowShotsPerAction, True)
+                    nowildfire = bool_or_default(self.part_MissileWeapon_NoWildfire, False)
+                    penstat = self.part_MissileWeapon_ProjectilePenetrationStat
+                    txt = '{{rules|'
+                    txt += f'Weapon Class: {skill}'
+                    txt += f'\nAccuracy: {accuracy_str}'
+                    if ammoper > 1:
+                        txt += f'\nMultiple ammo used per shot: {ammoper}'
+                    if showshots and shotsper > 1:
+                        txt += f'\nMultiple projectiles per shot: {shotsper}'
+                    if nowildfire:
+                        txt += '\nSpray fire: This item can be fired while adjacent to multiple ' \
+                               + 'enemies without risk of the shot going wild.'
+                    if skill == 'Heavy Weapon':
+                        txt += '\n-25 move speed'
+                    if penstat:
+                        txt += '\nProjectiles fired with this weapon receive bonus penetration ' \
+                               + f'based on the wielder\'s {penstat}.'
+                    txt += '}}'
+                    desc_extra.append(txt)
                 # resists
                 resists = []
                 # attributes [positiveColor, negativeColor, isResistance]
