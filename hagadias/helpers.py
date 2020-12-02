@@ -398,3 +398,12 @@ def make_list_from_words(wds: List[str]) -> str:
     else:
         last_wd = wds.pop()
         return f'{", ".join(wds)}, and {last_wd}'
+
+
+def obj_has_any_part(qudobject, parts: List[str]) -> bool:
+    """Returns True if the QudObject has any of the specified parts"""
+    if parts is not None and len(parts) > 0:
+        for part in parts:
+            if getattr(qudobject, f'part_{part}', None) is not None:
+                return True
+    return False
