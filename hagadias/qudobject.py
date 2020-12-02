@@ -106,10 +106,17 @@ class QudObject(NodeMixin):
             return self._tile
         tile = None  # not all objects have tiles
         if self.has_tile():
-            painter = TilePainter(self)
+            painter = self.tile_painter
             tile = painter.tile()
         self._tile = tile
         return tile
+
+    @property
+    def tile_painter(self) -> TilePainter:
+        if hasattr(self, '_tile_painter'):
+            return self._tile_painter
+        self._tile_painter = TilePainter(self)
+        return self._tile_painter
 
     @property
     def tiles(self) -> List[QudTile]:
@@ -131,9 +138,8 @@ class QudObject(NodeMixin):
         if hasattr(self, '_alltiles') and hasattr(self, '_allmetadata'):
             return self._alltiles, self._allmetadata
         alltiles, metadata = [], []
-        if TilePainter.tile_count(self) > 0:
-            painter = TilePainter(self)
-            alltiles, metadata = painter.all_tiles_and_metadata()
+        if self.tile_painter.tile_count() > 0:
+            alltiles, metadata = self.tile_painter.all_tiles_and_metadata()
         self._alltiles: List[QudTile] = alltiles
         self._allmetadata: List = metadata
         return alltiles, metadata
@@ -156,7 +162,7 @@ class QudObject(NodeMixin):
 
     def number_of_tiles(self) -> int:
         """The number of tiles that this object has. Some objects have many variant tiles."""
-        return TilePainter.tile_count(self)
+        return self.tile_painter.tile_count()
 
     def gif_image(self, index: int):
         """Returns the rendered GIF for this QudObject, which is a PIL Image object. Accepts an

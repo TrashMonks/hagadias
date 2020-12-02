@@ -3,13 +3,9 @@ from typing import List, Union, Optional, Tuple
 
 from hagadias.helpers import extract_foreground_char, extract_background_char
 from hagadias.qudtile import QudTile, StandInTiles
+from hagadias.tilestyle import StyleManager
 
 HOLO_PARTS = ['part_HologramMaterial', 'part_HologramWallMaterial', 'part_HologramMaterialPrimary']
-ENCLOSING_RENDER_PARTS = ['part_Enclosing_OpenTile', 'part_Enclosing_ClosedTile',
-                          'part_Enclosing_OpenColor', 'part_Enclosing_ClosedColor',
-                          'part_Enclosing_OpenTileColor', 'part_Enclosing_ClosedTileColor']
-TONIC_NAMES_AND_COLORS = ['milky,&Y', 'smokey,&K', 'turquoise,&C', 'cobalt,&b', 'violet,&m',
-                          'rosey,&R', 'mossy,&g', 'muddy,&w', 'gold-flecked,&W', 'platinum,&y']
 
 
 class TilePainter:
@@ -24,10 +20,6 @@ class TilePainter:
         Parameters:
             obj: a QudObject
         """
-
-        tile_count = self.tile_count(obj)
-        self._tiles: List[Optional[QudTile]] = [None] * tile_count
-        self._tiles_metadata: List[Optional[TilePainterMetadata]] = [None] * tile_count
 
         self.obj = obj
         self.color = None
@@ -51,6 +43,12 @@ class TilePainter:
 
         if self.file is None or self.file == '':
             self.standin = StandInTiles.get_tile_provider_for(obj)
+
+        self._style_manager = StyleManager(self)
+
+        tile_count = self.tile_count()
+        self._tiles: List[Optional[QudTile]] = [None] * tile_count
+        self._tiles_metadata: List[Optional[TilePainterMetadata]] = [None] * tile_count
 
     def tile(self, tile_index: int = 0) -> Union[QudTile, None]:
         """Retrieves the painted QudTile for this object. If an index is supplied for an object that
@@ -157,144 +155,19 @@ class TilePainter:
 
     def _stylize_tile_variant(self, tile_index: int = 0):
         """Morphs a tile into one of its variants, based on the provided zero-based tile index.
-        This function controls the logic used to order an object's alternate tiles, and it also
-        defines the TilePainterMetadata associated with each tile as it generates it,
-        storing that metadata in the self._tiles_metadata List.
+        This function uses the StyleManager to retrieve an object's alternate tile variations
+        in a predetermined order, and defines the TilePainterMetadata associated with each tile,
+        storing that metadata in the self._tiles_metadata List."""
 
-        The logic here should be kept in sync with the logic used in TilePainter.tile_count()"""
-        harvestable_variants = self.obj.part_Harvestable is not None \
-            and not any(self.obj.is_specified(part) for part in HOLO_PARTS)
-        aloe_variants = self.obj.part_DischargeOnStep is not None or \
-            self.obj.part_CrossFlameOnStep is not None \
-            or self.obj.part_FugueOnStep is not None
-        meta_postfix = ''
-        meta_type = ''
-        if self.obj.part_RandomTile is not None:
-            random_tiles = self.obj.part_RandomTile_Tiles.split(',')
-            adjusted_randomtile_index = tile_index if not (harvestable_variants or aloe_variants) \
-                else (tile_index // 2)
-            if adjusted_randomtile_index < len(random_tiles):
-                self.file = self.obj.part_RandomTile_Tiles.split(',')[adjusted_randomtile_index]
-                meta_type = f'random sprite #{adjusted_randomtile_index + 1}'
-                # meta_tooltip = 'this object generates with a random sprite'
-                meta_postfix = f' variation {adjusted_randomtile_index}' \
-                    if adjusted_randomtile_index > 0 else ''
-        if self.obj.part_Door is not None:
-            is_closed, double_door_alt = tile_index % 2 == 0, (tile_index // 2) % 2 == 1
-            self._paint_door(is_closed=is_closed, double_door_alt=double_door_alt)
-            meta_type = 'closed' if is_closed else 'open'
-            if self.obj.inherits_from('Double Door'):
-                if '_w_' in self.file or '_w.' in self.file:
-                    meta_type += ' (west)'
-                elif '_e_' in self.file or '_e.' in self.file:
-                    meta_type += ' (east)'
-            meta_postfix = f' {meta_type}'
-        if self.obj.part_Enclosing is not None:
-            if any(getattr(self.obj, part) is not None for part in ENCLOSING_RENDER_PARTS):
-                is_closed, double_enclosing_alt = tile_index % 2 == 0, (tile_index // 2) % 2 == 1
-                self._paint_enclosing(is_closed=is_closed,
-                                      double_enclosing_alt=double_enclosing_alt)
-                meta_type = 'closed' if is_closed else 'open'
-                if self.obj.part_DoubleEnclosing is not None:
-                    if '_w.' in self.file:
-                        meta_type += ' (west)'
-                    elif '_e.' in self.file:
-                        meta_type += ' (east)'
-                meta_postfix = f' {meta_type}'
-        if self.obj.part_DoubleContainer is not None and ('_w.' in self.file or '_e.' in self.file):
-            idx = tile_index % 2
-            if '_w.' in self.file and idx == 1:
-                self.file = self.file.replace('_w.', '_e.')
-            if '_e.' in self.file and idx == 0:
-                self.file = self.file.replace('_e.', '_w.')
-            if '_w.' in self.file:
-                meta_type += ' (west)'
-            elif '_e.' in self.file:
-                meta_type += ' (east)'
-            meta_postfix += f' {meta_type}'
-        if self.obj.part_Hangable_HangingTile is not None:
-            is_hanging = tile_index % 2 == 0
-            self.file = self.obj.part_Hangable_HangingTile if is_hanging \
-                else self.obj.part_Render_Tile
-            meta_type = 'hanging' if is_hanging else 'unhung'
-            meta_postfix = f' {meta_type}'
-        if self.obj.part_Examiner_UnknownTile is not None:
-            # TODO: this is a bit precarious and probably won't work right if an item also has an
-            #  additional alternate tile source, such as RandomTile. All existing tiles work
-            #  fine, but this could use some refactoring.
-            complexity = self.obj.complexity
-            if complexity is not None and complexity > 0:
-                understanding = self.obj.part_Examiner_Understanding
-                if understanding is None or int(understanding) < complexity:
-                    unknown_name = self.obj.part_Examiner_UnknownDisplayName
-                    if unknown_name is None or unknown_name != '*med':
-                        # tonics excluded due to their random coloring
-                        is_identified = tile_index % 2 == 0
-                        self.file = self.file if is_identified \
-                            else self.obj.part_Examiner_UnknownTile
-                        meta_type = 'identified' if is_identified else 'unidentified'
-                        meta_postfix = f' {meta_type}'
-        if self.obj.part_Examiner_UnknownDisplayName == '*med':
-            tonic_name, tonic_color = TONIC_NAMES_AND_COLORS[tile_index].split(',')
-            self.color = self.tilecolor = tonic_color
-            meta_type = f'a small {tonic_name} tube'
-            meta_postfix = f' {tonic_name}'
-        # TODO: account for RandomColors part here
-        if harvestable_variants:
-            is_ripe = tile_index % 2 == 0
-            self._paint_harvestable(is_ripe=is_ripe)
-            ripe_string = 'ripe' if is_ripe else 'not ripe'
-            if self.obj.name == 'PhaseWeb':  # override 'ripe' language when it doesn't make sense
-                ripe_string = 'harvestable' if is_ripe else 'not harvestable'
-            meta_type = f'{ripe_string}, {meta_type}' if len(meta_type) > 0 else ripe_string
-            # if is_ripe:
-            #     meta_tooltip = f'<br>{meta_tooltip}' if len(meta_tooltip) > 0 else meta_tooltip
-            #     meta_tooltip = 'can be harvested for ingredients' + meta_tooltip
-            meta_postfix += ' ripe' if is_ripe else ' unripe'
-        elif aloe_variants:  # Aloe Volta, Aloe Fugues, and Aloe Pyra
-            is_ready = tile_index % 2 == 0
-            self._paint_aloe(is_ready=is_ready)
-            ready_string = 'ready' if is_ready else 'cooldown'
-            meta_type = f'{ready_string}, {meta_type}' if len(meta_type) > 0 else ready_string
-            meta_postfix += f' {ready_string}'
-        elif self.obj.part_SultanShrine is not None:
-            idx = tile_index % 8 + 1
-            descriptive_idx = tile_index % 16 + 1
-            is_rare = ((tile_index // 8) % 2) == 1
-            color_list = ['g', 'r', 'c', 'w', 'Y']
-            color_names = ['under sky', 'caves/red', 'caves/cerulean', 'caves/brown', 'caves/white']
-            color_idx = tile_index // 16
-            self.detail = color_list[color_idx]
-            self.color = self.tilecolor = extract_foreground_char(self.color, 'y')
-            self.trans = 'transparent'
-            self.file = 'Terrain/sw_sultanstatue_' + ('rare_' if is_rare else '') + f'{idx}.bmp'
-            meta_type = f'sprite #{descriptive_idx}, {color_names[color_idx]}'
-            meta_postfix = f' variant {descriptive_idx}, {color_list[color_idx]}'
-        elif self.obj.part_PistonPressElement is not None:
-            paths = ['Items/sw_crusher_s_press.bmp', 'Items/sw_crusher_s_extend.bmp',
-                     'Items/sw_crusher_s_closed.png']
-            types = ['ready', 'extended (base)', 'extended (top)']
-            postfixes = [' ready', ' extended base', ' extended top']
-            self.file, meta_type, meta_postfix = \
-                paths[tile_index], types[tile_index], postfixes[tile_index]
-        elif self.obj.name == 'MachineWallHotTubing':
-            types = ['hot', 'hot (glowing in the dark)', 'empty']
-            postfixes = [' hot', ' hot glowing', ' empty']
-            if tile_index == 1:
-                fg = self.obj.part_DrawInTheDark_ForegroundTileColor
-                bg = self.obj.part_DrawInTheDark_BackgroundTileColor
-                if fg is not None and bg is not None:
-                    self.color = self.tilecolor = f'&{fg}^{bg}'
-            if tile_index == 2:
-                self.color = self.tilecolor = '&y^c'  # MachineWallEmptyTubing
-            meta_type = types[tile_index]
-            meta_postfix = postfixes[tile_index]
+        metadata = self._style_manager.apply_style(tile_index)
+
         if self._tiles_metadata[tile_index] is None:
-            meta_postfix = None if meta_postfix == '' else meta_postfix
-            meta_type = 'default' if meta_type == '' else meta_type
-            # meta_tooltip = None if meta_tooltip == '' else meta_tooltip
-            self._tiles_metadata[tile_index] = \
-                TilePainterMetadata(self.obj, meta_postfix, meta_type)
+            painter_postfix = metadata.postfix
+            painter_type = metadata.type
+            painter_postfix = None if painter_postfix == '' else painter_postfix
+            painter_type = 'default' if painter_type == '' else painter_type
+            painter_metadata = TilePainterMetadata(self.obj, painter_postfix, painter_type)
+            self._tiles_metadata[tile_index] = painter_metadata
 
     def _paint_fence(self):
         """Paints a fence tile for this object. Assumes that tag_PaintedFence exists."""
@@ -361,7 +234,7 @@ class TilePainter:
         self.trans = back
         self.detail = 'transparent'
 
-    def _paint_harvestable(self, is_ripe: bool) -> None:
+    def paint_harvestable(self, is_ripe: bool) -> None:
         """Renders either the ripe or the unripe variant for an object with the Harvestable part."""
         if is_ripe:
             ripe_color = self.obj.part_Harvestable_RipeColor
@@ -378,7 +251,7 @@ class TilePainter:
             unripe_detail = self.obj.part_Harvestable_UnripeDetailColor
             self.detail = self.detail if unripe_detail is None else unripe_detail
 
-    def _paint_aloe(self, is_ready: bool) -> None:
+    def paint_aloe(self, is_ready: bool) -> None:
         """Renders either the 'Ready' or the 'Cooldown' variant of an aloe plant."""
         if is_ready:
             if self.obj.part_DischargeOnStep is not None:  # Aloe Volta
@@ -401,7 +274,7 @@ class TilePainter:
                 self.color = self.tilecolor = '&g'
                 self.detail = 'm'
 
-    def _paint_door(self, is_closed: bool = False, double_door_alt: bool = False) -> None:
+    def paint_door(self, is_closed: bool = False, double_door_alt: bool = False) -> None:
         if is_closed:
             closed_tile = self.obj.part_Door_ClosedTile
             self.file = 'Tiles/sw_door_basic.bmp' if closed_tile is None else closed_tile
@@ -411,7 +284,7 @@ class TilePainter:
         if double_door_alt:
             self._invert_filename_direction()
 
-    def _paint_enclosing(self, is_closed: bool = False, double_enclosing_alt: bool = False) -> None:
+    def paint_enclosing(self, is_closed: bool = False, double_enclosing_alt: bool = False) -> None:
         if is_closed:
             self.color = self.color if self.obj.part_Enclosing_ClosedColor is None \
                 else self.obj.part_Enclosing_ClosedColor
@@ -451,74 +324,13 @@ class TilePainter:
         return qud_object.tag_PaintedFence is not None and \
             qud_object.tag_PaintedFence_Value != "*delete"
 
-    @staticmethod
-    def tile_count(qud_object) -> int:
+    def tile_count(self) -> int:
         """Retrieves the total number of tiles that are available for this object. Some objects have
-        alternate tiles.
-
-        The logic here should be kept in sync with the logic used in
-        <TilePainter>._stylize_tile_variant() """
-        if not qud_object.has_tile():
+        alternate tiles."""
+        if not self.obj.has_tile():
             return 0
-        if qud_object.part_PistonPressElement is not None:
-            return 3
-        if qud_object.name == 'MachineWallHotTubing':
-            return 3
-        if qud_object.part_Examiner_UnknownDisplayName == '*med':
-            # tonics, which generate with 1/10 random colors
-            return 10
-        if qud_object.part_SultanShrine is not None:
-            return 80
-        tile_count = 1
-        if qud_object.part_RandomTile is not None:
-            tile_count = len(qud_object.part_RandomTile_Tiles.split(','))
-        if qud_object.part_Door is not None:
-            # Door part overwrites the tile, so it would override RandomTile
-            tile_count = 2
-            if qud_object.inherits_from('Double Door'):
-                dirs = ['_w_', '_w.', '_e_', '_e.']
-                if (qud_object.part_Door_ClosedTile is not None and
-                        any(d in qud_object.part_Door_ClosedTile for d in dirs)) or \
-                        (qud_object.part_Door_OpenTile is not None and
-                         any(d in qud_object.part_Door_OpenTile for d in dirs)):
-                    tile_count = 4
-            tile_count = 4 if qud_object.inherits_from('Double Door') else 2
-        if qud_object.part_Enclosing is not None:
-            if any(getattr(qud_object, part) is not None for part in ENCLOSING_RENDER_PARTS):
-                tile_count = 4 if qud_object.part_DoubleEnclosing is not None else 2
-        if qud_object.part_Hangable_HangingTile is not None:
-            tile_count = 2
-        if qud_object.part_Examiner_UnknownTile is not None:
-            complexity = qud_object.complexity
-            if complexity is not None and complexity > 0:
-                understanding = qud_object.part_Examiner_Understanding
-                if understanding is None or int(understanding) < complexity:
-                    unknown_name = qud_object.part_Examiner_UnknownDisplayName
-                    if unknown_name is None or unknown_name != '*med':
-                        # tonics excluded due to their random coloring
-                        tile_count += 1
-        if any(qud_object.is_specified(part) for part in HOLO_PARTS):
-            return tile_count  # hologram overrides colors, so any dynamic colors below don't matter
-        # TODO: account for RandomColors part here
-        if qud_object.part_Harvestable is not None:  # Harvestable applies 2 alternate color schemes
-            ripe_tilecolor = qud_object.part_Harvestable_RipeTileColor
-            unripe_tilecolor = qud_object.part_Harvestable_UnripeTileColor
-            if ripe_tilecolor is not None and unripe_tilecolor is not None and \
-                    ripe_tilecolor != unripe_tilecolor:
-                tile_count *= 2  # for example, Grave Moss has RandomTile and Harvestable
-            else:
-                unripe_detail = qud_object.part_Harvestable_UnripeDetailColor
-                ripe_detail = qud_object.part_Harvestable_RipeDetailColor
-                if ripe_detail is not None and unripe_detail is not None and \
-                        ripe_detail != unripe_detail:
-                    tile_count *= 2
-        elif qud_object.part_DischargeOnStep is not None or \
-                qud_object.part_CrossFlameOnStep is not None \
-                or qud_object.part_FugueOnStep is not None:  # Aloe Volta, Aloe Fugues, & Aloe Pyra
-            tile_count *= 2  # Aloe Volta also has RandomTile
-        elif qud_object.part_DoubleContainer is not None:
-            tile_count *= 2
-        return tile_count
+        count = self._style_manager.style_count()
+        return count if count > 0 else 1
 
 
 class TilePainterMetadata:
