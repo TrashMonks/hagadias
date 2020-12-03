@@ -4,7 +4,9 @@ import itertools
 from enum import Flag, auto
 from typing import List, Optional, Type, Tuple
 
-from hagadias.helpers import obj_has_any_part, extract_foreground_char
+from hagadias.constants import LIQUID_COLORS
+from hagadias.dicebag import DiceBag
+from hagadias.helpers import obj_has_any_part, extract_foreground_char, int_or_default
 
 
 class RenderProps(Flag):
@@ -58,7 +60,7 @@ class StyleMetadata:
     @property
     def type(self) -> str:
         """The descriptive metadata label for this tile (example: 'ripe, random sprite #2')"""
-        if len(self.merged_types) == 0 and len(self.merged_types_after) == 0:
+        if len(''.join(self.merged_types)) == 0 and len(''.join(self.merged_types_after)) == 0:
             if self.meta_type is not None:
                 return self.meta_type.strip()
             return ''
@@ -196,6 +198,8 @@ class StyleRandomTile(TileStyle):
         self._tiles = [] if random_tiles is None else random_tiles.split(',')
 
     def _modification_count(self) -> int:
+        if len(self._tiles) == 0 or self.object.tag_PaintedLiquid is not None:
+            return 0
         return len(self._tiles)
 
     def _apply_modification(self, index: int) -> StyleMetadata:
@@ -203,6 +207,53 @@ class StyleRandomTile(TileStyle):
         return StyleMetadata(meta_type=f'random sprite #{index + 1}',
                              f_postfix=f'variation {index}' if index > 0 else '',
                              meta_type_after=True)
+
+
+class StyleLiquidVolume(TileStyle):
+    """Styles for liquids.
+
+    Due to the complex interaction of RandomTile and PaintedLiquid, we handle liquids' RandomTile
+    part within this style, rather than trying to combine this style with StyleRandomTile.
+    Technically liquid pools are painted if >= 200 drams, but otherwise use RandomTile. However,
+    we'll include both tile possibilities in this single style."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=90,
+                         _modifies=RenderProps.ALL,
+                         _allows=RenderProps.NONE)
+        self._tiles = []
+        self._liquids: Optional[List[str]] = None
+        if self.object.part_LiquidVolume is not None:
+            if self.object.part_LiquidVolume_MaxVolume == "-1":
+                liquids: str = self.object.part_LiquidVolume_InitialLiquid
+                if liquids is not None and len(liquids) > 0:
+                    start_volume = self.object.part_LiquidVolume_StartVolume
+                    if start_volume:
+                        self._volume = DiceBag(start_volume).maximum()
+                    else:
+                        self._volume = int_or_default(self.object.part_LiquidVolume_Volume, 0)
+                    self._liquids = liquids.split(',')
+                    random_tiles = self.object.part_RandomTile_Tiles
+                    self._tiles = [] if random_tiles is None else random_tiles.split(',')
+                    self._tiles.insert(0, self.painter.get_painted_liquid_path())
+
+    def _modification_count(self) -> int:
+        return len(self._tiles)
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        highest_pct: int = 0
+        primary_liquid: str = 'water'
+        for liquid in self._liquids:
+            liquid_name, pct = liquid.split('-')
+            pct = int_or_default(pct, 0)
+            if liquid_name in LIQUID_COLORS and pct > highest_pct:
+                highest_pct = pct
+                primary_liquid = liquid_name
+        self.painter.detail = 'transparent'
+        self.painter.color = self.painter.tilecolor = LIQUID_COLORS[primary_liquid]
+        self.painter.file = self._tiles[index]
+        return StyleMetadata(meta_type='large pool' if index == 0 else f'puddle sprite #{index}',
+                             f_postfix=f'variation {index}' if index > 0 else '')
 
 
 class StyleHologram(TileStyle):
@@ -513,6 +564,7 @@ class StyleManager:
                                      StyleHangable,
                                      StyleHarvestable,
                                      StyleHologram,
+                                     StyleLiquidVolume,
                                      StyleMachineWallHotTubing,
                                      StylePistonPress,
                                      StyleRandomColors,

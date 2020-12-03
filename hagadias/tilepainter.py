@@ -234,6 +234,15 @@ class TilePainter:
         self.trans = back
         self.detail = 'transparent'
 
+    def get_painted_liquid_path(self) -> str:
+        """Retrieves the primary tile path for a painted liquid tile."""
+        if self.obj.tag_PaintedLiquid_Value is None:
+            return ''
+        tileloc = 'Water/'  # there is no support for a PaintedLiquidAtlas tag, it's always 'Water/'
+        ext = self.obj.tag_PaintedLiquidExtension_Value
+        tileext = ext if ext else '.bmp'
+        return tileloc + self.obj.tag_PaintedLiquid_Value + '-00000000' + tileext
+
     def paint_harvestable(self, is_ripe: bool) -> None:
         """Renders either the ripe or the unripe variant for an object with the Harvestable part."""
         if is_ripe:
