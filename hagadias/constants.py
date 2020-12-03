@@ -207,3 +207,29 @@ QUD_COLORS = {'r': (166, 74, 46),  # dark red
               }
 
 QUD_VIRIDIAN = (15, 64, 63, 255)
+
+LIQUID_COLORS = {'acid': '&G^g',
+                 'asphalt': '&k^K',
+                 'blood': '&r',
+                 'brainbrine': '&g^W',
+                 'cider': '&w^r',
+                 'cloning': '&M^Y',
+                 'convalessence': '&Y^C',
+                 'gel': '&y^Y',
+                 'goo': '&Y^G',
+                 'honey': '&w^W',
+                 'ink': '&y^k',
+                 'lava': '&W^R',
+                 'neutronflux': '&Y^y',
+                 'oil': '&Y^k',
+                 'ooze': '&y^k',
+                 'proteangunk': '&c^C',
+                 'putrid': '&g^K',
+                 'salt': '&Y^y',
+                 'sap': '&W^Y',
+                 'slime': '&w^g',
+                 'sludge': '&Y^w',
+                 'water': '&b^B',
+                 'wax': '&y^Y',
+                 'wine': '&m^r'
+                 }
