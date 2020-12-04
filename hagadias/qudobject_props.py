@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import math
 from typing import Union, Tuple, List
 
+from hagadias.character_codes import STAT_NAMES
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
     CHARGE_USE_REASONS
@@ -49,28 +51,38 @@ class QudObjectProps(QudObject):
                 val = str(sValue(getattr(self, f'stat_{attr}_sValue'), level=level))
             elif getattr(self, f'stat_{attr}_Value'):
                 val = getattr(self, f'stat_{attr}_Value')
-            boost = getattr(self, f'stat_{attr}_Boost')
-            if boost:
-                val += f'+{boost}'
         elif self.inherits_from('Armor'):
             val = getattr(self, f'part_Armor_{attr}')
         return val
+
+    def attribute_boost_factor(self, attr: str) -> Union[float, None]:
+        """Returns the boost factor which is applied to this stat after it's calculated."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            boost = int_or_none(getattr(self, f'stat_{attr}_Boost'))
+            if boost is not None:
+                if getattr(self, f'stat_{attr}_sValue'):  # Boost only applied if there's an sValue
+                    if self.role == 'Minion' and attr in STAT_NAMES:
+                        boost -= 1
+                    if boost > 0:
+                        return 0.25 * float(boost) + 1.0
+                    else:
+                        return 0.20 * float(boost) + 1.0
 
     def attribute_helper_avg(self, attr: str) -> Union[int, None]:
         """Return the average stat value for the given stat."""
         val_str = self.attribute_helper(attr)
         if val_str is not None:
-            val = DiceBag(val_str).average()  # calculate average stat value
-            val = int(val * (0.8 if self.role == 'Minion' else 1))  # Minions lose 20% to all stats
-        else:
-            val = None
-        return val
+            val = int(DiceBag(val_str).average())  # calculate average stat value
+            boost_factor = self.attribute_boost_factor(attr)
+            boost_factor = 1.0 if boost_factor is None else boost_factor
+            return int(math.ceil(float(val) * boost_factor))
 
     def attribute_helper_mod(self, attr: str) -> Union[int, None]:
         """Return the modifier for the average stat value for the given stat."""
         val = self.attribute_helper_avg(attr)
-        val = (val - 16) // 2  # return stat modifier for average roll
-        return val
+        if val is not None:
+            val = (val - 16) // 2  # return stat modifier for average roll
+            return val
 
     def resistance(self, element: str) -> Union[int, None]:
         """The elemental resistance/weakness the equipment or NPC has.
@@ -125,6 +137,11 @@ class QudObjectProps(QudObject):
     def agility(self) -> Union[str, None]:
         """The agility the mutation affects, or the agility of the creature."""
         return self.attribute_helper('Agility')
+
+    @property
+    def agilitymult(self) -> Union[float, None]:
+        """The stat Bonus multiplier for agility, if specified."""
+        return self.attribute_boost_factor('Agility')
 
     @property
     def ammo(self) -> Union[str, None]:
@@ -746,6 +763,11 @@ class QudObjectProps(QudObject):
         return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
 
     @property
+    def egomult(self) -> Union[float, None]:
+        """The stat Bonus multiplier for ego, if specified."""
+        return self.attribute_boost_factor('Ego')
+
+    @property
     def electric(self) -> Union[int, None]:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Electric')
@@ -946,6 +968,11 @@ class QudObjectProps(QudObject):
     def intelligence(self) -> Union[str, None]:
         """The intelligence the mutation affects, or the intelligence of the creature."""
         return self.attribute_helper('Intelligence')
+
+    @property
+    def intelligencemult(self) -> Union[float, None]:
+        """The stat Bonus multiplier for intelligence, if specified."""
+        return self.attribute_boost_factor('Intelligence')
 
     @property
     def inventory(self) -> List[Tuple[str, str, str, str]]:
@@ -1467,6 +1494,11 @@ class QudObjectProps(QudObject):
         return self.attribute_helper('Strength')
 
     @property
+    def strengthmult(self) -> Union[float, None]:
+        """The stat Bonus multiplier for strength, if specified."""
+        return self.attribute_boost_factor('Strength')
+
+    @property
     def swarmbonus(self) -> Union[int, None]:
         """The additional bonus that Swarmers receive."""
         return int_or_none(self.part_Swarmer_ExtraBonus)
@@ -1563,6 +1595,11 @@ class QudObjectProps(QudObject):
         return self.attribute_helper('Toughness')
 
     @property
+    def toughnessmult(self) -> Union[float, None]:
+        """The stat Bonus multiplier for toughness, if specified."""
+        return self.attribute_boost_factor('Toughness')
+
+    @property
     def twohanded(self) -> Union[bool, None]:
         """Whether this is a two-handed item."""
         if self.inherits_from('MeleeWeapon') or self.inherits_from('MissileWeapon'):
@@ -1643,6 +1680,11 @@ class QudObjectProps(QudObject):
     def willpower(self) -> Union[str, None]:
         """The willpower the mutation affects, or the willpower of the creature."""
         return self.attribute_helper('Willpower')
+
+    @property
+    def willpowermult(self) -> Union[float, None]:
+        """The stat Bonus multiplier for willpower, if specified."""
+        return self.attribute_boost_factor('Willpower')
 
     @property
     def wornon(self) -> Union[str, None]:
