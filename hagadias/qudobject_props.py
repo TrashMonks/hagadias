@@ -72,10 +72,16 @@ class QudObjectProps(QudObject):
         """Return the average stat value for the given stat."""
         val_str = self.attribute_helper(attr)
         if val_str is not None:
-            val = int(DiceBag(val_str).average())  # calculate average stat value
             boost_factor = self.attribute_boost_factor(attr)
-            boost_factor = 1.0 if boost_factor is None else boost_factor
-            return int(math.ceil(float(val) * boost_factor))
+            if boost_factor is None:
+                return int(DiceBag(val_str).average())
+            dice = DiceBag(val_str)
+            # the game rounds up on each rolled dice value after applying a Boost. This also
+            # modifies the average, so we need to calculate that average outside of the DiceBag.
+            min_val = int(math.ceil(dice.minimum() * boost_factor))
+            max_val = int(math.ceil(dice.maximum() * boost_factor))
+            avg_val = (min_val + max_val) / 2.0
+            return int(avg_val)  # truncate averages are used for character stas on the wiki
 
     def attribute_helper_mod(self, attr: str) -> Union[int, None]:
         """Return the modifier for the average stat value for the given stat."""
