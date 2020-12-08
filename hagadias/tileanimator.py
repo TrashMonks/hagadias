@@ -101,7 +101,9 @@ class TileAnimator:
         if obj.part_HologramMaterial is not None or obj.part_HologramWallMaterial is not None:
             animators.append(self.apply_hologram_material)
         if obj.tag_Astral is not None and obj.mutation_Astral is not None:
-            animators.append(self.apply_astral_material)
+            animators.append(self.apply_astral)
+        if obj.mutation_Spinnerets is not None and obj.mutation_Spinnerets_Phase == 'true':
+            animators.append(self.apply_phased)
         if obj.part_PhaseSticky is not None:
             animators.append(self.apply_phase_sticky)
         for partname in POWER_TRANSMISSION_PARTS:
@@ -487,7 +489,7 @@ class TileAnimator:
     def apply_hologram_material_random(self) -> None:
         self.apply_hologram_material(random_sequence=True)
 
-    def apply_astral_material(self, random_sequence: bool = False) -> None:
+    def apply_astral(self, random_sequence: bool = False) -> None:
         """Renders a GIF loosely based on the behavior of the Astral tag combined with a phasing
         effect (like the Astral mutation). The only object this currently affects is Astral Tabby.
 
@@ -547,6 +549,22 @@ class TileAnimator:
             frames.extend([frame4, base, frame3, base, frame2, base, frame3, base, frame4, base])
             durations.extend([40, 2500, 40, 1300, 40, 1000, 30, 1800, 40, 700])
         self._make_gif(frames, durations)
+
+    def apply_astral_random(self) -> None:
+        self.apply_astral(random_sequence=True)
+
+    def apply_phased(self) -> None:
+        """Renders a GIF loosely based on the behavior of permanently phased objects."""
+        tile = self.qud_tile
+        frame1 = QudTile(tile.filename, '&k', '&k',
+                         tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame2 = QudTile(tile.filename, '&K', '&K',
+                         tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame3 = QudTile(tile.filename, '&c', '&c',
+                         tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        frame4 = QudTile(tile.filename, '&y', '&y',
+                         tile.raw_detailcolor, tile.qudname, tile.raw_transparent)
+        self._make_gif([frame1, frame2, frame3, frame4], [30, 40, 60, 70])
 
     def apply_phase_sticky(self) -> None:
         """Renders a GIF loosely based on the behavior of the PhaseSticky part."""
