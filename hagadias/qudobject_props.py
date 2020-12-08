@@ -68,24 +68,50 @@ class QudObjectProps(QudObject):
                     else:
                         return 0.20 * float(boost) + 1.0
 
-    def attribute_helper_avg(self, attr: str) -> Union[int, None]:
-        """Return the average stat value for the given stat."""
+    def attribute_helper_min_max_or_avg(self, attr: str, mode: str) -> Union[int, None]:
+        """Return the minimum, maximum, or average stat value for the given stat. Specify
+        one of the following modes: 'min', 'max', or 'avg'."""
         val_str = self.attribute_helper(attr)
         if val_str is not None:
             boost_factor = self.attribute_boost_factor(attr)
-            if boost_factor is None:
-                return int(DiceBag(val_str).average())
             dice = DiceBag(val_str)
+            if boost_factor is None:
+                if mode == 'min':
+                    return int(dice.minimum())
+                return int(dice.maximum()) if mode == 'max' else int(dice.average())
+            min_val = int(math.ceil(dice.minimum() * boost_factor))
+            if mode == 'min':
+                return min_val
+            max_val = int(math.ceil(dice.maximum() * boost_factor))
+            if mode == 'max':
+                return max_val
             # the game rounds up on each rolled dice value after applying a Boost. This also
             # modifies the average, so we need to calculate that average outside of the DiceBag.
-            min_val = int(math.ceil(dice.minimum() * boost_factor))
-            max_val = int(math.ceil(dice.maximum() * boost_factor))
             avg_val = (min_val + max_val) / 2.0
-            return int(avg_val)  # truncate averages are used for character stas on the wiki
+            return int(avg_val)  # truncated averages are used for character stats on the wiki
 
-    def attribute_helper_mod(self, attr: str) -> Union[int, None]:
-        """Return the modifier for the average stat value for the given stat."""
-        val = self.attribute_helper_avg(attr)
+    def attribute_helper_avg(self, attr: str) -> Union[int, None]:
+        """Return the average stat value for the given stat."""
+        return self.attribute_helper_min_max_or_avg(attr, 'avg')
+
+    def attribute_helper_min(self, attr: str) -> Union[int, None]:
+        """Return the minimum stat value for the given stat."""
+        return self.attribute_helper_min_max_or_avg(attr, 'min')
+
+    def attribute_helper_max(self, attr: str) -> Union[int, None]:
+        """Return the maximum stat value for the given stat."""
+        return self.attribute_helper_min_max_or_avg(attr, 'max')
+
+    def attribute_helper_mod(self, attr: str, statmode: str = 'avg') -> Union[int, None]:
+        """Return the creature's attribute modifier for the given stat. Optionally, you may
+        also specify a statmode ('min', 'max', or 'avg') to determine the modifier based on the
+        creature's minimum, maximum, or average stat value. Average is used by default"""
+        if statmode == 'min':
+            val = self.attribute_helper_min(attr)
+        elif statmode == 'max':
+            val = self.attribute_helper_max(attr)
+        else:
+            val = self.attribute_helper_avg(attr)
         if val is not None:
             val = (val - 16) // 2  # return stat modifier for average roll
             return val
@@ -1099,7 +1125,7 @@ class QudObjectProps(QudObject):
 
     @property
     def ma(self) -> Union[int, None]:
-        """The object's mental armor."""
+        """The object's mental armor. For creatures, this is an averaged value."""
         if self.part_MentalShield is not None:
             # things like Water, Stairs, etc. are not subject to mental effects.
             return None
@@ -1114,6 +1140,28 @@ class QudObjectProps(QudObject):
             # add willpower modifier to MA
             ma += self.attribute_helper_mod('Willpower')
             return ma
+
+    @property
+    def marange(self) -> Union[str, None]:
+        """The creature's full range of potential MA values"""
+        if self.part_MentalShield is not None:
+            # things like Water, Stairs, etc. are not subject to mental effects.
+            return None
+        elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
+            return None
+        elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            ma = 4
+            if self.stat_MA_Value:
+                ma += int(self.stat_MA_Value)
+            # add willpower modifier to MA
+            minmod = self.attribute_helper_mod('Willpower', 'min')
+            maxmod = self.attribute_helper_mod('Willpower', 'max')
+            if minmod == maxmod:
+                return str(ma+minmod)
+            # returning this in a bit of a weird format so that our wiki dice parser can
+            # parse it correctly (it doesn't do well with ranges like -2--1 [fire ant], so we
+            # would output this instead as -3+1d2
+            return f'{ma+minmod-1}+1d{maxmod-minmod+1}'
 
     @property
     def maxammo(self) -> Union[int, None]:
