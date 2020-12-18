@@ -64,18 +64,24 @@ class QudTile:
 
         if raw_tilecolor is None:
             self.tilecolor = QUD_COLORS['y']  # render in white
+            self.tilecolor_letter = 'y'
             self.transparentcolor = QUD_COLORS[raw_transparent]
         else:
             if '^' in raw_tilecolor:
                 raw_transparent = raw_tilecolor.split('^')[1]
                 raw_tilecolor = raw_tilecolor.split('^')[0]
-            raw_tilecolor = QUD_COLORS[raw_tilecolor.strip('&')]
-            self.tilecolor = raw_tilecolor
+            raw_tilecolor = raw_tilecolor.strip('&')
+            self.tilecolor = QUD_COLORS[raw_tilecolor]
+            self.tilecolor_letter = raw_tilecolor
             self.transparentcolor = QUD_COLORS[raw_transparent]
+        self.transparentcolor_letter = raw_transparent if raw_transparent != 'transparent' else None
         if raw_detailcolor is None:
             self.detailcolor = QUD_COLORS['transparent']
+            self.detailcolor_letter = None
         else:
-            self.detailcolor = QUD_COLORS[raw_detailcolor.strip('&')]
+            raw_detailcolor = raw_detailcolor.strip('&')
+            self.detailcolor = QUD_COLORS[raw_detailcolor]
+            self.detailcolor_letter = raw_detailcolor
         if image_provider is not None:
             self.image = image_provider().copy()
             self._color_image()

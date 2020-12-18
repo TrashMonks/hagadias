@@ -1610,6 +1610,15 @@ class QudObjectProps(QudObject):
         return int_or_none(self.tag_Tier_Value)
 
     @property
+    def tilecolors(self) -> Union[str, None]:
+        """The primary color and detail color used by this object's main image"""
+        tile = self.tile
+        if tile is not None and tile.tilecolor_letter is not None:
+            val = tile.tilecolor_letter
+            val += tile.detailcolor_letter if tile.detailcolor_letter is not None else ''
+            return val
+
+    @property
     def title(self) -> Union[str, None]:
         """The display name of the item."""
         val = self.name
@@ -1662,6 +1671,37 @@ class QudObjectProps(QudObject):
             if self.part_Physics_bUsesTwoSlots or self.part_Physics_UsesTwoSlots:
                 return True
             return False
+
+    @property
+    def unknowntile(self) -> Union[str, None]:
+        """The filename of the object's 'unidentified' tile variant."""
+        meta = self.unidentified_metadata()
+        if meta is not None:
+            return meta.filename
+
+    @property
+    def unknownname(self) -> Union[str, None]:
+        """The name of the object when unidentified, such as 'weird artifact'."""
+        complexity = self.complexity
+        if complexity is not None and complexity > 0:
+            understanding = self.part_Examiner_Understanding
+            if understanding is None or int(understanding) < complexity:
+                unknown_name = self.part_Examiner_UnknownDisplayName
+                unknown_name = 'weird artifact' if unknown_name is None else unknown_name
+                if unknown_name != '*med':
+                    return unknown_name
+
+    @property
+    def unknownaltname(self) -> Union[str, None]:
+        """The name of the object when partially identified, such as 'backpack'."""
+        complexity = self.complexity
+        if complexity is not None and complexity > 0:
+            understanding = self.part_Examiner_Understanding
+            if understanding is None or int(understanding) < complexity:
+                alt_name = self.part_Examiner_AlternateDisplayName
+                alt_name = 'device' if alt_name is None else alt_name
+                if alt_name != '*med':
+                    return alt_name
 
     @property
     def unpowereddamage(self) -> Union[str, None]:

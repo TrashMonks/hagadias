@@ -184,6 +184,24 @@ class QudObject(NodeMixin):
         """Returns true if this object qualifies for GIF rendering."""
         return TileAnimator(self).has_gif
 
+    def unidentified_tile_and_metadata(self) -> Union[Tuple, None]:
+        if self.part_Examiner_UnknownTile is not None:
+            if self.number_of_tiles() > 1:
+                tiles, metadata = self.tiles_and_metadata()
+                for tile, meta in zip(tiles, metadata):
+                    if meta.type == 'unidentified':
+                        return tile, meta
+
+    def unidentified_tile(self) -> QudTile:
+        data = self.unidentified_tile_and_metadata()
+        if data is not None:
+            return data[0]
+
+    def unidentified_metadata(self):
+        data = self.unidentified_tile_and_metadata()
+        if data is not None:
+            return data[1]
+
     def resolve_inheritance(self) -> None:
         """Compute dictionaries with all inherited tags and attributes. This method should be
         called only after all objects are loaded from XML (in other words, a two-pass load should
