@@ -198,12 +198,6 @@ class QudObjectProps(QudObject):
         return ammo
 
     @property
-    def ammoperaction(self) -> [int, None]:
-        """How much ammo this weapon uses per action. This sometimes differs from the
-        shots per action."""
-        return self.part_MissileWeapon_AmmoPerAction
-
-    @property
     def ammodamagetypes(self) -> Union[list, None]:
         """Damage attributes associated with the projectile.
 
@@ -211,6 +205,12 @@ class QudObjectProps(QudObject):
         attributes = self.projectile_object('part_Projectile_Attributes')
         if attributes is not None:
             return attributes.split()
+
+    @property
+    def ammoperaction(self) -> [int, None]:
+        """How much ammo this weapon uses per action. This sometimes differs from the
+        shots per action."""
+        return self.part_MissileWeapon_AmmoPerAction
 
     @property
     def aquatic(self) -> Union[bool, None]:
