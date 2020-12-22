@@ -196,6 +196,12 @@ class QudObjectProps(QudObject):
         elif self.part_LiquidAmmoLoader:
             ammo = self.part_LiquidAmmoLoader_Liquid
         return ammo
+    
+    @property
+    def ammoperaction(self) -> [int, None]:
+        """How much ammo this weapon uses per action. This sometimes differs from the
+        shots per action."""
+        return self.part_MissileWeapon_AmmoPerAction
 
     @property
     def ammodamagetypes(self) -> Union[list, None]:
@@ -251,11 +257,6 @@ class QudObjectProps(QudObject):
             liquid = self.part_BleedLiquid.split('-')[0]
             if liquid != "blood":  # it's interesting if they don't bleed blood
                 return liquid
-
-    @property
-    def bookid(self) -> Union[str, None]:
-        """The id of this object in books.xml."""
-        return self.part_Book_ID
 
     @property
     def butcheredinto(self) -> Union[str, None]:
