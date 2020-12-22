@@ -196,7 +196,7 @@ class QudObjectProps(QudObject):
         elif self.part_LiquidAmmoLoader:
             ammo = self.part_LiquidAmmoLoader_Liquid
         return ammo
-    
+
     @property
     def ammoperaction(self) -> [int, None]:
         """How much ammo this weapon uses per action. This sometimes differs from the
