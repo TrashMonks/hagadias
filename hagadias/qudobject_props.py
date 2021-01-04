@@ -1744,6 +1744,12 @@ class QudObjectProps(QudObject):
             return True
 
     @property
+    def waterritualskill(self) -> Union[str, None]:
+        """What skill that individual teaches, if they have any."""
+        if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
+            return self.xtag_WaterRitual_SellSkill
+
+    @property
     def weaponskill(self) -> Union[str, None]:
         """The skill tree required for use."""
         val = None
