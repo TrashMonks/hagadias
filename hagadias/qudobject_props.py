@@ -1642,6 +1642,10 @@ class QudObjectProps(QudObject):
             val = '&YSchemasoft [&Whigh-tier&Y]'  # override for Schemasoft [high-tier]
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+            name_prefix = self.part_Roboticized_NamePrefix
+            name_prefix = '{{c|mechanical}}' if not name_prefix else name_prefix
+            val = f'{name_prefix} {val}'
         return val
 
     @property
