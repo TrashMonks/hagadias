@@ -207,6 +207,12 @@ class QudObjectProps(QudObject):
             return attributes.split()
 
     @property
+    def ammoperaction(self) -> [int, None]:
+        """How much ammo this weapon uses per action. This sometimes differs from the
+        shots per action."""
+        return self.part_MissileWeapon_AmmoPerAction
+
+    @property
     def aquatic(self) -> Union[bool, None]:
         """If the creature requires to be submerged in water."""
         if self.inherits_from('Creature'):
@@ -251,11 +257,6 @@ class QudObjectProps(QudObject):
             liquid = self.part_BleedLiquid.split('-')[0]
             if liquid != "blood":  # it's interesting if they don't bleed blood
                 return liquid
-
-    @property
-    def bookid(self) -> Union[str, None]:
-        """The id of this object in books.xml."""
-        return self.part_Book_ID
 
     @property
     def butcheredinto(self) -> Union[str, None]:
@@ -1745,6 +1746,12 @@ class QudObjectProps(QudObject):
         """Whether the creature is waterritualable."""
         if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
             return True
+
+    @property
+    def waterritualskill(self) -> Union[str, None]:
+        """What skill that individual teaches, if they have any."""
+        if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
+            return self.xtag_WaterRitual_SellSkill
 
     @property
     def weaponskill(self) -> Union[str, None]:
