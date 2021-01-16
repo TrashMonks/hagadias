@@ -18,7 +18,7 @@ python -m pipenv install --dev       # create a virtual environment for the curr
 # Running tests
 In order to run the test suite, create a file in your `hagadias` project development directory called
 `game_location_for_tests`. The only contents of this file should be a path to the installation directory of
-Caves of Qud, with no other characters (including no newlines.)
+Caves of Qud, with no other characters.
 
 Activate the venv with:
 ```
