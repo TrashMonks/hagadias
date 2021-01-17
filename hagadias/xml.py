@@ -9,4 +9,3 @@ from xml.etree.ElementTree import Element  # noqa E402
 if already_imported:
     import importlib  # noqa E402
     importlib.reload(ElementTree)
-

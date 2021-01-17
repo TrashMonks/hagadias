@@ -29,6 +29,7 @@ class LineNumberingParser(ET.XMLParser):
         element._end_byte_index = self.parser.CurrentByteIndex
         return element
 
+
 class GameRoot:
     """Gather together the various data sources provided in a Caves of Qud game root.
 

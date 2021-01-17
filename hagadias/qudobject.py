@@ -1,6 +1,5 @@
 """attr specification:
 QudObject.part_name_attribute"""
-import sys
 from copy import deepcopy
 from typing import Tuple, Union, List
 from hagadias.xml import Element
