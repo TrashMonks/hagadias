@@ -3,16 +3,11 @@ QudObject.part_name_attribute"""
 import sys
 from copy import deepcopy
 from typing import Tuple, Union, List
-
-# Force Python XML parser:
-sys.modules['_elementtree'] = None
-from xml.etree.ElementTree import Element  # noqa E402
-
-from anytree import NodeMixin  # noqa E402
-
-from hagadias.qudtile import QudTile  # noqa E402
-from hagadias.tilepainter import TilePainter  # noqa E402
-from hagadias.tileanimator import TileAnimator, StandInTiles  # noqa E402
+from hagadias.xml import Element
+from anytree import NodeMixin
+from hagadias.qudtile import QudTile
+from hagadias.tilepainter import TilePainter
+from hagadias.tileanimator import TileAnimator, StandInTiles
 
 
 class QudObject(NodeMixin):
