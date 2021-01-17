@@ -9,7 +9,7 @@ from hagadias.qudobject import QudObject
 
 try:
     with open('game_location_for_tests') as f:
-        game_loc = f.read()
+        game_loc = f.read().strip()
         GAME_ROOT_LOC = Path(game_loc)
 except FileNotFoundError:
     print('Tests require a game installation path to be in the file "game_location_for_tests".')
