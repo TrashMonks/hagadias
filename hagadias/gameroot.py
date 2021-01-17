@@ -1,16 +1,12 @@
 """Functionality for loading the Qud game data from various game files."""
 
-import sys
 import time
 from pathlib import Path
-# Force Python XML parser:
-sys.modules['_elementtree'] = None
-from xml.etree import ElementTree as ET  # noqa E402
-
-from hagadias.character_codes import read_gamedata  # noqa E402
+from hagadias.xml import ElementTree as ET
+from hagadias.character_codes import read_gamedata
 from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, \
-    repair_invalid_chars  # noqa E402
-from hagadias.qudobject_props import QudObjectProps  # noqa E402
+    repair_invalid_chars
+from hagadias.qudobject_props import QudObjectProps
 
 
 class LineNumberingParser(ET.XMLParser):
