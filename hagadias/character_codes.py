@@ -28,10 +28,9 @@ IMPLANT_CODES = {'00': 'none',
                  }
 # these are not available from XML:
 MOD_BONUSES = {'BE': [2, 0, 0, 0, 0, 0],  # Double-muscled
-               'BK': [0, 0, -1, 0, 0, 0],  # Heightened Quickness
-               'B2': [-1, 2, 0, 0, 0, 0],  # Triple-jointed
+               'B2': [0, 2, 0, 0, 0, 0],  # Triple-jointed
                'B4': [0, 0, 2, 0, 0, 0],  # Two-hearted
-               'CD': [0, 0, 0, 0, 0, -1],  # Beak (D)
+               'CD': [0, 0, 0, 0, 0, 1],  # Beak
                '00': [0, 0, 1, 0, 0, 0],  # True Kin but no implant
                }
 MUTATION_VARIANTS = {'CD': ['Beak', 'Bill', 'Rostrum', 'Frill', 'Proboscis'],
