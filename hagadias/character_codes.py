@@ -37,7 +37,7 @@ MOD_BONUSES = {'BE': [2, 0, 0, 0, 0, 0],  # Double-muscled
 MUTATION_VARIANTS = {'CD': ['Beak', 'Bill', 'Rostrum', 'Frill', 'Proboscis'],  # Beak
                      'BH': ['Hands', 'Face', 'Feet'],  # Flaming Ray
                      'BI': ['Hands', 'Face', 'Feet'],  # Freezing Ray
-                     'BL': ['horns', 'horn', 'antler', 'casque'],  # Horns
+                     'BL': ['Horns', 'Horn', 'Antler', 'Casque'],  # Horns
                      }
 
 
