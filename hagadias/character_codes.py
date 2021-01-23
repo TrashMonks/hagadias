@@ -34,10 +34,10 @@ MOD_BONUSES = {'BE': [2, 0, 0, 0, 0, 0],  # Double-muscled
                'CD': [0, 0, 0, 0, 0, -1],  # Beak (D)
                '00': [0, 0, 1, 0, 0, 0],  # True Kin but no implant
                }
-MUTATION_VARIANTS = {'CD': ['Beak', 'Bill', 'Rostrum', 'Frill', 'Proboscis'],  # Beak
-                     'BH': ['Hands', 'Face', 'Feet'],  # Flaming Ray
-                     'BI': ['Hands', 'Face', 'Feet'],  # Freezing Ray
-                     'BL': ['Horns', 'Horn', 'Antler', 'Casque'],  # Horns
+MUTATION_VARIANTS = {'CD': ['Beak', 'Bill', 'Rostrum', 'Frill', 'Proboscis'],
+                     'BH': ['Flaming Ray (Hands)', 'Flaming Ray (Face)', 'Flaming Ray (Feet)'],
+                     'BI': ['Freezing Ray (Hands)', 'Freezing Ray (Face)', 'Freezing Ray (Feet)'],
+                     'BL': ['Horns', 'Horn', 'Antler', 'Casque'],
                      }
 
 
