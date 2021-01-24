@@ -15,9 +15,9 @@ installation of the game in order to do anything.
 
 ## Installation
 To install the package from this GitHub repository, run  
-`pip install git+https://github.com/trashmonks/hagadias@master#egg=hagadias`  
+`pip install git+https://github.com/trashmonks/hagadias@main#egg=hagadias`  
 or if you're using pipenv,  
-`pipenv install -e git+https://github.com/trashmonks/hagadias.git@master#egg=hagadias`
+`pipenv install -e git+https://github.com/trashmonks/hagadias.git@main#egg=hagadias`
 
 ## Tile support
 Tile support currently requires a download of the latest Caves of Qud tile modding toolkit, extracted into the `hagadias` directory. We're working on making this easier to do. For the latest link, refer to [the Tile Support topic in qud-wiki](https://github.com/TrashMonks/qud-wiki#tile-support)
