@@ -79,7 +79,7 @@ class DiceBag:
         val = 0.0
         for die in self.dice_bag:
             val += die.quantity * (1.0 + die.size) / 2.0
-        return int(val)
+        return val
 
     def minimum(self) -> int:
         """Return the minimum value that can be rolled from this dice string."""
