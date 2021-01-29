@@ -73,9 +73,8 @@ class DiceBag:
                     raise ValueError(f"DiceBag created with segment of unsupported format: {die}")
         self.dice_string = dice_string
 
-    def average(self) -> int:
-        """Return the average value that is rolled from this dice string,
-        rounded down to the nearest integer."""
+    def average(self) -> float:
+        """Return the average value that is rolled from this dice string."""
         val = 0.0
         for die in self.dice_bag:
             val += die.quantity * (1.0 + die.size) / 2.0
