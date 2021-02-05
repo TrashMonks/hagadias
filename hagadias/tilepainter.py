@@ -1,5 +1,7 @@
 import os
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Tuple, Callable
+
+from PIL import Image, ImageDraw
 
 from hagadias.helpers import extract_foreground_char, extract_background_char
 from hagadias.qudtile import QudTile, StandInTiles
@@ -28,6 +30,7 @@ class TilePainter:
         self.trans = None
         self.file = None
         self.standin = None
+        self.prefab_imitator = None
 
         self._apply_primer()
 
@@ -43,6 +46,8 @@ class TilePainter:
 
         if self.file is None or self.file == '':
             self.standin = StandInTiles.get_tile_provider_for(obj)
+
+        self.prefab_imitator = TilePrefabImitator.get_fake_prefab_for(obj)
 
         self._style_manager = StyleManager(self)
 
@@ -62,11 +67,13 @@ class TilePainter:
                 return None
             self._stylize_tile_variant(tile_index)
             self._tiles[tile_index] = QudTile(None, self.color, self.tilecolor,
-                                              self.detail, self.obj.name, self.trans, self.standin)
+                                              self.detail, self.obj.name, self.trans,
+                                              self.standin, self.prefab_imitator)
         else:
             self._stylize_tile_variant(tile_index)
             self._tiles[tile_index] = QudTile(self.file, self.color, self.tilecolor,
-                                              self.detail, self.obj.name, self.trans)
+                                              self.detail, self.obj.name, self.trans,
+                                              None, self.prefab_imitator)
         return self._tiles[tile_index]
 
     def all_tiles_and_metadata(self) -> Tuple[List[QudTile], List]:
@@ -382,3 +389,69 @@ class TilePainterMetadata:
             else:
                 self._file_noex = self._base_filename + self.postfix
         return self._file_noex
+
+
+class TilePrefabImitator:
+
+    @staticmethod
+    def get_fake_prefab_for(qud_object) -> Optional[Callable]:
+        """Returns a method that can draw a fake colored Unity prefab overlay on top of a 160x240
+        size PIL image. Enables creating more realistic tiles for things like campfire and
+        torch sconce, since they always appear with animated Unity prefab imposters in game. We
+        wont try to animate these due to complexity, but we can at least add something to the
+        static tile that looks good.
+        """
+        prefab: Optional[str] = qud_object.part_UnityPrefabImposter_PrefabID
+        if prefab is not None:
+            if prefab == 'Prefabs/Particles/CampfireFlames':
+                return TilePrefabImitator.add_campfire_flames
+            elif prefab == 'Prefabs/Particles/TorchpostFlames':
+                return TilePrefabImitator.add_torchpost_flames
+        return None
+
+    @staticmethod
+    def add_campfire_flames(big_image: Image) -> None:
+        """Draws a fake unity prefab for campfire flames."""
+        TilePrefabImitator.add_flames(big_image, 0)
+
+    @staticmethod
+    def add_torchpost_flames(big_image: Image) -> None:
+        """Draws a fake unity prefab for torch sconce flames."""
+        TilePrefabImitator.add_flames(big_image, -17)
+
+    @staticmethod
+    def add_flames(big_image: Image, y_offset: int = 0) -> None:
+        """Draws a fake unity prefab overlay onto flaming tiles, like campfires and torch sconces.
+
+        Args:
+            big_image: A PIL image object with dimensions 160x240 (large tile size)
+            y_offset: An offset for the flame prefab overlay. Coordinates are based on the campfire
+                    object, but can be offset so that this prefab also works for torch sconces
+        """
+        fire_colors = [
+            (230, 0, 0, 255),  # Red
+            (231, 202, 0, 255),  # Yellow
+            (166, 202, 193, 102),  # Smoke grey 1
+            (166, 202, 193, 89),  # Smoke grey 2
+            (166, 202, 193, 77),  # Smoke grey 3
+            (166, 202, 193, 67),  # Smoke grey 4
+            (166, 202, 193, 56)  # Smoke grey 5
+        ]
+        fire_rects = [
+            [(53, 152, 68, 167), (56, 127, 71, 142), (68, 145, 83, 160), (83, 158, 98, 173),
+             (84, 140, 99, 155), (87, 133, 102, 148)],
+            [(54, 155, 69, 170)],
+            [(91, 109, 106, 124)],
+            [(62, 100, 77, 115)],
+            [(96, 81, 111, 96)],
+            [(85, 54, 100, 69)],
+            [(127, 20, 142, 35)],
+        ]
+        canvas = ImageDraw.Draw(big_image)
+        for fire_color, fire_shape_list in zip(fire_colors, fire_rects):
+            for fire_shape in fire_shape_list:
+                x1 = fire_shape[0]
+                y1 = fire_shape[1] + y_offset
+                x2 = fire_shape[2]
+                y2 = fire_shape[3] + y_offset
+                canvas.rectangle([x1, y1, x2, y2], fire_color, fire_color)

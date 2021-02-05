@@ -33,7 +33,7 @@ class QudTile:
     # https://discordapp.com/channels/214532333900922882/482714670860468234/762827742424465411
 
     def __init__(self, filename, colorstring, raw_tilecolor, raw_detailcolor, qudname,
-                 raw_transparent="transparent", image_provider=None):
+                 raw_transparent="transparent", image_provider=None, prefab_applicator=None):
         """Loads and colors a tile, creating the corresponding PIL Image object.
 
         Args:
@@ -47,6 +47,9 @@ class QudTile:
             image_provider: a method that returns a PIL Image object. Can be used instead of a
                             filename. If specified, QudTile will call Image.copy() to avoid altering
                             the provided image.
+            prefab_applicator: A method that will draw a fake Unity prefab colored overlay on top of
+                         the 160x240 "big" size version of the tile. If specified, QudTile will
+                         invoke this method before returning a big_tile version of this tile.
         """
         self.hasproblems = False  # set True if problems with tile generation encountered
         self.filename = filename
@@ -55,6 +58,7 @@ class QudTile:
         self.raw_detailcolor = raw_detailcolor
         self.qudname = qudname
         self.raw_transparent = raw_transparent
+        self.prefab_applicator = prefab_applicator
 
         if raw_tilecolor is None and colorstring is not None:
             raw_tilecolor = colorstring  # fall back to text mode color
@@ -149,7 +153,10 @@ class QudTile:
 
     def get_big_image(self):
         """Draw the big (10x, 160x240) tile for the wiki or discord."""
-        return self.image.resize((160, 240), resample=Image.NEAREST)
+        bigimage = self.image.resize((160, 240), resample=Image.NEAREST)
+        if self.prefab_applicator is not None:
+            self.prefab_applicator(bigimage)
+        return bigimage
 
     def get_big_bytesio(self):
         """Get a BytesIO representation of a PNG encoding of the big (10x, 160x240) tile.
