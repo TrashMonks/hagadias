@@ -213,6 +213,12 @@ class QudObjectProps(QudObject):
         return self.part_MissileWeapon_AmmoPerAction
 
     @property
+    def animatable(self) -> [bool, None]:
+        """If the thing can be animated using spray a brain or nanoneuro animator."""
+        if self.tag_Animatable is not None:
+            return True
+
+    @property
     def aquatic(self) -> Union[bool, None]:
         """If the creature requires to be submerged in water."""
         if self.inherits_from('Creature'):
@@ -968,6 +974,30 @@ class QudObjectProps(QudObject):
 
         Example: "Snack" for Vanta Petals"""
         return self.part_Food_Satiation
+
+    @property
+    def hurtbydefoliant(self) -> Union [int, None]:
+        """If the thing is hurt by defoliant.
+        0/None = no damage
+        1 = normal damage
+        2 = significant damage"""
+        if self.tag_LivePlant is not None:
+            if self.part_Combat and self.tag_GasDamageAsIfInanimate is None:
+                return 1
+            else:
+                return 2
+
+    @property
+    def hurtbyfungicide(self) -> Union [int, None]:
+        """If the thing is hurt by fungicide.
+        0/None = no damage
+        1 = normal damage
+        2 = significant damage"""
+        if self.tag_LiveFungus is not None:
+            if self.part_Combat and self.tag_GasDamageAsIfInanimate is None:
+                return 1
+            else:
+                return 2
 
     @property
     def id(self) -> str:
