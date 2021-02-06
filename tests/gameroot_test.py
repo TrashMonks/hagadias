@@ -21,3 +21,9 @@ def test_gamever(gameroot):
 def test_colors(gameroot):
     colors = gameroot.get_colors()
     assert(colors['shaders']['snakeskin']['colors'] == 'g-c-C-G')
+
+
+def test_genders(gameroot):
+    genders = gameroot.get_genders()
+    assert(genders['neuter']['Subjective'] == 'it')
+    assert(genders['elverson']['FormalAddressTerm'] == 'friend')

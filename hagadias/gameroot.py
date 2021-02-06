@@ -196,3 +196,17 @@ class GameRoot:
             colors['shaders'][name] = {'type': shader.attrib['Type'],
                                        'colors': shader.attrib['Colors']}
         return colors
+
+    def get_genders(self) -> dict:
+        """Return the genders.
+
+        Returns a nested dictionary mirroring the XML file structure."""
+        genders = {}
+        path = self._xmlroot / 'Genders.xml'
+        tree = ET.parse(path)
+        for gender in tree.findall('gender'):
+            genders[gender.attrib['Name']] = {}
+            for attrib, val in gender.attrib.items():
+                if attrib != 'Name':
+                    genders[gender.attrib['Name']][attrib] = val
+        return genders
