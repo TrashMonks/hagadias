@@ -67,40 +67,45 @@ def read_gamedata(xmlroot: Path) -> dict:
 
     class_bonuses = {}
     class_skills = {}
+    class_tiles = {}
     caste_codes = {}
 
     # read True Kin Castes
     arcologies = subtypes[0]
     for category in arcologies:
         for caste in category:
-            caste_codes[caste.attrib['Code'].upper()] = caste.attrib['Name']
+            name = caste.attrib['Name']
+            caste_codes[caste.attrib['Code'].upper()] = name
             stat_bonuses = [0, 0, 0, 0, 0, 0]
             for element in caste:
                 if element.tag == 'stat' and (element.attrib['Name'] in STAT_NAMES):
                     bonus = int(element.attrib['Bonus'])
                     stat_bonuses[STAT_NAMES.index(element.attrib['Name'])] = bonus
-            class_bonuses[caste.attrib['Name']] = stat_bonuses
+            class_bonuses[name] = stat_bonuses
             skills_raw = caste.find('skills')
             skills = []
             for skill in skills_raw:
                 skills.append(skill_names[skill.attrib['Name']])
-            class_skills[caste.attrib['Name']] = skills
+            class_skills[name] = skills
+            class_tiles[name] = (caste.attrib['Tile'], caste.attrib['DetailColor'])
 
     # read mutant Callings
     calling_codes = {}
     for calling in subtypes[1]:
-        calling_codes[calling.attrib['Code'].upper()] = calling.attrib['Name']
+        name = calling.attrib['Name']
+        calling_codes[calling.attrib['Code'].upper()] = name
         stat_bonuses = [0, 0, 0, 0, 0, 0]
         for element in calling:
             if element.tag == 'stat' and (element.attrib['Name'] in STAT_NAMES):
                 bonus = int(element.attrib['Bonus'])
                 stat_bonuses[STAT_NAMES.index(element.attrib['Name'])] = bonus
-        class_bonuses[calling.attrib['Name']] = stat_bonuses
+        class_bonuses[name] = stat_bonuses
         skills_raw = calling.find('skills')
         skills = []
         for skill in skills_raw:
             skills.append(skill_names[skill.attrib['Name']])
-        class_skills[calling.attrib['Name']] = skills
+        class_skills[name] = skills
+        class_tiles[name] = (calling.attrib['Tile'], calling.attrib['DetailColor'])
 
     # read mutations
     mod_codes = {}
@@ -124,6 +129,7 @@ def read_gamedata(xmlroot: Path) -> dict:
             'mod_codes': mod_codes,
             'class_bonuses': class_bonuses,
             'class_skills': class_skills,
+            'class_tiles': class_tiles,
             'mod_bonuses': MOD_BONUSES,
             'mutation_variants': MUTATION_VARIANTS,
             }
