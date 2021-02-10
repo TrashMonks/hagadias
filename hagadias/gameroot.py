@@ -210,3 +210,33 @@ class GameRoot:
                 if attrib != 'Name':
                     genders[gender.attrib['Name']][attrib] = val
         return genders
+
+    def get_pronouns(self) -> dict:
+        """Returns pronouns.
+
+        Returns a nested dictionary mirroring the XML file structure."""
+        pronouns = {}
+        path = self._xmlroot / 'PronounSets.xml'
+        tree = ET.parse(path)
+        for pronounset in tree.findall('pronounset'):
+            pronounsetname = '/'.join([pronounset.attrib['Subjective'],
+                                       pronounset.attrib['Objective'],
+                                       pronounset.attrib['PossessiveAdjective']])
+            pronouns[pronounsetname] = {}
+            for attrib, val in pronounset.attrib.items():
+                pronouns[pronounsetname][attrib] = val
+        # add Oboroqoru's pronouns since they're defined in objectblueprints
+        pronouns["He/Him/His/His/Himself/god/godling/lord/Son/Brother/Father"] = {
+            'Subjective': "He",
+            'Objective': "Him",
+            'PossessiveAdjective': "His",
+            'SubstantivePossessive': "His",
+            'Reflexive': "Himself",
+            'PersonTerm': "god",
+            'ImmaturePersonTerm': "godling",
+            'FormalAddressTerm': "lord",
+            'OffspringTerm': "Son",
+            'SiblingTerm': "Brother",
+            'ParentTerm': "Father"
+            }
+        return pronouns
