@@ -209,6 +209,23 @@ class StyleRandomTile(TileStyle):
                              meta_type_after=True)
 
 
+class StyleFracti(TileStyle):
+    """Styles for the RandomTile part."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=30,
+                         _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE)
+
+    def _modification_count(self) -> int:
+        return 8 if self.object.part_Fracti is not None else 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        self.painter.file = f'Terrain/sw_fracti{index + 1}.bmp'
+        return StyleMetadata(meta_type=f'random sprite #{index + 1}',
+                             f_postfix=f'variation {index}' if index > 0 else '',
+                             meta_type_after=True)
+
+
 class StyleLiquidVolume(TileStyle):
     """Styles for liquids.
 
@@ -561,6 +578,7 @@ class StyleManager:
                                      StyleDoubleContainer,
                                      StyleEnclosing,
                                      StyleExaminerUnknown,
+                                     StyleFracti,
                                      StyleHangable,
                                      StyleHarvestable,
                                      StyleHologram,
