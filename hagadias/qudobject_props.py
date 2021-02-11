@@ -703,6 +703,7 @@ class QudObjectProps(QudObject):
             if len(desc_extra) > 0:
                 desc += '\n\n' + '\n'.join(desc_extra)
             desc = desc.replace('\r\n', '\n')  # currently, only the description for Bear
+            desc = desc.replace('~J211', '')
         return desc
 
     @property
