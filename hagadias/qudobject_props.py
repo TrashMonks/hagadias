@@ -934,7 +934,8 @@ class QudObjectProps(QudObject):
     @property
     def gender(self) -> Union[str, None]:
         """The gender of the object."""
-        if ((self.tag_Gender_Value is not None or ',' not in self.tag_RandomGender_Value)
+        if ((self.tag_Gender_Value is not None or
+             (self.tag_RandomGender_Value is not None and ',' not in self.tag_RandomGender_Value))
                 and any(self.inherits_from(character) for character in ACTIVE_CHARS)):
             gender = self.tag_Gender_Value
             if gender is None:
