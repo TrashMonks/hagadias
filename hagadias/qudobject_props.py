@@ -493,7 +493,9 @@ class QudObjectProps(QudObject):
             # not possible to perfectly represent everything unless we actually iterate over the
             # object's parts in XML order (and output associated rules in that same order)
             desc = self.part_Description_Short
+            is_item = False
             if self.inherits_from("Item"):  # append resistances, attributes, and other rules text
+                is_item = True
                 # reputation
                 if self.part_AddsRep is not None:
                     factions = self.part_AddsRep_Faction.split(',')
@@ -623,14 +625,6 @@ class QudObjectProps(QudObject):
                 elif self.name == 'Banner of the Holy Rhombus':
                     desc_extra.append('{{rules|Bestows the {{r|war trance}} effect to the' +
                                       ' Putus Templar who can see this item.')
-                elif self.part_PartsGas is not None:
-                    chance = self.part_PartsGas_Chance
-                    if chance is not None:
-                        rule = f'{chance}% chance per turn to repel gases near its '
-                    else:
-                        rule = 'Repels gases near its '
-                    rule += 'wielder or wearer.' if self.name == 'Wrist Fan' else 'user.'
-                    desc_extra.append('{{rules|' + rule + '}}')
                 # add rules text for save modifier, if applicable
                 if self.part_SaveModifier is not None:
                     if self.part_SaveModifier_ShowInShortDescription is None or \
@@ -642,6 +636,17 @@ class QudObjectProps(QudObject):
                         if vs is not None and vs != '':
                             save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
                         desc_extra.append('{{rules|' + save_mod_str + '.}}')
+            if self.part_PartsGas is not None:
+                chance = self.part_PartsGas_Chance
+                if chance is not None:
+                    rule = f'{chance}% chance per turn to repel gases near its'
+                else:
+                    rule = 'Repels gases near its'
+                if is_item:
+                    rule += ' wielder or wearer.' if self.name == 'Wrist Fan' else ' user.'
+                else:
+                    rule += 'elf.'
+                desc_extra.append('{{rules|' + rule + '}}')
             if self.intproperty_GenotypeBasedDescription:
                 desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
