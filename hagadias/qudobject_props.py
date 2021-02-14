@@ -1370,7 +1370,8 @@ class QudObjectProps(QudObject):
                 level = int(data['Level']) if 'Level' in data else 0
                 mutations.append((mutation + postfix, level))
         if self.part_Roboticized is not None:  # additional mutations added to roboticized things
-            if self.mutation is None or 'NightVision' not in self.mutation.keys():
+            if self.mutation is None or \
+                    not any(mu in ['NightVision', 'DarkVision'] for mu in self.mutation.keys()):
                 mutations.append(('DarkVision', 12))
         if len(mutations) > 0:
             return mutations
