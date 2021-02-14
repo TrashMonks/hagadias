@@ -124,6 +124,13 @@ class QudObjectProps(QudObject):
             if element == "Electric":
                 element = "Elec"  # short form in armor
             val = getattr(self, f'part_Armor_{element}')
+        if self.mutation:
+            for mutation, info in self.mutation.items():
+                if mutation == 'Carapace' and element in ['Heat', 'Cold']:
+                    val = 0 if val is None else int(val)
+                    val += int(info['Level']) * 5 + 5
+                if mutation == 'SlogGlands' and element == 'Acid':
+                    val = 100
         return int_or_none(val)
 
     def projectile_object(self, part_attr: str = '') -> Union[QudObjectProps, str, None]:
@@ -172,8 +179,17 @@ class QudObjectProps(QudObject):
 
     @property
     def agilitymult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for agility, if specified."""
+        """The stat Bonus multiplier for intrinsic agility, if specified."""
         return self.attribute_boost_factor('Agility')
+
+    @property
+    def agilityextrinsic(self) -> Union[int, None]:
+        """Extra agility for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'HeightenedAgility':
+                        return (int(info['Level']) - 1) // 2 + 2
 
     @property
     def ammo(self) -> Union[str, None]:
@@ -236,6 +252,21 @@ class QudObjectProps(QudObject):
         if any(self.inherits_from(character) for character in ALL_CHARS):
             # the AV of creatures and stationary objects
             av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
+            applied_body_av = False
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'Carapace':
+                        av += int(info['Level']) // 2 + 3
+                        applied_body_av = True
+                    if mutation == 'Quills':
+                        av += int(info['Level']) // 3 + 2
+                        applied_body_av = True
+                    if mutation == 'Horns':
+                        av += (int(info['Level']) - 1) // 3 + 1
+                    if mutation == 'MultiHorns':
+                        av += (int(info['Level']) + 1) // 4
+                    if mutation == 'SlogGlands':
+                        av += 1
             if self.inventoryobject:
                 # might be wearing armor
                 for name in list(self.inventoryobject.keys()):
@@ -243,7 +274,7 @@ class QudObjectProps(QudObject):
                         # special values like '*Junk 1'
                         continue
                     item = self.qindex[name]
-                    if item.av:
+                    if item.av and (not applied_body_av or item.wornon != 'Body'):
                         av += int(item.av)
         return int_or_none(av)
 
@@ -762,6 +793,13 @@ class QudObjectProps(QudObject):
                 if self.skill_Acrobatics_Tumble:  # the 'Tumble' skill
                     dv += 1
                 dv += self.attribute_helper_mod('Agility')
+                applied_body_dv = False
+                # does this creature have mutations that affect DV?
+                if self.mutation:
+                    for mutation, info in self.mutation.items():
+                        if mutation == 'Carapace':
+                            dv -= 2
+                            applied_body_dv = True
                 # does this creature have armor with DV modifiers to add?
                 if self.inventoryobject:
                     for name in list(self.inventoryobject.keys()):
@@ -769,14 +807,8 @@ class QudObjectProps(QudObject):
                             # special values like '*Junk 1'
                             continue
                         item = self.qindex[name]
-                        if item.dv is not None:
+                        if item.dv and (not applied_body_dv or item.wornon != 'Body'):
                             dv += item.dv
-                # does this creature have mutations that affect DV?
-                if self.mutation:
-                    for mutation, info in self.mutation.items():
-                        if mutation == 'Carapace':
-                            lvl = int(info['Level']) + 1
-                            dv -= (7 - (lvl // 2))
         return int_or_none(dv)
 
     @property
@@ -809,8 +841,15 @@ class QudObjectProps(QudObject):
 
     @property
     def egomult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for ego, if specified."""
+        """The stat Bonus multiplier for intrinsic ego, if specified."""
         return self.attribute_boost_factor('Ego')
+
+    @property
+    def egoextrinsic(self) -> Union[int, None]:
+        """Extra ego for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation and 'Beak' in self.mutation.keys():
+                return 1
 
     @property
     def electric(self) -> Union[int, None]:
@@ -1044,8 +1083,13 @@ class QudObjectProps(QudObject):
 
     @property
     def intelligencemult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for intelligence, if specified."""
+        """The stat Bonus multiplier for intrinsic intelligence, if specified."""
         return self.attribute_boost_factor('Intelligence')
+
+    @property
+    def intelligenceextrinsic(self) -> Union[int, None]:
+        """Extra INT for a creature from extrinsic factors, such as mutations or equipment."""
+        return None  # nothing currently supported here
 
     @property
     def inventory(self) -> List[Tuple[str, str, str, str]]:
@@ -1444,7 +1488,17 @@ class QudObjectProps(QudObject):
     @property
     def quickness(self) -> Union[int, None]:
         """Return quickness of a creature"""
-        if self.inherits_from('Creature'):
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            mutation_val = 0
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'ColdBlooded':
+                        mutation_val -= 10
+                    if mutation == 'HeightenedSpeed':
+                        mutation_val += int(info['Level']) * 2 + 13
+            if mutation_val != 0:
+                return mutation_val + \
+                       100 if self.stat_Speed_Value is None else int(self.stat_Speed_Value)
             return int_or_none(self.stat_Speed_Value)
         if self.part_Armor:
             return int_or_none(self.part_Armor_SpeedBonus)
@@ -1590,8 +1644,22 @@ class QudObjectProps(QudObject):
 
     @property
     def strengthmult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for strength, if specified."""
+        """The stat Bonus multiplier for intrinsic strength, if specified."""
         return self.attribute_boost_factor('Strength')
+
+    @property
+    def strengthextrinsic(self) -> Union[int, None]:
+        """Extra strength for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation:
+                val = 0
+                for mutation, info in self.mutation.items():
+                    if mutation == 'HeightenedStrength':
+                        val += (int(info['Level']) - 1) // 2 + 2
+                    if mutation == 'SlogGlands':
+                        val += 6
+                if val != 0:
+                    return val
 
     @property
     def swarmbonus(self) -> Union[int, None]:
@@ -1704,8 +1772,17 @@ class QudObjectProps(QudObject):
 
     @property
     def toughnessmult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for toughness, if specified."""
+        """The stat Bonus multiplier for intrinsic toughness, if specified."""
         return self.attribute_boost_factor('Toughness')
+
+    @property
+    def toughnessextrinsic(self) -> Union[int, None]:
+        """Extra toughness for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'HeightenedToughness':
+                        return (int(info['Level']) - 1) // 2 + 2
 
     @property
     def twohanded(self) -> Union[bool, None]:
@@ -1828,8 +1905,13 @@ class QudObjectProps(QudObject):
 
     @property
     def willpowermult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for willpower, if specified."""
+        """The stat Bonus multiplier for intrinsic willpower, if specified."""
         return self.attribute_boost_factor('Willpower')
+
+    @property
+    def willpowerextrinsic(self) -> Union[int, None]:
+        """Extra willpower for a creature from extrinsic factors, such as mutations or equipment."""
+        return None  # nothing currently supported here
 
     @property
     def wornon(self) -> Union[str, None]:
