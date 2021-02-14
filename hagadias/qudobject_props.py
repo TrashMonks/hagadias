@@ -38,7 +38,7 @@ class QudObjectProps(QudObject):
     # Helper methods to simplify the calculation of properties, further below.
     # Sorted alphabetically.
 
-    def attribute_helper(self, attr: str, mode: str = '') -> Union[str, None]:
+    def attribute_helper(self, attr: str) -> Union[str, None]:
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
         if any(self.inherits_from(character) for character in ACTIVE_CHARS):
@@ -358,7 +358,6 @@ class QudObjectProps(QudObject):
                 continue  # parts ignored or handled elsewhere
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
-                func = None
                 if part == 'StunOnHit':
                     func = 'Stun effect'
                 elif part == 'EnergyAmmoLoader' or part == 'Gaslight':
@@ -469,7 +468,7 @@ class QudObjectProps(QudObject):
             return self.part_Corpse_CorpseBlueprint
 
     @property
-    def corpsechance(self) -> Union[str, None]:
+    def corpsechance(self) -> Union[int, None]:
         """The chance of a corpse dropping, if corpsechance is >0"""
         chance = self.part_Corpse_CorpseChance
         if chance is not None and int(chance) > 0:
@@ -1362,7 +1361,7 @@ class QudObjectProps(QudObject):
             return mutations
 
     @property
-    def noprone(self) -> Union[List[bool, None]]:
+    def noprone(self) -> Union[bool, None]:
         """Returns true if has part NoKnockdown."""
         if self.part_NoKnockdown is not None:
             return True

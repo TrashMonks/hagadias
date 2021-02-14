@@ -154,7 +154,7 @@ class EquipBrain:
             elementaldice = DiceBag(getattr(weapon_item, 'part_MeleeWeapon_ElementalDamage', 0))
             damagescore += (elementaldice.minimum() * 2 + elementaldice.maximum()) * 2
         accuracyscore = 50 + 5 * getattr(weapon_item, 'part_MeleeWeapon_HitBonus', 0)
-        accuracyscore += 5 * self.creature.attribute_helper('Agility', 'Modifier')
+        accuracyscore += 5 * self.creature.attribute_helper_mod('Agility')
         if weapon_item.part_MeleeWeapon_Skill is not None:
             weapskill = weapon_item.part_MeleeWeapon_Skill
             weapskill = weapskill if weapskill != 'LongBlades' else 'LongBlades2'
