@@ -1,6 +1,7 @@
 from __future__ import annotations  # allow forward type references
 import logging
 import itertools
+import random
 from enum import Flag, auto
 from typing import List, Optional, Type, Tuple
 
@@ -176,6 +177,10 @@ class TileStyle:
 
 
 class StyleRandomColors(TileStyle):
+
+    RANDOM_COLORS_BRIGHT = ['R', 'W', 'G', 'B', 'M', 'C', 'Y']
+    RANDOM_COLORS_ALL = ['R', 'W', 'G', 'B', 'M', 'C', 'Y', 'r', 'w', 'g', 'b', 'm', 'c', 'y']
+
     def __init__(self, _painter):
         super().__init__(_painter, _priority=30,
                          _modifies=RenderProps.COLORS, _allows=RenderProps.ALL)
@@ -186,6 +191,34 @@ class StyleRandomColors(TileStyle):
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         pass  # TODO: Implement this
+
+
+class StyleVillageMonument(TileStyle):
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=100,
+                         _modifies=RenderProps.COLORS, _allows=RenderProps.FILE)
+        self._color_combos = []
+        if self.object.inheritingfrom == 'Village Monument':
+            preserved_state = random.getstate()
+            random.seed(self.object.name)
+            while len(self._color_combos) < 30:
+                vals = random.sample(StyleRandomColors.RANDOM_COLORS_ALL, 2)
+                colors = f'{vals[0]}{vals[1]}'
+                if colors not in self._color_combos:
+                    self._color_combos.append(colors)
+            random.setstate(preserved_state)
+
+    def _modification_count(self) -> int:
+        return len(self._color_combos)
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        self.painter.color = self._color_combos[index][0]
+        self.painter.tilecolor = self._color_combos[index][0]
+        self.painter.trans = 'transparent'
+        self.painter.detail = self._color_combos[index][1]
+        return StyleMetadata(meta_type=f'sample colors #{index + 1}',
+                             f_postfix=f'coloration {index + 1}' if index > 0 else '',
+                             meta_type_after=True)
 
 
 class StyleRandomTile(TileStyle):
@@ -588,7 +621,8 @@ class StyleManager:
                                      StyleRandomColors,
                                      StyleRandomTile,
                                      StyleRandomTonic,
-                                     StyleSultanShrine]
+                                     StyleSultanShrine,
+                                     StyleVillageMonument]
     """A list of all TileStyle classes as type objects. The order of this list does not matter."""
 
     def __init__(self, painter):
