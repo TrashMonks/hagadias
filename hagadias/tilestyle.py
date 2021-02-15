@@ -194,6 +194,9 @@ class StyleRandomColors(TileStyle):
 
 
 class StyleVillageMonument(TileStyle):
+    """Styles for village monuments. This style includes only 30 sample color combinations, randomly
+    seeded from the ObjectBluprint name. In game, these objects have closer to 100 variations."""
+
     def __init__(self, _painter):
         super().__init__(_painter, _priority=100,
                          _modifies=RenderProps.COLORS, _allows=RenderProps.FILE)
@@ -260,7 +263,7 @@ class StyleFracti(TileStyle):
 
 
 class StyleTombstone(TileStyle):
-    """Styles for the RandomTile part."""
+    """Styles for the Tombstone part."""
 
     def __init__(self, _painter):
         super().__init__(_painter, _priority=30,
