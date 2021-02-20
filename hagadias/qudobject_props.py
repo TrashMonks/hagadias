@@ -124,7 +124,7 @@ class QudObjectProps(QudObject):
             if element == "Electric":
                 element = "Elec"  # short form in armor
             val = getattr(self, f'part_Armor_{element}')
-        if self.part_Roboticized:
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
             if element in ['Heat', 'Cold']:
                 val = 25
             elif element == 'Electric':
@@ -295,8 +295,9 @@ class QudObjectProps(QudObject):
     @property
     def bleedliquid(self) -> Union[str, None]:
         """What liquid something bleeds. Only returns interesting liquids (not blood)"""
-        if self.is_specified('part_BleedLiquid') or self.part_Roboticized is not None:
-            liquid = self.part_BleedLiquid.split('-')[0] if self.part_Roboticized is None else 'oil'
+        robotic = self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'
+        if self.is_specified('part_BleedLiquid') or robotic:
+            liquid = 'oil' if robotic else self.part_BleedLiquid.split('-')[0]
             if liquid != "blood":  # it's interesting if they don't bleed blood
                 return liquid
 
@@ -470,14 +471,15 @@ class QudObjectProps(QudObject):
     def corpse(self) -> Union[str, None]:
         """What corpse a character drops."""
         if self.part_Corpse_CorpseBlueprint is not None and int(self.part_Corpse_CorpseChance) > 0 \
-                and self.part_Roboticized is None:
+                and (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
             return self.part_Corpse_CorpseBlueprint
 
     @property
     def corpsechance(self) -> Union[int, None]:
         """The chance of a corpse dropping, if corpsechance is >0"""
         chance = self.part_Corpse_CorpseChance
-        if chance is not None and int(chance) > 0 and self.part_Roboticized is None:
+        if chance is not None and int(chance) > 0 and \
+                (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
             return int(chance)
 
     @property
@@ -672,7 +674,7 @@ class QudObjectProps(QudObject):
                         if vs is not None and vs != '':
                             save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
                         desc_extra.append('{{rules|' + save_mod_str + '.}}')
-            if self.part_Roboticized is not None:
+            if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
                 desc_postfix = 'There is a low, persistent hum emanating outward.' \
                     if not self.part_Roboticized_DescriptionPostfix \
                     else self.part_Roboticized_DescriptionPostfix
@@ -1221,7 +1223,8 @@ class QudObjectProps(QudObject):
     @property
     def ma(self) -> Union[int, None]:
         """The object's mental armor. For creatures, this is an averaged value."""
-        if self.part_MentalShield is not None or self.part_Roboticized is not None:
+        if self.part_MentalShield is not None or \
+                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
             # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
         elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
@@ -1239,7 +1242,8 @@ class QudObjectProps(QudObject):
     @property
     def marange(self) -> Union[str, None]:
         """The creature's full range of potential MA values"""
-        if self.part_MentalShield is not None or self.part_Roboticized is not None:
+        if self.part_MentalShield is not None or \
+                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
             # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
         elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
@@ -1286,7 +1290,8 @@ class QudObjectProps(QudObject):
     @property
     def metal(self) -> Union[bool, None]:
         """Whether the object is made out of metal."""
-        if self.part_Metal is not None or self.part_Roboticized is not None:
+        if self.part_Metal is not None or \
+                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
             return True
 
     @property
@@ -1369,7 +1374,8 @@ class QudObjectProps(QudObject):
                 postfix = f"{data['GasObject']}" if 'GasObject' in data else ''
                 level = int(data['Level']) if 'Level' in data else 0
                 mutations.append((mutation + postfix, level))
-        if self.part_Roboticized is not None:  # additional mutations added to roboticized things
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+            # additional mutations added to roboticized things
             if self.mutation is None or \
                     not any(mu in ['NightVision', 'DarkVision'] for mu in self.mutation.keys()):
                 mutations.append(('DarkVision', 12))
