@@ -6,7 +6,7 @@ from hagadias.qudtile import QudTile
 
 
 def test_tile(qindex):
-    obj = qindex['Svenlainard']
+    obj = qindex['Young Ivory']
     assert isinstance(obj.tile, QudTile)
 
 

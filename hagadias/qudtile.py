@@ -2,6 +2,7 @@
 import io
 import logging
 from pathlib import Path
+import re
 
 from PIL import Image, ImageDraw
 
@@ -27,8 +28,31 @@ def fix_filename(filename: str) -> str:
     return filename
 
 
+def check_filename(filename: str):
+    """Inspect filenames for potential bad input from a network user."""
+    if filename.startswith('/') or '..' in filename:
+        raise PermissionError
+    # allow only characters, digits, dashes, underscores, forward slashes and periods:
+    allowed_regex = r'[_a-zA-Z\d\-\.\/]*'
+    if not re.fullmatch(allowed_regex, filename):
+        raise PermissionError
+
+
+def check_filepath(filepath: Path):
+    """Inspect paths for potential bad input from a network user."""
+    # eliminate symlinks and '..' components and raise FileNotFoundError if the file does not exist:
+    filepath.resolve(strict=True)
+    target_in_tiles_dir = False
+    for parent in filepath.parents:
+        if parent == tiles_dir:
+            target_in_tiles_dir = True
+    if not target_in_tiles_dir:
+        raise PermissionError
+
+
 class QudTile:
     """Class to load and color a Qud tile."""
+
     # Note: See info dump on tile rendering at
     # https://discordapp.com/channels/214532333900922882/482714670860468234/762827742424465411
 
@@ -90,26 +114,28 @@ class QudTile:
             self.image = image_provider().copy()
             self._color_image()
         else:
-            filename = fix_filename(filename)
-            if filename in image_cache:
-                self.image = image_cache[filename].copy()
+            self.filename = fix_filename(self.filename)  # convert _ into /
+            check_filename(self.filename)  # check for e.g. '*', '..'
+            if self.filename in image_cache:  # have we already read this file?
+                self.image = image_cache[self.filename].copy()
                 self._color_image()
             else:
-                fullpath = tiles_dir / filename
+                fullpath = tiles_dir / self.filename
+                check_filepath(fullpath)  # resolve path, and sanity check untrusted user input
                 try:
                     self.image = Image.open(fullpath)
-                    image_cache[filename] = self.image.copy()
+                    image_cache[self.filename] = self.image.copy()
                     self._color_image()
                 except FileNotFoundError:
                     logging.warning(f'Couldn\'t render tile for {self.qudname}: ' +
-                                    f'{filename} not found')
+                                    f'{self.filename} not found')
                     self.hasproblems = True
                     self.image = blank_image
 
     def _color_image(self):
         skip_trans = True if self.transparentcolor == QUD_COLORS['transparent'] else False
         alphas = self.image.getdata(3)  # A (alpha channel only)
-        pixels = self.image.getdata()   # RGBA (all four channels as a tuple)
+        pixels = self.image.getdata()  # RGBA (all four channels as a tuple)
         width = self.image.width
         index = -1
         for alpha, pixel in zip(alphas, pixels):
@@ -210,7 +236,7 @@ class StandInTiles:
         if StandInTiles._hologram_material_glyph1 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
             draw = ImageDraw.Draw(image)
-            draw.rectangle([7, 1, 8, image.height-1], outline=TILE_COLOR)
+            draw.rectangle([7, 1, 8, image.height - 1], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph1 = image
         return StandInTiles._hologram_material_glyph1
 
@@ -221,7 +247,7 @@ class StandInTiles:
         if StandInTiles._hologram_material_glyph2 is None:
             image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
             draw = ImageDraw.Draw(image)
-            draw.rectangle([1, 21, image.width-1, 22], outline=TILE_COLOR)
+            draw.rectangle([1, 21, image.width - 1, 22], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph2 = image
         return StandInTiles._hologram_material_glyph2
 
@@ -245,13 +271,13 @@ class StandInTiles:
             draw = ImageDraw.Draw(image)
             for y in range(0, image.height, 6):
                 for x in range(4, image.width, 6):
-                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+                    draw.rectangle([x, y, x + 1, y + 1], outline=TILE_COLOR)
             for y in range(2, image.height, 6):
                 for x in range(0, image.width, 6):
-                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+                    draw.rectangle([x, y, x + 1, y + 1], outline=TILE_COLOR)
             for y in range(4, image.height, 6):
                 for x in range(2, image.width, 6):
-                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+                    draw.rectangle([x, y, x + 1, y + 1], outline=TILE_COLOR)
             StandInTiles._gas_glyph1 = image
         return StandInTiles._gas_glyph1
 
@@ -264,10 +290,10 @@ class StandInTiles:
             draw = ImageDraw.Draw(image)
             for y in range(0, image.height, 4):
                 for x in range(0, image.width, 4):
-                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+                    draw.rectangle([x, y, x + 1, y + 1], outline=TILE_COLOR)
             for y in range(2, image.height, 4):
                 for x in range(2, image.width, 4):
-                    draw.rectangle([x, y, x+1, y+1], outline=TILE_COLOR)
+                    draw.rectangle([x, y, x + 1, y + 1], outline=TILE_COLOR)
             StandInTiles._gas_glyph2 = image
         return StandInTiles._gas_glyph2
 
@@ -280,13 +306,13 @@ class StandInTiles:
             draw = ImageDraw.Draw(image)
             for y in range(0, image.height, 8):
                 for x in range(6, image.width, 8):
-                    draw.rectangle([x, y, x+1, y+1], outline=QUD_COLORS['transparent'])
+                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS['transparent'])
             for y in range(2, image.height, 4):
                 for x in range(0, image.width, 4):
-                    draw.rectangle([x, y, x+1, y+1], outline=QUD_COLORS['transparent'])
+                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS['transparent'])
             for y in range(4, image.height, 8):
                 for x in range(2, image.width, 8):
-                    draw.rectangle([x, y, x+1, y+1], outline=QUD_COLORS['transparent'])
+                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS['transparent'])
             StandInTiles._gas_glyph3 = image
         return StandInTiles._gas_glyph3
 
