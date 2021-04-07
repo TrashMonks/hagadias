@@ -32,10 +32,10 @@ def check_filename(filename: str):
     """Inspect filenames for potential bad input from a network user."""
     if filename.startswith('/') or '..' in filename:
         raise PermissionError
-    # allow only characters, digits, dashes, underscores, forward slashes and periods:
-    allowed_regex = r'[_a-zA-Z\d\-\.\/]*'
+    # allow only characters, digits, dashes, underscores, slashes, colons and periods:
+    allowed_regex = r'[_a-zA-Z\d\-\.\/\\:]*'
     if not re.fullmatch(allowed_regex, filename):
-        raise PermissionError
+        raise PermissionError(f'Bad filename: {filename}')
 
 
 def check_filepath(filepath: Path):
@@ -47,7 +47,7 @@ def check_filepath(filepath: Path):
         if parent == tiles_dir:
             target_in_tiles_dir = True
     if not target_in_tiles_dir:
-        raise PermissionError
+        raise FileNotFoundError(f'File not in tiles directory: {filepath}')
 
 
 class QudTile:
