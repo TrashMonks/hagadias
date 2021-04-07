@@ -41,13 +41,13 @@ def check_filename(filename: str):
 def check_filepath(filepath: Path):
     """Inspect paths for potential bad input from a network user."""
     # eliminate symlinks and '..' components and raise FileNotFoundError if the file does not exist:
-    filepath.resolve(strict=True)
+    filepath.resolve(strict=True)  # FileNotFoundError is raised here
     target_in_tiles_dir = False
     for parent in filepath.parents:
         if parent == tiles_dir:
             target_in_tiles_dir = True
     if not target_in_tiles_dir:
-        raise FileNotFoundError(f'File not in tiles directory: {filepath}')
+        raise PermissionError(f'File not in tiles directory: {filepath}')
 
 
 class QudTile:
