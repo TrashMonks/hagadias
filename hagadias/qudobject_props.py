@@ -940,6 +940,12 @@ class QudObjectProps(QudObject):
     def harvestedinto(self) -> Union[str, None]:
         """What an item produces when harvested."""
         return self.part_Harvestable_OnSuccess
+    
+    @property
+    def hasmentalshield(self) -> Union[bool, None]:
+        """If a creature has a mental shield."""
+        if self.part_MentalShield is not None:
+            return True
 
     @property
     def healing(self) -> Union[str, None]:
