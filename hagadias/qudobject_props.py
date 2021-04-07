@@ -38,7 +38,7 @@ class QudObjectProps(QudObject):
     # Helper methods to simplify the calculation of properties, further below.
     # Sorted alphabetically.
 
-    def attribute_helper(self, attr: str, mode: str = '') -> Union[str, None]:
+    def attribute_helper(self, attr: str) -> Union[str, None]:
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
         if any(self.inherits_from(character) for character in ACTIVE_CHARS):
@@ -124,6 +124,18 @@ class QudObjectProps(QudObject):
             if element == "Electric":
                 element = "Elec"  # short form in armor
             val = getattr(self, f'part_Armor_{element}')
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+            if element in ['Heat', 'Cold']:
+                val = 25
+            elif element == 'Electric':
+                val = -50
+        if self.mutation:
+            for mutation, info in self.mutation.items():
+                if mutation == 'Carapace' and element in ['Heat', 'Cold']:
+                    val = 0 if val is None else int(val)
+                    val += int(info['Level']) * 5 + 5
+                if mutation == 'SlogGlands' and element == 'Acid':
+                    val = 100
         return int_or_none(val)
 
     def projectile_object(self, part_attr: str = '') -> Union[QudObjectProps, str, None]:
@@ -172,8 +184,17 @@ class QudObjectProps(QudObject):
 
     @property
     def agilitymult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for agility, if specified."""
+        """The stat Bonus multiplier for intrinsic agility, if specified."""
         return self.attribute_boost_factor('Agility')
+
+    @property
+    def agilityextrinsic(self) -> Union[int, None]:
+        """Extra agility for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'HeightenedAgility':
+                        return (int(info['Level']) - 1) // 2 + 2
 
     @property
     def ammo(self) -> Union[str, None]:
@@ -236,6 +257,21 @@ class QudObjectProps(QudObject):
         if any(self.inherits_from(character) for character in ALL_CHARS):
             # the AV of creatures and stationary objects
             av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
+            applied_body_av = False
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'Carapace':
+                        av += int(info['Level']) // 2 + 3
+                        applied_body_av = True
+                    if mutation == 'Quills':
+                        av += int(info['Level']) // 3 + 2
+                        applied_body_av = True
+                    if mutation == 'Horns':
+                        av += (int(info['Level']) - 1) // 3 + 1
+                    if mutation == 'MultiHorns':
+                        av += (int(info['Level']) + 1) // 4
+                    if mutation == 'SlogGlands':
+                        av += 1
             if self.inventoryobject:
                 # might be wearing armor
                 for name in list(self.inventoryobject.keys()):
@@ -243,7 +279,7 @@ class QudObjectProps(QudObject):
                         # special values like '*Junk 1'
                         continue
                     item = self.qindex[name]
-                    if item.av:
+                    if item.av and (not applied_body_av or item.wornon != 'Body'):
                         av += int(item.av)
         return int_or_none(av)
 
@@ -259,8 +295,9 @@ class QudObjectProps(QudObject):
     @property
     def bleedliquid(self) -> Union[str, None]:
         """What liquid something bleeds. Only returns interesting liquids (not blood)"""
-        if self.is_specified('part_BleedLiquid'):
-            liquid = self.part_BleedLiquid.split('-')[0]
+        robotic = self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'
+        if self.is_specified('part_BleedLiquid') or robotic:
+            liquid = 'oil' if robotic else self.part_BleedLiquid.split('-')[0]
             if liquid != "blood":  # it's interesting if they don't bleed blood
                 return liquid
 
@@ -327,7 +364,6 @@ class QudObjectProps(QudObject):
                 continue  # parts ignored or handled elsewhere
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
-                func = None
                 if part == 'StunOnHit':
                     func = 'Stun effect'
                 elif part == 'EnergyAmmoLoader' or part == 'Gaslight':
@@ -434,14 +470,16 @@ class QudObjectProps(QudObject):
     @property
     def corpse(self) -> Union[str, None]:
         """What corpse a character drops."""
-        if self.part_Corpse_CorpseBlueprint is not None and int(self.part_Corpse_CorpseChance) > 0:
+        if self.part_Corpse_CorpseBlueprint is not None and int(self.part_Corpse_CorpseChance) > 0 \
+                and (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
             return self.part_Corpse_CorpseBlueprint
 
     @property
-    def corpsechance(self) -> Union[str, None]:
+    def corpsechance(self) -> Union[int, None]:
         """The chance of a corpse dropping, if corpsechance is >0"""
         chance = self.part_Corpse_CorpseChance
-        if chance is not None and int(chance) > 0:
+        if chance is not None and int(chance) > 0 and \
+                (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
             return int(chance)
 
     @property
@@ -493,7 +531,9 @@ class QudObjectProps(QudObject):
             # not possible to perfectly represent everything unless we actually iterate over the
             # object's parts in XML order (and output associated rules in that same order)
             desc = self.part_Description_Short
+            is_item = False
             if self.inherits_from("Item"):  # append resistances, attributes, and other rules text
+                is_item = True
                 # reputation
                 if self.part_AddsRep is not None:
                     factions = self.part_AddsRep_Faction.split(',')
@@ -623,14 +663,6 @@ class QudObjectProps(QudObject):
                 elif self.name == 'Banner of the Holy Rhombus':
                     desc_extra.append('{{rules|Bestows the {{r|war trance}} effect to the' +
                                       ' Putus Templar who can see this item.')
-                elif self.part_PartsGas is not None:
-                    chance = self.part_PartsGas_Chance
-                    if chance is not None:
-                        rule = f'{chance}% chance per turn to repel gases near its '
-                    else:
-                        rule = 'Repels gases near its '
-                    rule += 'wielder or wearer.' if self.name == 'Wrist Fan' else 'user.'
-                    desc_extra.append('{{rules|' + rule + '}}')
                 # add rules text for save modifier, if applicable
                 if self.part_SaveModifier is not None:
                     if self.part_SaveModifier_ShowInShortDescription is None or \
@@ -642,6 +674,22 @@ class QudObjectProps(QudObject):
                         if vs is not None and vs != '':
                             save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
                         desc_extra.append('{{rules|' + save_mod_str + '.}}')
+            if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+                desc_postfix = 'There is a low, persistent hum emanating outward.' \
+                    if not self.part_Roboticized_DescriptionPostfix \
+                    else self.part_Roboticized_DescriptionPostfix
+                desc += f' {desc_postfix}'
+            if self.part_PartsGas is not None:
+                chance = self.part_PartsGas_Chance
+                if chance is not None:
+                    rule = f'{chance}% chance per turn to repel gases near its'
+                else:
+                    rule = 'Repels gases near its'
+                if is_item:
+                    rule += ' wielder or wearer.' if self.name == 'Wrist Fan' else ' user.'
+                else:
+                    rule += 'elf.'
+                desc_extra.append('{{rules|' + rule + '}}')
             if self.intproperty_GenotypeBasedDescription:
                 desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
                 desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
@@ -757,6 +805,13 @@ class QudObjectProps(QudObject):
                 if self.skill_Acrobatics_Tumble:  # the 'Tumble' skill
                     dv += 1
                 dv += self.attribute_helper_mod('Agility')
+                applied_body_dv = False
+                # does this creature have mutations that affect DV?
+                if self.mutation:
+                    for mutation, info in self.mutation.items():
+                        if mutation == 'Carapace':
+                            dv -= 2
+                            applied_body_dv = True
                 # does this creature have armor with DV modifiers to add?
                 if self.inventoryobject:
                     for name in list(self.inventoryobject.keys()):
@@ -764,14 +819,8 @@ class QudObjectProps(QudObject):
                             # special values like '*Junk 1'
                             continue
                         item = self.qindex[name]
-                        if item.dv is not None:
+                        if item.dv and (not applied_body_dv or item.wornon != 'Body'):
                             dv += item.dv
-                # does this creature have mutations that affect DV?
-                if self.mutation:
-                    for mutation, info in self.mutation.items():
-                        if mutation == 'Carapace':
-                            lvl = int(info['Level']) + 1
-                            dv -= (7 - (lvl // 2))
         return int_or_none(dv)
 
     @property
@@ -804,8 +853,15 @@ class QudObjectProps(QudObject):
 
     @property
     def egomult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for ego, if specified."""
+        """The stat Bonus multiplier for intrinsic ego, if specified."""
         return self.attribute_boost_factor('Ego')
+
+    @property
+    def egoextrinsic(self) -> Union[int, None]:
+        """Extra ego for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation and 'Beak' in self.mutation.keys():
+                return 1
 
     @property
     def electric(self) -> Union[int, None]:
@@ -929,7 +985,8 @@ class QudObjectProps(QudObject):
     @property
     def gender(self) -> Union[str, None]:
         """The gender of the object."""
-        if ((self.tag_Gender_Value is not None or ',' not in self.tag_RandomGender_Value)
+        if ((self.tag_Gender_Value is not None or
+             (self.tag_RandomGender_Value is not None and ',' not in self.tag_RandomGender_Value))
                 and any(self.inherits_from(character) for character in ACTIVE_CHARS)):
             gender = self.tag_Gender_Value
             if gender is None:
@@ -1044,8 +1101,13 @@ class QudObjectProps(QudObject):
 
     @property
     def intelligencemult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for intelligence, if specified."""
+        """The stat Bonus multiplier for intrinsic intelligence, if specified."""
         return self.attribute_boost_factor('Intelligence')
+
+    @property
+    def intelligenceextrinsic(self) -> Union[int, None]:
+        """Extra INT for a creature from extrinsic factors, such as mutations or equipment."""
+        return None  # nothing currently supported here
 
     @property
     def inventory(self) -> List[Tuple[str, str, str, str]]:
@@ -1167,8 +1229,9 @@ class QudObjectProps(QudObject):
     @property
     def ma(self) -> Union[int, None]:
         """The object's mental armor. For creatures, this is an averaged value."""
-        if self.part_MentalShield is not None:
-            # things like Water, Stairs, etc. are not subject to mental effects.
+        if self.part_MentalShield is not None or \
+                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
+            # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
         elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
             return 0
@@ -1185,8 +1248,9 @@ class QudObjectProps(QudObject):
     @property
     def marange(self) -> Union[str, None]:
         """The creature's full range of potential MA values"""
-        if self.part_MentalShield is not None:
-            # things like Water, Stairs, etc. are not subject to mental effects.
+        if self.part_MentalShield is not None or \
+                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
+            # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
         elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
             return None
@@ -1232,7 +1296,8 @@ class QudObjectProps(QudObject):
     @property
     def metal(self) -> Union[bool, None]:
         """Whether the object is made out of metal."""
-        if self.part_Metal is not None:
+        if self.part_Metal is not None or \
+                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
             return True
 
     @property
@@ -1309,16 +1374,22 @@ class QudObjectProps(QudObject):
 
         Returns a list of tuples like [(name, level), ...].
         """
+        mutations = []
         if self.mutation is not None:  # direct reference to <mutation> XML tag - not a property
-            mutations = []
             for mutation, data in self.mutation.items():
                 postfix = f"{data['GasObject']}" if 'GasObject' in data else ''
                 level = int(data['Level']) if 'Level' in data else 0
                 mutations.append((mutation + postfix, level))
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+            # additional mutations added to roboticized things
+            if self.mutation is None or \
+                    not any(mu in ['NightVision', 'DarkVision'] for mu in self.mutation.keys()):
+                mutations.append(('DarkVision', 12))
+        if len(mutations) > 0:
             return mutations
 
     @property
-    def noprone(self) -> Union[List[bool, None]]:
+    def noprone(self) -> Union[bool, None]:
         """Returns true if has part NoKnockdown."""
         if self.part_NoKnockdown is not None:
             return True
@@ -1444,7 +1515,17 @@ class QudObjectProps(QudObject):
     @property
     def quickness(self) -> Union[int, None]:
         """Return quickness of a creature"""
-        if self.inherits_from('Creature'):
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            mutation_val = 0
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'ColdBlooded':
+                        mutation_val -= 10
+                    if mutation == 'HeightenedSpeed':
+                        mutation_val += int(info['Level']) * 2 + 13
+            if mutation_val != 0:
+                return mutation_val + \
+                       100 if self.stat_Speed_Value is None else int(self.stat_Speed_Value)
             return int_or_none(self.stat_Speed_Value)
         if self.part_Armor:
             return int_or_none(self.part_Armor_SpeedBonus)
@@ -1590,8 +1671,22 @@ class QudObjectProps(QudObject):
 
     @property
     def strengthmult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for strength, if specified."""
+        """The stat Bonus multiplier for intrinsic strength, if specified."""
         return self.attribute_boost_factor('Strength')
+
+    @property
+    def strengthextrinsic(self) -> Union[int, None]:
+        """Extra strength for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation:
+                val = 0
+                for mutation, info in self.mutation.items():
+                    if mutation == 'HeightenedStrength':
+                        val += (int(info['Level']) - 1) // 2 + 2
+                    if mutation == 'SlogGlands':
+                        val += 6
+                if val != 0:
+                    return val
 
     @property
     def swarmbonus(self) -> Union[int, None]:
@@ -1704,8 +1799,17 @@ class QudObjectProps(QudObject):
 
     @property
     def toughnessmult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for toughness, if specified."""
+        """The stat Bonus multiplier for intrinsic toughness, if specified."""
         return self.attribute_boost_factor('Toughness')
+
+    @property
+    def toughnessextrinsic(self) -> Union[int, None]:
+        """Extra toughness for a creature from extrinsic factors, such as mutations or equipment."""
+        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+            if self.mutation:
+                for mutation, info in self.mutation.items():
+                    if mutation == 'HeightenedToughness':
+                        return (int(info['Level']) - 1) // 2 + 2
 
     @property
     def twohanded(self) -> Union[bool, None]:
@@ -1828,8 +1932,13 @@ class QudObjectProps(QudObject):
 
     @property
     def willpowermult(self) -> Union[float, None]:
-        """The stat Bonus multiplier for willpower, if specified."""
+        """The stat Bonus multiplier for intrinsic willpower, if specified."""
         return self.attribute_boost_factor('Willpower')
+
+    @property
+    def willpowerextrinsic(self) -> Union[int, None]:
+        """Extra willpower for a creature from extrinsic factors, such as mutations or equipment."""
+        return None  # nothing currently supported here
 
     @property
     def wornon(self) -> Union[str, None]:
