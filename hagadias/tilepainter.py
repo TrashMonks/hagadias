@@ -227,7 +227,10 @@ class TilePainter:
         tileloc = _ if _ else 'Tiles/'
         _ = self.obj.tag_PaintedWallExtension_Value
         tileext = _ if _ and self.obj.name != 'Dirt' else '.bmp'
-        self.file = tileloc + self.paintpath + '-00000000' + tileext
+        if self.paintpath == '' or self.paintpath is None:
+            self.file = None
+        else:
+            self.file = tileloc + self.paintpath + '-00000000' + tileext
 
     def _paint_walltrap(self):
         """Renders a walltrap tile. These are normally colored in the C# code, so we handle them
