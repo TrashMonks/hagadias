@@ -8,6 +8,10 @@ from hagadias.qudtile import QudTile
 def test_tile(qindex):
     obj = qindex['Young Ivory']
     assert isinstance(obj.tile, QudTile)
+    # This tile exists in the game but its texture file is not included with hagadias
+    # This test is to ensure exceptions from missing files do not raise
+    obj = qindex['Glowfish']
+    assert obj.tile is None
 
 
 def test_ui_inheritance_path(qindex):
