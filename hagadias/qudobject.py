@@ -103,11 +103,7 @@ class QudObject(NodeMixin):
         tile = None  # not all objects have tiles
         if self.has_tile():
             painter = self.tile_painter
-            try:
-                tile = painter.tile()
-            except FileNotFoundError:
-                # some tiles may be in the game but missing from the texture distribution
-                tile = None
+            tile = painter.tile()
         self._tile = tile
         return tile
 
