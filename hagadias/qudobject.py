@@ -2,11 +2,13 @@
 QudObject.part_name_attribute"""
 from copy import deepcopy
 from typing import Tuple, Union, List
-from hagadias.xml import Element
+
 from anytree import NodeMixin
+
 from hagadias.qudtile import QudTile
-from hagadias.tilepainter import TilePainter
 from hagadias.tileanimator import TileAnimator, StandInTiles
+from hagadias.tilepainter import TilePainter
+from hagadias.xml import Element
 
 
 class QudObject(NodeMixin):

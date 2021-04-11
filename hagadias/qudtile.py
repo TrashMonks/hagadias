@@ -1,7 +1,7 @@
 # https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
 import io
 import logging
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 
 from PIL import Image, ImageDraw
@@ -30,12 +30,8 @@ def fix_filename(filename: str) -> str:
 
 def check_filename(filename: str):
     """Inspect filenames for potential bad input from a network user."""
-    if filename.startswith('/') or '..' in filename:
+    if filename.startswith('/') or filename.startswith('\\') or '..' in filename:
         raise PermissionError
-    # allow only characters, digits, dashes, underscores, slashes, colons and periods:
-    allowed_regex = r'[_a-zA-Z\d\-\.\/\\:]*'
-    if not re.fullmatch(allowed_regex, filename):
-        raise PermissionError(f'Bad filename: {filename}')
 
 
 def check_filepath(filepath: Path):
@@ -120,15 +116,17 @@ class QudTile:
                 self.image = image_cache[self.filename].copy()
                 self._color_image()
             else:
-                fullpath = tiles_dir / self.filename
-                check_filepath(fullpath)  # resolve path, and sanity check untrusted user input
+                # using a temporary PureWindowsPath eliminates bugs on Linux where a \ slash is included in the
+                # textual filename
+                fullpath = tiles_dir.joinpath(PureWindowsPath(self.filename))
                 try:
+                    check_filepath(fullpath)  # resolve path, and sanity check untrusted user input
                     self.image = Image.open(fullpath)
                     image_cache[self.filename] = self.image.copy()
                     self._color_image()
                 except FileNotFoundError:
                     logging.warning(f'Couldn\'t render tile for {self.qudname}: ' +
-                                    f'{self.filename} not found')
+                                    f'{self.filename} not found at {fullpath}')
                     self.hasproblems = True
                     self.image = blank_image
 
