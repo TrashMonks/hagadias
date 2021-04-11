@@ -1,12 +1,14 @@
 """Functionality for loading the Qud game data from various game files."""
 
+import logging
 import time
 from pathlib import Path
-from hagadias.xml import ElementTree as ET
+
 from hagadias.character_codes import read_gamedata
 from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, \
     repair_invalid_chars
 from hagadias.qudobject_props import QudObjectProps
+from hagadias.xml import ElementTree as ET
 
 
 class LineNumberingParser(ET.XMLParser):
@@ -95,17 +97,17 @@ class GameRoot:
         # Do some repair of invalid XML specifically for ObjectBlueprints.xml:
         # First, replace some invalid control characters intended for CP437 with their Unicode equiv
         start = time.time()
-        print("Repairing invalid XML characters... ", end='')
+        logging.info('Repairing invalid XML characters... ')
         contents = repair_invalid_chars(contents)
-        print(f"done in {time.time() - start:.2f} seconds")
+        logging.info(f"done in {time.time() - start:.2f} seconds")
         # Second, replace line breaks inside attributes with proper XML line breaks
         start = time.time()
-        print("Repairing invalid XML line breaks... ", end='')
+        logging.info("Repairing invalid XML line breaks... ")
         contents = repair_invalid_linebreaks(contents)
-        print(f"done in {time.time() - start:.2f} seconds")
+        logging.info(f"done in {time.time() - start:.2f} seconds")
         contents_b = contents.encode('utf-8')  # start/stop markers are in bytes, not characters
         raw = ET.fromstring(contents, parser=LineNumberingParser())
-        print("Building Qud object hierarchy and adding tiles...")
+        logging.info("Building Qud object hierarchy and adding tiles...")
         # Build the Qud object hierarchy from the XML data
         last_stop = 0
         # Objects must receive the qindex and add themselves, rather than doing it here, because
