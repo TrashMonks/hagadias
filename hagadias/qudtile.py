@@ -2,7 +2,6 @@
 import io
 import logging
 from pathlib import Path, PureWindowsPath
-import re
 
 from PIL import Image, ImageDraw
 
@@ -116,8 +115,8 @@ class QudTile:
                 self.image = image_cache[self.filename].copy()
                 self._color_image()
             else:
-                # using a temporary PureWindowsPath eliminates bugs on Linux where a \ slash is included in the
-                # textual filename
+                # using a temporary PureWindowsPath eliminates bugs on Linux where a \ slash
+                # is included in the textual filename
                 fullpath = tiles_dir.joinpath(PureWindowsPath(self.filename))
                 try:
                     check_filepath(fullpath)  # resolve path, and sanity check untrusted user input
