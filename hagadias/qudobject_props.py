@@ -16,13 +16,13 @@ from hagadias.svalue import sValue
 
 # STATIC GROUPS
 # Many combat properties can come from anything that inherits from either of these.
-# Use For: any(self.inherits_from(character) for character in ACTIVE_CHAR).
+# Use For: self.active_or_inactive_character() == ACTIVE_CHAR
 # ACTIVE: What is typically considered a Character, with an inventory and combat capabilities.
-ACTIVE_CHARS = ['Creature', 'ActivePlant']
 # INACTIVE: What would still be helpful to have combat related stats, but have things that
+# for ALL_CHARS, use self.active_or_inactive_character() > 0
+ACTIVE_CHAR = 1
+INACTIVE_CHAR = 2
 # make them different from active characters. Usually immobile and have no attributes.
-INACTIVE_CHARS = ['BaseFungus', 'Baetyl', 'Wall', 'Furniture']
-ALL_CHARS = ACTIVE_CHARS + INACTIVE_CHARS
 BEHAVIOR_DESCRIPTION_PARTS = ['LatchesOn', 'SapChargeOnHit', 'TemperatureAdjuster', 'Toolbox',
                               'Cybernetics2BaseItem', 'FollowersGetTeleport', 'IntPropertyChanger']
 
@@ -41,7 +41,7 @@ class QudObjectProps(QudObject):
     def attribute_helper(self, attr: str) -> Union[str, None]:
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             if getattr(self, f'stat_{attr}_sValue'):
                 try:
                     level = int(self.lv)
@@ -57,7 +57,7 @@ class QudObjectProps(QudObject):
 
     def attribute_boost_factor(self, attr: str) -> Union[float, None]:
         """Returns the boost factor which is applied to this stat after it's calculated."""
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             boost = int_or_none(getattr(self, f'stat_{attr}_Boost'))
             if boost is not None:
                 if getattr(self, f'stat_{attr}_sValue'):  # Boost only applied if there's an sValue
@@ -161,6 +161,16 @@ class QudObjectProps(QudObject):
                         return item
         return None
 
+    def active_or_inactive_character(self) -> Union[int, None]:
+        """0: NONE 1: ACTIVE_CHARS 2: INACTIVE_CHARS. for ALL_CHARS, do > 0 check"""
+        if self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False":
+            # This falls under ALL_CHARS
+            if self.part_Combat is not None and self.part_Brain is not None:
+                return 1  # ACTIVE_CHARS
+            else:
+                return 2  # INACTIVE_CHARS
+        return 0
+
     # PROPERTIES
     # These properties are the heart of hagadias. They make it easy to access attributes
     # buried in the XML, or which require some computation or translation.
@@ -190,7 +200,7 @@ class QudObjectProps(QudObject):
     @property
     def agilityextrinsic(self) -> Union[int, None]:
         """Extra agility for a creature from extrinsic factors, such as mutations or equipment."""
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.mutation:
                 for mutation, info in self.mutation.items():
                     if mutation == 'HeightenedAgility':
@@ -254,7 +264,7 @@ class QudObjectProps(QudObject):
             av = self.part_Armor_AV
         if self.part_Shield_AV:  # the AV of a shield
             av = self.part_Shield_AV
-        if any(self.inherits_from(character) for character in ALL_CHARS):
+        if self.active_or_inactive_character() > 0:
             # the AV of creatures and stationary objects
             av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
             applied_body_av = False
@@ -511,7 +521,7 @@ class QudObjectProps(QudObject):
     @property
     def demeanor(self) -> Union[str, None]:
         """The demeanor of the creature."""
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.part_Brain_Calm is not None:
                 return "docile" if self.part_Brain_Calm.lower() == "true" else "neutral"
             if self.part_Brain_Hostile is not None:
@@ -785,9 +795,9 @@ class QudObjectProps(QudObject):
             dv = int(self.part_Armor_DV)
         if self.part_Shield_DV is not None:  # the DV of a shield
             dv = int(self.part_Shield_DV)
-        elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
+        elif (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
             dv = -10
-        elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        elif char_type == ACTIVE_CHAR:
             # the 'DV' here is the actual DV of the creature or NPC, after:
             # base of 6 plus any explicit DV bonus,
             # skills, agility modifier (which may be a range determined by
@@ -859,7 +869,7 @@ class QudObjectProps(QudObject):
     @property
     def egoextrinsic(self) -> Union[int, None]:
         """Extra ego for a creature from extrinsic factors, such as mutations or equipment."""
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.mutation and 'Beak' in self.mutation.keys():
                 return 1
 
@@ -984,7 +994,7 @@ class QudObjectProps(QudObject):
         """The gender of the object."""
         if ((self.tag_Gender_Value is not None or
              (self.tag_RandomGender_Value is not None and ',' not in self.tag_RandomGender_Value))
-                and any(self.inherits_from(character) for character in ACTIVE_CHARS)):
+                and self.active_or_inactive_character() == ACTIVE_CHAR):
             gender = self.tag_Gender_Value
             if gender is None:
                 gender = self.tag_RandomGender_Value
@@ -998,8 +1008,9 @@ class QudObjectProps(QudObject):
     @property
     def hasmentalshield(self) -> Union[bool, None]:
         """If a creature has a mental shield."""
-        if self.part_MentalShield is not None:
-            return True
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
+            if self.part_MentalShield is not None:
+                return True
 
     @property
     def healing(self) -> Union[str, None]:
@@ -1026,7 +1037,7 @@ class QudObjectProps(QudObject):
 
         Returned as a string because some hitpoints are given as sValues, which can be
         strings, although they currently are not using this feature."""
-        if any(self.inherits_from(character) for character in ALL_CHARS):
+        if self.active_or_inactive_character() > 0:
             if self.stat_Hitpoints_sValue is not None:
                 return self.stat_Hitpoints_sValue
             elif self.stat_Hitpoints_Value is not None:
@@ -1230,9 +1241,9 @@ class QudObjectProps(QudObject):
                 (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
             # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
-        elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
+        elif (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
             return 0
-        elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        elif char_type == ACTIVE_CHAR:
             # MA starts at base 4
             ma = 4
             # Add MA stat value if specified
@@ -1249,9 +1260,9 @@ class QudObjectProps(QudObject):
                 (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
             # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
-        elif any(self.inherits_from(character) for character in INACTIVE_CHARS):
+        elif (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
             return None
-        elif any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        elif char_type == ACTIVE_CHAR:
             ma = 4
             if self.stat_MA_Value:
                 ma += int(self.stat_MA_Value)
@@ -1512,7 +1523,7 @@ class QudObjectProps(QudObject):
     @property
     def quickness(self) -> Union[int, None]:
         """Return quickness of a creature"""
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             mutation_val = 0
             if self.mutation:
                 for mutation, info in self.mutation.items():
@@ -1674,7 +1685,7 @@ class QudObjectProps(QudObject):
     @property
     def strengthextrinsic(self) -> Union[int, None]:
         """Extra strength for a creature from extrinsic factors, such as mutations or equipment."""
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.mutation:
                 val = 0
                 for mutation, info in self.mutation.items():
@@ -1802,7 +1813,7 @@ class QudObjectProps(QudObject):
     @property
     def toughnessextrinsic(self) -> Union[int, None]:
         """Extra toughness for a creature from extrinsic factors, such as mutations or equipment."""
-        if any(self.inherits_from(character) for character in ACTIVE_CHARS):
+        if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.mutation:
                 for mutation, info in self.mutation.items():
                     if mutation == 'HeightenedToughness':
