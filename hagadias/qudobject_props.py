@@ -1009,7 +1009,7 @@ class QudObjectProps(QudObject):
     def hasmentalshield(self) -> Union[bool, None]:
         """If a creature has a mental shield."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
-            if self.part_MentalShield is not None or self.name.contains("Mechanical") or \
+            if self.part_MentalShield is not None or "Mechanical" in self.name or \
                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
                 return True
 
@@ -1238,7 +1238,7 @@ class QudObjectProps(QudObject):
     @property
     def ma(self) -> Union[int, None]:
         """The object's mental armor. For creatures, this is an averaged value."""
-        if self.hasmentalshield():
+        if self.hasmentalshield:
             # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
         elif (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
