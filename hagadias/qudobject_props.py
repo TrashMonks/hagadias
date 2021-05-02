@@ -163,7 +163,7 @@ class QudObjectProps(QudObject):
 
     def active_or_inactive_character(self) -> Union[int, None]:
         """0: NONE 1: ACTIVE_CHARS 2: INACTIVE_CHARS. for ALL_CHARS, do > 0 check"""
-        if self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False" and \
+        if (self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False") and \
            self.part_Gas is None:
             # This falls under ALL_CHARS
             if self.part_Combat is not None and self.part_Brain is not None:
