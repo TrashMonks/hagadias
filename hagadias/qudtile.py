@@ -79,13 +79,13 @@ class QudTile:
         self.raw_transparent = raw_transparent
         self.prefab_applicator = prefab_applicator
 
-        if raw_tilecolor is None and colorstring is not None:
+        if (raw_tilecolor is None or raw_tilecolor == "") and colorstring is not None:
             raw_tilecolor = colorstring  # fall back to text mode color
             if '^' in colorstring:
                 raw_tilecolor = colorstring.split('^')[0]
                 raw_transparent = colorstring.split('^')[1]
 
-        if raw_tilecolor is None:
+        if (raw_tilecolor is None or raw_tilecolor == ""):
             self.tilecolor = QUD_COLORS['y']  # render in white
             self.tilecolor_letter = 'y'
             self.transparentcolor = QUD_COLORS[raw_transparent]
