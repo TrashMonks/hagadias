@@ -313,6 +313,11 @@ class QudObjectProps(QudObject):
                 return liquid
 
     @property
+    def bodytype(self) -> Union[str, None]:
+        """Returns the BodyType tag of the creature."""
+        return self.part_Body_Anatomy
+
+    @property
     def butcheredinto(self) -> Union[str, None]:
         """What a corpse item can be butchered into."""
         return self.part_Butcherable_OnSuccess
