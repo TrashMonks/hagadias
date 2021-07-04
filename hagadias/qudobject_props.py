@@ -1999,9 +1999,6 @@ class QudObjectProps(QudObject):
             xp = int_or_none(xp)
             if xp is None:
                 return None
-        xp_override = getattr(self, 'property_*XPValue_Value')  # overrides XPValue stat if present
-        if xp_override is not None:
-            xp = int(xp_override)
         return xp
 
     @property
