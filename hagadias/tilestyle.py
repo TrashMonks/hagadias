@@ -350,8 +350,17 @@ class StyleExaminerUnknown(TileStyle):
 
     def __init__(self, _painter):
         super().__init__(_painter, _priority=20,
-                         _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE)
-        self._unknown_tile = self.object.part_Examiner_UnknownTile
+                         _modifies=RenderProps.ALL, _allows=RenderProps.NONE)
+        self._unknown_tile = None
+        if self.object.part_Examiner is not None:
+            unktile = self.object.part_Examiner_UnknownTile
+            if unktile is None or unktile != "":
+                """Empty string means no special unidentified tile (ex: Furniture)"""
+                unkcolor = self.object.part_Examiner_UnknownTileColor
+                unkdetail = self.object.part_Examiner_UnknownDetailColor
+                self._unknown_tile = unktile if unktile is not None else 'items/sw_gadget.bmp'
+                self._unknown_detail = unkdetail if unkdetail is not None else 'C'
+                self._unknown_color = unkcolor if unkcolor is not None else '&c'
 
     def _modification_count(self) -> int:
         if self._unknown_tile is not None:
@@ -368,6 +377,9 @@ class StyleExaminerUnknown(TileStyle):
     def _apply_modification(self, index: int) -> StyleMetadata:
         is_identified = index % 2 == 0
         self.painter.file = self.painter.file if is_identified else self._unknown_tile
+        self.painter.detail = self.painter.detail if is_identified else self._unknown_detail
+        c = self.painter.tilecolor if self.painter.tilecolor is not None else self.painter.color
+        self.painter.color = self.painter.tilecolor = c if is_identified else self._unknown_color
         descriptor = 'identified' if is_identified else 'unidentified'
         return StyleMetadata(meta_type=descriptor, meta_type_after=True)
 

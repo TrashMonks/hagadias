@@ -181,7 +181,7 @@ class QudObject(NodeMixin):
         return TileAnimator(self).has_gif
 
     def unidentified_tile_and_metadata(self) -> Union[Tuple, None]:
-        if self.part_Examiner_UnknownTile is not None:
+        if self.part_Examiner is not None:
             if self.number_of_tiles() > 1:
                 tiles, metadata = self.tiles_and_metadata()
                 for tile, meta in zip(tiles, metadata):
