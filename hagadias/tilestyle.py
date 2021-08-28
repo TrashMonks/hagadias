@@ -376,9 +376,12 @@ class StyleExaminerUnknown(TileStyle):
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         is_identified = index % 2 == 0
+        self._unknown_detail = self._unknown_detail if self._unknown_detail != '' else \
+            self.painter.detail
+        c = self.painter.tilecolor if self.painter.tilecolor is not None else self.painter.color
+        self._unknown_color = self._unknown_color if self._unknown_color != '' else c
         self.painter.file = self.painter.file if is_identified else self._unknown_tile
         self.painter.detail = self.painter.detail if is_identified else self._unknown_detail
-        c = self.painter.tilecolor if self.painter.tilecolor is not None else self.painter.color
         self.painter.color = self.painter.tilecolor = c if is_identified else self._unknown_color
         descriptor = 'identified' if is_identified else 'unidentified'
         return StyleMetadata(meta_type=descriptor, meta_type_after=True)
