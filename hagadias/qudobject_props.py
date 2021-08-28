@@ -267,7 +267,11 @@ class QudObjectProps(QudObject):
             av = self.part_Shield_AV
         if self.active_or_inactive_character() > 0:
             # the AV of creatures and stationary objects
-            av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
+            try:
+                av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
+            except TypeError:
+                print(f'FIXME: "{self.name}" has no AV value (inactive character)?')
+                return None
             applied_body_av = False
             if self.mutation:
                 for mutation, info in self.mutation.items():
