@@ -60,6 +60,7 @@ class QudObject(NodeMixin):
         self.attributes = {}
         self.all_attributes = {}
         self.inherited = {}
+        self.baked = False  # Indicates whether inheritance has been resolved for this object yet
         for element in blueprint:
             element_tag = element.tag
             if 'Name' not in element.attrib:
@@ -217,12 +218,18 @@ class QudObject(NodeMixin):
             <part Name="Render" DisplayName="watervine farmer" ...
         overwrites the DisplayName but not the rest of the Render dict.
         """
+        if self.baked:
+            return
         parent_name = self.blueprint.get('Inherits')
         self.parent = self.qindex[parent_name] if parent_name else None
         if self.parent is None:
             self.all_attributes = self.attributes
             self.inherited = {}
+            self.baked = True
             return
+        elif not self.parent.baked:
+            # if parent appears later in ObjectBlueprints than child, it won't be baked yet
+            self.parent.resolve_inheritance()
         inherited = self.parent.all_attributes
         all_attributes = deepcopy(self.attributes)
         removes_parts = 'removepart' in all_attributes
@@ -249,6 +256,7 @@ class QudObject(NodeMixin):
                         pass
         self.all_attributes = all_attributes
         self.inherited = inherited
+        self.baked = True
 
     def ui_inheritance_path(self) -> str:
         """Return a textual representation of this object's inheritance path."""

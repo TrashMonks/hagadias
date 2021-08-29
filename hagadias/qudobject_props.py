@@ -34,6 +34,7 @@ class QudObjectProps(QudObject):
 
     Properties should return Python types where possible (lists, bools, etc.) and leave specific
     representations to a subclass."""
+
     # PROPERTY HELPERS
     # Helper methods to simplify the calculation of properties, further below.
     # Sorted alphabetically.
@@ -164,7 +165,7 @@ class QudObjectProps(QudObject):
     def active_or_inactive_character(self) -> Union[int, None]:
         """0: NONE 1: ACTIVE_CHARS 2: INACTIVE_CHARS. for ALL_CHARS, do > 0 check"""
         if (self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False") and \
-           self.part_Gas is None:
+                self.part_Gas is None:
             # This falls under ALL_CHARS
             if self.part_Combat is not None and self.part_Brain is not None:
                 return 1  # ACTIVE_CHARS
@@ -270,7 +271,8 @@ class QudObjectProps(QudObject):
             try:
                 av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
             except TypeError:
-                print(f'FIXME: "{self.name}" has no AV value (inactive character)?')
+                print(f'FIXME: "{self.name}" has no AV value (probably shouldn\'t be considered'
+                      + 'an inactive character)?')
                 return None
             applied_body_av = False
             if self.mutation:
@@ -1020,7 +1022,7 @@ class QudObjectProps(QudObject):
         """If a creature has a mental shield."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.part_MentalShield is not None or "Mechanical" in self.name or \
-               (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
+                    (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
                 return True
 
     @property
@@ -1279,11 +1281,11 @@ class QudObjectProps(QudObject):
             minmod = self.attribute_helper_mod('Willpower', 'min')
             maxmod = self.attribute_helper_mod('Willpower', 'max')
             if minmod == maxmod:
-                return str(ma+minmod)
+                return str(ma + minmod)
             # returning this in a bit of a weird format so that our wiki dice parser can
             # parse it correctly (it doesn't do well with ranges like -2--1 [fire ant], so we
             # would output this instead as -3+1d2
-            return f'{ma+minmod-1}+1d{maxmod-minmod+1}'
+            return f'{ma + minmod - 1}+1d{maxmod - minmod + 1}'
 
     @property
     def maxammo(self) -> Union[int, None]:
