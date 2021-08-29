@@ -272,7 +272,7 @@ class QudObjectProps(QudObject):
                 av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
             except TypeError:
                 print(f'FIXME: "{self.name}" has no AV value (probably shouldn\'t be considered'
-                      + 'an inactive character)?')
+                      + ' an inactive character)?')
                 return None
             applied_body_av = False
             if self.mutation:
