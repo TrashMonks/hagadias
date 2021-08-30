@@ -163,9 +163,13 @@ class QudObjectProps(QudObject):
         return None
 
     def active_or_inactive_character(self) -> Union[int, None]:
-        """0: NONE 1: ACTIVE_CHARS 2: INACTIVE_CHARS. for ALL_CHARS, do > 0 check"""
+        """The character type of this object.
+        0: NONE 1: ACTIVE_CHARS 2: INACTIVE_CHARS. for ALL_CHARS, do > 0 check.
+        TODO: Consider caching this value, as it is used somewhat frequently"""
         if (self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False") and \
-                self.part_Gas is None:
+                self.part_Gas is None and not self.inherits_from('MeleeWeapon') and \
+                not self.is_specified('part_MeleeWeapon') and \
+                not self.inherits_from('MissileWeapon'):
             # This falls under ALL_CHARS
             if self.part_Combat is not None and self.part_Brain is not None:
                 return 1  # ACTIVE_CHARS
