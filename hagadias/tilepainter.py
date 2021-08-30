@@ -32,28 +32,29 @@ class TilePainter:
         self.standin = None
         self.prefab_imitator = None
 
-        self._apply_primer()
-
-        # fence must be prioritized over wall
-        if obj.tag_PaintedFence and obj.tag_PaintedFence_Value != "*delete":
-            self.paintpath = self.parse_paint_path(obj.tag_PaintedFence_Value)
-            self._paint_fence()
-        elif obj.tag_PaintedWall and obj.tag_PaintedWall_Value != "*delete":
-            self.paintpath = self.parse_paint_path(obj.tag_PaintedWall_Value)
-            self._paint_wall()
-        elif obj.part_Walltrap is not None:
-            self._paint_walltrap()
-
-        if self.file is None or self.file == '':
-            self.standin = StandInTiles.get_tile_provider_for(obj)
-
-        self.prefab_imitator = TilePrefabImitator.get_fake_prefab_for(obj)
-
         self._style_manager = StyleManager(self)
 
         tile_count = self.tile_count()
         self._tiles: List[Optional[QudTile]] = [None] * tile_count
         self._tiles_metadata: List[Optional[TilePainterMetadata]] = [None] * tile_count
+
+        if tile_count > 0:
+            self._apply_primer()
+
+            # fence must be prioritized over wall
+            if obj.tag_PaintedFence and obj.tag_PaintedFence_Value != "*delete":
+                self.paintpath = self.parse_paint_path(obj.tag_PaintedFence_Value)
+                self._paint_fence()
+            elif obj.tag_PaintedWall and obj.tag_PaintedWall_Value != "*delete":
+                self.paintpath = self.parse_paint_path(obj.tag_PaintedWall_Value)
+                self._paint_wall()
+            elif obj.part_Walltrap is not None:
+                self._paint_walltrap()
+
+            if self.file is None or self.file == '':
+                self.standin = StandInTiles.get_tile_provider_for(obj)
+
+            self.prefab_imitator = TilePrefabImitator.get_fake_prefab_for(obj)
 
     def tile(self, tile_index: int = 0) -> Union[QudTile, None]:
         """Retrieves the painted QudTile for this object. If an index is supplied for an object that
