@@ -82,6 +82,27 @@ def int_or_none(value) -> Union[int, None]:
         return value
 
 
+def float_or_default(value, default=0.0) -> float:
+    """Return the result of float(value), or else a default if value is None or is not a float."""
+    if value is None:
+        return default
+    try:
+        value = float(value)
+    except ValueError:
+        return default
+    return value
+
+
+def float_or_none(value) -> Union[float, None]:
+    """Return the result of float(value), or else None if value is None or is not a float."""
+    if value is not None:
+        try:
+            value = float(value)
+        except ValueError:
+            return None
+        return value
+
+
 def str_or_default(value, default) -> str:
     """Return the result of str(value), or else a default if value is None or an empty string."""
     if value is None:

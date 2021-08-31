@@ -9,7 +9,7 @@ from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CHARGE_USE_REASONS
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
-    str_or_default, int_or_default, bool_or_default
+    str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
@@ -701,13 +701,20 @@ class QudObjectProps(QudObject):
                         if vs is not None and vs != '':
                             save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
                         desc_extra.append('{{rules|' + save_mod_str + '.}}')
+                # add rules text for point defense compute power
+                if self.part_PointDefense is not None:
+                    val = float_or_default(self.part_PointDefense_ComputePowerFactor, 1.0)
+                    if val != 0.0:
+                        desc_extra.append('{{rules|Compute power on the local lattice '
+                                          + ('decreases' if val < 0.0 else 'increases')
+                                          + ' this item\'s effectiveness.}}')
                 # add rules text for bioloading compute power
                 if self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor is not None:
-                    val = int(self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor)
-                    if val != 0:
+                    val = float_or_none(self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor)
+                    if val is not None and val != 0.0:
                         desc_extra.append('{{rules|Compute power on the local lattice '
-                                          + ('decreases' if val > 0 else 'increases') + ' the time'
-                                          + ' needed for this item to generate ammunition.}}')
+                                          + ('decreases' if val > 0.0 else 'increases') + ' the'
+                                          + ' time needed for this item to generate ammunition.}}')
             if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
                 desc_postfix = 'There is a low, persistent hum emanating outward.' \
                     if not self.part_Roboticized_DescriptionPostfix \
