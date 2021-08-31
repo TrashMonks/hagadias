@@ -701,6 +701,13 @@ class QudObjectProps(QudObject):
                         if vs is not None and vs != '':
                             save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
                         desc_extra.append('{{rules|' + save_mod_str + '.}}')
+                # add rules text for bioloading compute power
+                if self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor is not None:
+                    val = int(self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor)
+                    if val != 0:
+                        desc_extra.append('{{rules|Compute power on the local lattice '
+                                          + ('decreases' if val > 0 else 'increases') + ' the time'
+                                          + ' needed for this item to generate ammunition.}}')
             if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
                 desc_postfix = 'There is a low, persistent hum emanating outward.' \
                     if not self.part_Roboticized_DescriptionPostfix \
