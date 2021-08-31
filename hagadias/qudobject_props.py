@@ -672,6 +672,40 @@ class QudObjectProps(QudObject):
                     if carry_bonus > 0:
                         carry_bonus = f'+{carry_bonus}'
                     desc_extra.append('{{rules|' + carry_bonus + '% carry capacity}}')
+                # melee weapon rules
+                if self.is_melee_weapon() and self.tag_ShowMeleeWeaponStats is not None \
+                        and not self.inherits_from('Projectile'):
+                    # technically these stats are also shown for projectiles in game, but it seems
+                    # prudent to carve out an exception for wiki - feels misleading to show "Weapon
+                    # Class: Cudgel (dazes on critical hits)" in every wiki arrow description...
+                    weapon_stat = str_or_default(self.part_MeleeWeapon_Stat, 'Strength')
+                    rule_lines = []
+                    # Ego bonus (part_MeleeWeapon_Ego) is already handled in the attr section above
+                    tohit = self.part_MeleeWeapon_HitBonus
+                    if tohit is not None and int(tohit) > 0:
+                        rule_lines.append(f'+{tohit} To-Hit')
+                    maxpv = self.maxpv
+                    pv = self.pv
+                    if maxpv is not None and pv is not None and maxpv > pv:
+                        if maxpv == 999:
+                            rule_lines.append(f'{weapon_stat} Bonus Cap: no limit')
+                        else:
+                            rule_lines.append(f'{weapon_stat} Bonus Cap: {maxpv - pv}')
+                    skill = str_or_default(self.part_MeleeWeapon_Skill, 'Cudgel')
+                    if skill == 'Cudgel':
+                        skill = 'Cudgel (dazes on critical hit)'
+                    elif skill == 'LongBlades':
+                        skill = 'Long Blades (increased penetration on critical hit)'
+                    elif skill == 'ShortBlades':
+                        skill = 'Short Blades (causes bleeding on critical hit)'
+                    elif skill == 'Axe':
+                        skill = 'Axe (cleaves armor on critical hit)'
+                    else:
+                        skill = None
+                    if skill is not None:
+                        rule_lines.append(f'Weapon Class: {skill}')
+                    if len(rule_lines) > 0:
+                        desc_extra.append('{{rules|' + '\n'.join(rule_lines) + '}}')
                 # shields
                 if self.part_Shield is not None:
                     desc_extra.append('{{rules|Shields only grant their AV when you ' +
@@ -901,6 +935,8 @@ class QudObjectProps(QudObject):
         if self.name == 'Stopsvaalinn':
             return "1"
         val = self.attribute_helper('Ego')
+        if val is None and self.is_melee_weapon():
+            val = self.part_MeleeWeapon_Ego
         return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
 
     @property
