@@ -178,6 +178,17 @@ class QudObjectProps(QudObject):
                 return 2  # INACTIVE_CHARS
         return 0
 
+    def is_melee_weapon(self) -> bool:
+        """True if this object can be considered a melee weapon."""
+        if self.is_specified('part_MeleeWeapon'):
+            return True
+        if self.inherits_from('MeleeWeapon'):
+            return True
+        if self.inheritingfrom == 'BaseForkHornedHelmet':
+            # special case that should also get melee weapon stat info
+            return True
+        return False
+
     # PROPERTIES
     # These properties are the heart of hagadias. They make it easy to access attributes
     # buried in the XML, or which require some computation or translation.
@@ -519,7 +530,7 @@ class QudObjectProps(QudObject):
     def damage(self) -> Union[str, None]:
         """The damage dealt by this object. Often a dice string."""
         val = None
-        if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
+        if self.is_melee_weapon():
             val = self.part_MeleeWeapon_BaseDamage
         if self.part_Gaslight:
             val = self.part_Gaslight_ChargedDamage
@@ -1326,7 +1337,7 @@ class QudObjectProps(QudObject):
         """The max strength bonus + our base PV."""
         pv = self.pv
         if pv is not None:
-            if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
+            if self.is_melee_weapon():
                 if self.part_MeleeWeapon_MaxStrengthBonus is not None:
                     pv += int(self.part_MeleeWeapon_MaxStrengthBonus)
         return pv
@@ -1519,7 +1530,7 @@ class QudObjectProps(QudObject):
         """The base PV, which is by default 4 if not set. Optional.
         The game adds 4 to internal PV values for display purposes, so we also do that here."""
         pv = None
-        if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
+        if self.is_melee_weapon():
             pv = 4
             if self.part_Gaslight_ChargedPenetrationBonus is not None:
                 pv += int(self.part_Gaslight_ChargedPenetrationBonus)
@@ -1827,7 +1838,7 @@ class QudObjectProps(QudObject):
         """The bonus or penalty to hit."""
         if self.inherits_from('Armor'):
             return int_or_none(self.part_Armor_ToHit)
-        if self.is_specified('part_MeleeWeapon'):
+        if self.is_melee_weapon():
             return int_or_none(self.part_MeleeWeapon_HitBonus)
 
     @property
@@ -1939,7 +1950,7 @@ class QudObjectProps(QudObject):
     def weaponskill(self) -> Union[str, None]:
         """The skill tree required for use."""
         val = None
-        if self.inherits_from('MeleeWeapon') or self.is_specified('part_MeleeWeapon'):
+        if self.is_melee_weapon():
             val = self.part_MeleeWeapon_Skill
         if self.inherits_from('MissileWeapon'):
             if self.part_MissileWeapon_Skill is not None:
