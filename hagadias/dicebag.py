@@ -20,7 +20,7 @@ class DiceBag:
         def __init__(self, quantity, size):
             # since the DiceBag might be used in e.g. a Discord bot, do some sanity checks on input
             quantity = int(quantity)
-            if abs(quantity) > 1000:
+            if abs(quantity) > 5000:
                 raise ValueError(f'{abs(quantity)} is too many dice to roll')
             if size < 1:
                 raise ValueError(f'{size} is too low for the number of sides on a die')
