@@ -706,6 +706,18 @@ class QudObjectProps(QudObject):
                         rule_lines.append(f'Weapon Class: {skill}')
                     if len(rule_lines) > 0:
                         desc_extra.append('{{rules|' + '\n'.join(rule_lines) + '}}')
+                # HornsProperties
+                if self.part_HornsProperties is not None:
+                    level = int_or_default(self.part_HornsProperties_HornLevel, 1)
+                    damage = '1'
+                    if level > 3:
+                        damage += 'd2'
+                        if level > 6:
+                            damage += f'+{(level - 4) // 3}'
+                    savetarget = 20 + 3 * level
+                    desc_extra.append('{{rules|On penetration, this weapon causes bleeding: '
+                                      + f'{damage} damage per round, save difficulty {savetarget}'
+                                      + '}}')
                 # shields
                 if self.part_Shield is not None:
                     desc_extra.append('{{rules|Shields only grant their AV when you ' +
