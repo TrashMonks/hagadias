@@ -988,7 +988,7 @@ class QudObjectProps(QudObject):
             tierstr = self.part_ModElectrified_Tier
             elestr = str(int(tierstr)) + '-' + str(int(int(tierstr) * 1.5))
         else:
-            elestr = self.part_MeleeWeapon_ElementalDamage
+            elestr = self.part_ElementalDamage_Damage
         return elestr
 
     @property
@@ -1001,7 +1001,7 @@ class QudObjectProps(QudObject):
         elif self.is_specified('part_ModElectrified'):
             elestr = 'Electric'
         else:
-            elestr = self.part_MeleeWeapon_Element
+            elestr = self.part_ElementalDamage_Attributes
         return elestr
 
     @property
