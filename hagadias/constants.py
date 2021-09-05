@@ -155,26 +155,26 @@ FACTION_ID_TO_NAME = {
 }
 
 CYBERNETICS_HARDCODED_INFIXES = {
-    "Cybernetics2MedassistModule": "{{c|Current loadout:}}{{y| no injectors}}"
+    "CyberneticsMedassistModule": "{{c|Current loadout:}}{{y| no injectors}}"
 }
 
 CYBERNETICS_HARDCODED_POSTFIXES = {
-    "Cybernetics2AnomalyFumigator":
+    "CyberneticsAnomalyFumigator":
         "Compute power on the local lattice increases this item's effectiveness.",
-    "Cybernetics2CommunicationsInterlock":
+    "CyberneticsCommunicationsInterlock":
         "Compute power on the local lattice increases this item's effectiveness.",
-    "Cybernetics2CustomVisage": "+300 reputation with <chosen faction>",
-    "Cybernetics2HighFidelityMatterRecompositer":
+    "CyberneticsCustomVisage": "+300 reputation with <chosen faction>",
+    "CyberneticsHighFidelityMatterRecompositer":
         "Compute power on the local lattice reduces this item's cooldown.",
-    "Cybernetics2InflatableAxons":
+    "CyberneticsInflatableAxons":
         "Compute power on the local lattice increases this item's effectiveness.",
-    "Cybernetics2MatterRecompositer":
+    "CyberneticsMatterRecompositer":
         "Compute power on the local lattice reduces this item's cooldown.",
-    "Cybernetics2NocturnalApex":
+    "CyberneticsNocturnalApex":
         "Compute power on the local lattice increases this item's effectiveness.",
-    "Cybernetics2OnboardRecoilerTeleporter":
+    "CyberneticsOnboardRecoilerTeleporter":
         "Compute power on the local lattice reduces this item's cooldown.",
-    "Cybernetics2PenetratingRadar":
+    "CyberneticsPenetratingRadar":
         "Compute power on the local lattice increases this item's range."
 }
 

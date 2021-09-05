@@ -24,7 +24,7 @@ ACTIVE_CHAR = 1
 INACTIVE_CHAR = 2
 # make them different from active characters. Usually immobile and have no attributes.
 BEHAVIOR_DESCRIPTION_PARTS = ['LatchesOn', 'SapChargeOnHit', 'TemperatureAdjuster', 'Toolbox',
-                              'Cybernetics2BaseItem', 'FollowersGetTeleport', 'IntPropertyChanger']
+                              'CyberneticsBaseItem', 'FollowersGetTeleport', 'IntPropertyChanger']
 
 
 class QudObjectProps(QudObject):
@@ -821,10 +821,10 @@ class QudObjectProps(QudObject):
                 if behavior_desc is not None and behavior_desc != '':
                     cybernetic_rules += behavior_desc
         # additional cybernetics postfixes
-        if self.part_Cybernetics2BaseItem_Slots is not None:
-            body_parts = self.part_Cybernetics2BaseItem_Slots
+        if self.part_CyberneticsBaseItem_Slots is not None:
+            body_parts = self.part_CyberneticsBaseItem_Slots
             body_parts = body_parts.replace(',', ', ')
-            cost = self.part_Cybernetics2BaseItem_Cost
+            cost = self.part_CyberneticsBaseItem_Cost
             if len(desc_extra) > 0 or len(cybernetic_rules) > len('{{rules|'):
                 cybernetic_rules += '\n\n'
             txt = ''
