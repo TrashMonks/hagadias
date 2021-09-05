@@ -544,6 +544,12 @@ class QudObjectProps(QudObject):
         projectiledamage = self.projectile_object('part_Projectile_BaseDamage')
         if projectiledamage:
             val = projectiledamage
+        if self.part_ElectricalDischargeLoader is not None:
+            # There should be a way to calculate these dynamically but it is... very complicated
+            if self.name == 'Arc Winder':
+                val = '4d4'
+            elif self.name == 'High-Voltage Arc Winder':
+                val = '8d4'
         return val
 
     @property
@@ -1566,6 +1572,14 @@ class QudObjectProps(QudObject):
     def preservedquantity(self) -> Union[int, None]:
         """When preserved, how many preserves a preservable item produces."""
         return int_or_none(self.part_PreservableItem_Number)
+
+    @property
+    def primarydamageelement(self) -> Union[str, None]:
+        """If a weapon's primary damage is elemental, this returns the type of element.
+        This is distinct from elementaldamage/elementaltype - those properties are used when a
+        weapon has secondary elemental damage (in addition to its "normal" damage)."""
+        if self.part_ElectricalDischargeLoader is not None:
+            return 'Electric'
 
     @property
     def pronouns(self) -> Union[str, None]:
