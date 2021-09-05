@@ -710,6 +710,16 @@ class QudObjectProps(QudObject):
                         skill = None
                     if skill is not None:
                         rule_lines.append(f'Weapon Class: {skill}')
+                    if self.part_ElementalDamage is not None:
+                        dmg = self.part_ElementalDamage_Damage
+                        dmg = dmg if dmg is not None else '1d4'
+                        typ = self.part_ElementalDamage_Attributes
+                        typ = typ if typ is not None else 'Heat'
+                        chc = self.part_ElementalDamage_Chance
+                        chc = int(chc) if chc is not None else 100
+                        txt = f'Causes {dmg} {typ.lower()} damage on hit'
+                        txt += '.' if chc >= 100 else f' {chc}% of the time.'
+                        rule_lines.append(txt)
                     if len(rule_lines) > 0:
                         desc_extra.append('{{rules|' + '\n'.join(rule_lines) + '}}')
                 # HornsProperties
