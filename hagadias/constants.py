@@ -221,7 +221,7 @@ QUD_VIRIDIAN = (15, 64, 63, 255)
 LIQUID_COLORS = {'acid': '&G^g',
                  'algae': '&g^C',
                  'asphalt': '&k^K',
-                 'blood': '&r',
+                 'blood': '&r^k',
                  'brainbrine': '&g^W',
                  'cider': '&w^r',
                  'cloning': '&M^Y',

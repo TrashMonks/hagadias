@@ -7,7 +7,8 @@ from typing import List, Optional, Type, Tuple
 
 from hagadias.constants import LIQUID_COLORS
 from hagadias.dicebag import DiceBag
-from hagadias.helpers import obj_has_any_part, extract_foreground_char, int_or_default
+from hagadias.helpers import obj_has_any_part, extract_foreground_char, int_or_default, \
+    extract_background_char
 
 
 class RenderProps(Flag):
@@ -321,8 +322,10 @@ class StyleLiquidVolume(TileStyle):
             if liquid_name in LIQUID_COLORS and pct > highest_pct:
                 highest_pct = pct
                 primary_liquid = liquid_name
-        self.painter.detail = 'transparent'
-        self.painter.color = self.painter.tilecolor = LIQUID_COLORS[primary_liquid]
+        self.painter.trans = 'transparent'
+        self.painter.detail = extract_background_char(LIQUID_COLORS[primary_liquid], 'transparent')
+        self.painter.tilecolor = extract_foreground_char(LIQUID_COLORS[primary_liquid], 'y')
+        self.painter.color = self.painter.tilecolor
         self.painter.file = self._tiles[index]
         return StyleMetadata(meta_type='large pool' if index == 0 else f'puddle sprite #{index}',
                              f_postfix=f'variation {index}' if index > 0 else '')
