@@ -658,19 +658,23 @@ class StyleSofa(TileStyle):
         return StyleMetadata(meta_type=descriptor)
 
 
-class StyleFulcreteWithSquareWave(TileStyle):
-    """Styles for the FulcreteWithSquareWave object."""
+class StyleWallWithChildAlternates(TileStyle):
+    """Styles for walls that define their own colors, and also have child (inherting) objects with
+    the same display name that define variations of those colors."""
+
+    PARENT_WALL_OBJECTS = ['FulcreteWithSquareWave', 'ColumbariumWall']
 
     def __init__(self, _painter):
         super().__init__(_painter, _priority=40,
                          _modifies=RenderProps.COLORS | RenderProps.TRANS, _allows=RenderProps.FILE)
         self._matches = None
-        if self.object.name == 'FulcreteWithSquareWave' or \
-                self.object.inheritingfrom == 'FulcreteWithSquareWave':
-            self._matches = [obj for obj in self.object.qindex.values()
-                             if obj.inheritingfrom == 'FulcreteWithSquareWave']
-            if len(self._matches) > 0:
-                self._matches.sort(key=lambda obj: obj.name)  # sort by object name
+        for wallname in self.PARENT_WALL_OBJECTS:
+            if self.object.name == wallname or self.object.inheritingfrom == wallname:
+                self._matches = [obj for obj in self.object.qindex.values()
+                                 if (obj.inheritingfrom == wallname or obj.name == wallname)]
+                if len(self._matches) > 0:
+                    self._matches.sort(key=lambda obj: obj.name)  # sort by object name
+                break
 
     def _modification_count(self) -> int:
         return 0 if self._matches is None else len(self._matches)
@@ -694,7 +698,6 @@ class StyleManager:
                                      StyleEnclosing,
                                      StyleExaminerUnknown,
                                      StyleFracti,
-                                     StyleFulcreteWithSquareWave,
                                      StyleHangable,
                                      StyleHarvestable,
                                      StyleHologram,
@@ -707,7 +710,8 @@ class StyleManager:
                                      StyleSofa,
                                      StyleSultanShrine,
                                      StyleTombstone,
-                                     StyleVillageMonument]
+                                     StyleVillageMonument,
+                                     StyleWallWithChildAlternates]
     """A list of all TileStyle classes as type objects. The order of this list does not matter."""
 
     def __init__(self, painter):
