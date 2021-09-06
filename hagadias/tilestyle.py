@@ -658,11 +658,11 @@ class StyleSofa(TileStyle):
         return StyleMetadata(meta_type=descriptor)
 
 
-class StyleWallWithChildAlternates(TileStyle):
-    """Styles for walls that define their own colors, and also have child (inherting) objects with
-    the same display name that define variations of those colors."""
+class StyleFixtureWithChildAlternates(TileStyle):
+    """Styles for walls and other fixtures that define their own colors, and also have
+    child (inherting) objects with the same display name that define variations of those colors."""
 
-    PARENT_WALL_OBJECTS = ['FulcreteWithSquareWave', 'ColumbariumWall']
+    PARENT_WALL_OBJECTS = ['FulcreteWithSquareWave', 'ColumbariumWall', 'GlassHydraulicPipe']
 
     def __init__(self, _painter):
         super().__init__(_painter, _priority=40,
@@ -673,14 +673,26 @@ class StyleWallWithChildAlternates(TileStyle):
                 self._matches = [obj for obj in self.object.qindex.values()
                                  if (obj.inheritingfrom == wallname or obj.name == wallname)]
                 if len(self._matches) > 0:
+                    uniquecolorcombos = {}
                     self._matches.sort(key=lambda obj: obj.name)  # sort by object name
+                    for obj in self._matches:
+                        colorstring = obj.part_Render_ColorString
+                        tilecolor = obj.part_Render_TileColor
+                        detailcolor = obj.part_Render_DetailColor
+                        uniquecolorcombos[(colorstring, tilecolor, detailcolor)] = True
+                    self._matches = list(uniquecolorcombos.keys())
                 break
 
     def _modification_count(self) -> int:
         return 0 if self._matches is None else len(self._matches)
 
     def _apply_modification(self, index: int) -> StyleMetadata:
-        self.painter.color = self.painter.tilecolor = self._matches[index].part_Render_ColorString
+        if self._matches[index][0] is not None:
+            self.painter.color = self.painter.tilecolor = self._matches[index][0]  # colorstring
+        if self._matches[index][1] is not None:
+            self.painter.tilecolor = self._matches[index][1]  # tilecolor
+        if self._matches[index][2] is not None:
+            self.painter.detail = self._matches[index][2]  # detailcolor
         return StyleMetadata(meta_type=f'style #{index + 1}',
                              f_postfix=f'variation {index}' if index > 0 else '',
                              meta_type_after=True)
@@ -697,6 +709,7 @@ class StyleManager:
                                      StyleDoubleContainer,
                                      StyleEnclosing,
                                      StyleExaminerUnknown,
+                                     StyleFixtureWithChildAlternates,
                                      StyleFracti,
                                      StyleHangable,
                                      StyleHarvestable,
@@ -710,8 +723,7 @@ class StyleManager:
                                      StyleSofa,
                                      StyleSultanShrine,
                                      StyleTombstone,
-                                     StyleVillageMonument,
-                                     StyleWallWithChildAlternates]
+                                     StyleVillageMonument]
     """A list of all TileStyle classes as type objects. The order of this list does not matter."""
 
     def __init__(self, painter):
