@@ -219,6 +219,7 @@ QUD_COLORS = {'r': (166, 74, 46),  # dark red
 QUD_VIRIDIAN = (15, 64, 63, 255)
 
 LIQUID_COLORS = {'acid': '&G^g',
+                 'algae': '&g^C',
                  'asphalt': '&k^K',
                  'blood': '&r',
                  'brainbrine': '&g^W',
@@ -239,6 +240,7 @@ LIQUID_COLORS = {'acid': '&G^g',
                  'sap': '&W^Y',
                  'slime': '&w^g',
                  'sludge': '&Y^w',
+                 'sunslag': '&Y^W',
                  'water': '&b^B',
                  'wax': '&y^Y',
                  'wine': '&m^r'
