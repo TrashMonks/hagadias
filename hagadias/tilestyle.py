@@ -1,6 +1,7 @@
 from __future__ import annotations  # allow forward type references
 import logging
 import itertools
+import os
 import random
 from enum import Flag, auto
 from typing import List, Optional, Type, Tuple
@@ -640,6 +641,23 @@ class StyleHangable(TileStyle):
         return StyleMetadata(meta_type=descriptor)
 
 
+class StyleSofa(TileStyle):
+    """Styles for the Sofa object."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=40,
+                         _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE)
+
+    def _modification_count(self) -> int:
+        return 3 if self.object.name == 'Sofa' or self.object.inheritingfrom == 'Sofa' else 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        suffix, descriptor = [('l', 'left'), ('c', 'center'), ('r', 'right')][index]
+        filename, fileext = os.path.splitext(self.object.part_Render_Tile)
+        self.painter.file = filename[:-1] + suffix + fileext
+        return StyleMetadata(meta_type=descriptor)
+
+
 class StyleManager:
     # TODO: support grabbing a random style (for cryptogull)
 
@@ -661,6 +679,7 @@ class StyleManager:
                                      StyleRandomColors,
                                      StyleRandomTile,
                                      StyleRandomTonic,
+                                     StyleSofa,
                                      StyleSultanShrine,
                                      StyleTombstone,
                                      StyleVillageMonument]
