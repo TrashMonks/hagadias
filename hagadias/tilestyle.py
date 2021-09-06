@@ -658,6 +658,30 @@ class StyleSofa(TileStyle):
         return StyleMetadata(meta_type=descriptor)
 
 
+class StyleFulcreteWithSquareWave(TileStyle):
+    """Styles for the FulcreteWithSquareWave object."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=40,
+                         _modifies=RenderProps.COLORS | RenderProps.TRANS, _allows=RenderProps.FILE)
+        self._matches = None
+        if self.object.name == 'FulcreteWithSquareWave' or \
+                self.object.inheritingfrom == 'FulcreteWithSquareWave':
+            self._matches = [obj for obj in self.object.qindex.values()
+                             if obj.inheritingfrom == 'FulcreteWithSquareWave']
+            if len(self._matches) > 0:
+                self._matches.sort(key=lambda obj: obj.name)  # sort by object name
+
+    def _modification_count(self) -> int:
+        return 0 if self._matches is None else len(self._matches)
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        self.painter.color = self.painter.tilecolor = self._matches[index].part_Render_ColorString
+        return StyleMetadata(meta_type=f'style #{index + 1}',
+                             f_postfix=f'variation {index}' if index > 0 else '',
+                             meta_type_after=True)
+
+
 class StyleManager:
     # TODO: support grabbing a random style (for cryptogull)
 
@@ -670,6 +694,7 @@ class StyleManager:
                                      StyleEnclosing,
                                      StyleExaminerUnknown,
                                      StyleFracti,
+                                     StyleFulcreteWithSquareWave,
                                      StyleHangable,
                                      StyleHarvestable,
                                      StyleHologram,
