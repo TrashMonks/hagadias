@@ -174,8 +174,18 @@ CYBERNETICS_HARDCODED_POSTFIXES = {
         "Compute power on the local lattice increases this item's effectiveness.",
     "CyberneticsOnboardRecoilerTeleporter":
         "Compute power on the local lattice reduces this item's cooldown.",
+    "CyberneticsPalanquinBlackOpal":
+        "Compute power on the local lattice increases this item's effectiveness.",
+    "CyberneticsPalanquinRuby":
+        "Compute power on the local lattice increases this item's effectiveness.",
+    "CyberneticsPalanquinSapphire":
+        "Compute power on the local lattice increases this item's effectiveness.",
+    "CyberneticsPalanquinWhiteOpal":
+        "Compute power on the local lattice increases this item's effectiveness.",
     "CyberneticsPenetratingRadar":
-        "Compute power on the local lattice increases this item's range."
+        "Compute power on the local lattice increases this item's range.",
+    "CyberneticsStasisProjector":
+        "Compute power on the local lattice increases this item's effectiveness."
 }
 
 HARDCODED_CHARGE_USE = {
