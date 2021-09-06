@@ -658,6 +658,28 @@ class StyleSofa(TileStyle):
         return StyleMetadata(meta_type=descriptor)
 
 
+class StyleOrnatePottedPlant(TileStyle):
+    """Styles for the Ornate Potted Plant 1-4 objects."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=40,
+                         _modifies=RenderProps.ALL, _allows=RenderProps.NONE)
+
+    def _modification_count(self) -> int:
+        return 4 if self.object.name.startswith('Ornate Potted Plant ') else 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        objkey = f'Ornate Potted Plant {index + 1}'
+        if objkey in self.object.qindex:
+            self.painter.color = self.object.qindex[objkey].part_Render_ColorString
+            self.painter.tilecolor = self.object.qindex[objkey].part_Render_TileColor
+            self.painter.detail = self.object.qindex[objkey].part_Render_DetailColor
+            self.painter.file = self.object.qindex[objkey].part_Render_Tile
+        descriptor = f'sprite #{index + 1}'
+        postfix = f' variation {index}' if index > 0 else ''
+        return StyleMetadata(meta_type=descriptor, f_postfix=postfix)
+
+
 class StyleFixtureWithChildAlternates(TileStyle):
     """Styles for walls and other fixtures that define their own colors, and also have
     child (inherting) objects with the same display name that define variations of those colors."""
@@ -716,6 +738,7 @@ class StyleManager:
                                      StyleHologram,
                                      StyleLiquidVolume,
                                      StyleMachineWallHotTubing,
+                                     StyleOrnatePottedPlant,
                                      StylePistonPress,
                                      StyleRandomColors,
                                      StyleRandomTile,
