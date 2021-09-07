@@ -210,6 +210,17 @@ class StyleRandomColors(TileStyle):
                     else list(set(detailcolors.split(',')))
             tilecolors = [None] if tilecolors is None else list(set(tilecolors.split(',')))
             bgcolors = [None] if bgcolors is None else list(set(bgcolors.split(',')))
+            # Sort and then shuffle using Object ID as seed, to always get the same result
+            random.seed(self.object.name)
+            if not pairmaindetail:
+                maincolors.sort()
+                random.shuffle(maincolors)
+                detailcolors.sort()
+                random.shuffle(detailcolors)
+            tilecolors.sort()
+            random.shuffle(tilecolors)
+            bgcolors.sort()
+            random.shuffle(bgcolors)
             # Generate unique combinations
             if not pairmaindetail:
                 self._combos = list(itertools.product(*[maincolors, detailcolors,
