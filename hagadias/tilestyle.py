@@ -182,6 +182,8 @@ class StyleRandomColors(TileStyle):
     """Styles for the RandomColors part."""
 
     RANDOM_COLORS_ALL = 'R,W,G,B,M,C,Y,r,w,g,b,m,c,y'
+    INDEX_MULTIPLIER = {'Bouquet': 5, 'Flower': 6, 'Flowers': 5}
+    INDEX_OFFSET = {'Bouquet': 0, 'Flower': 1, 'Flowers': 2}
 
     def __init__(self, _painter):
         super().__init__(_painter, _priority=35,
@@ -225,7 +227,15 @@ class StyleRandomColors(TileStyle):
         return self._count
 
     def _apply_modification(self, index: int) -> StyleMetadata:
-        maincolor, detailcolor, tilecolor, bgcolor = self._combos[index]
+        if self.object.name in self.INDEX_MULTIPLIER:
+            # Special indexing for tiles with a lot of variations - this better shows off the color
+            # variety of the tile, rather than repeating the same colors many times while we iterate
+            # over other styles (like RandomTile)
+            colorindex = index * self.INDEX_MULTIPLIER[self.object.name] \
+                         + self.INDEX_OFFSET[self.object.name]
+        else:
+            colorindex = index
+        maincolor, detailcolor, tilecolor, bgcolor = self._combos[colorindex]
         if bgcolor is None:
             bgcolor = extract_background_char(self.painter.color)
             if bgcolor is None:
@@ -238,7 +248,7 @@ class StyleRandomColors(TileStyle):
             self.painter.trans = bgcolor
         if detailcolor is not None:
             self.painter.detail = detailcolor
-        pfix = ''.join([(c if c is not None else '_') for c in self._combos[index]])
+        pfix = ''.join([(c if c is not None else '_') for c in self._combos[colorindex]])
         return StyleMetadata(meta_type=f'color #{index + 1}',
                              f_postfix=f' (colors {pfix})',
                              meta_type_after=True)
