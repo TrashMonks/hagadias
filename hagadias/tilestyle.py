@@ -179,20 +179,69 @@ class TileStyle:
 
 
 class StyleRandomColors(TileStyle):
+    """Styles for the RandomColors part."""
 
-    RANDOM_COLORS_BRIGHT = ['R', 'W', 'G', 'B', 'M', 'C', 'Y']
-    RANDOM_COLORS_ALL = ['R', 'W', 'G', 'B', 'M', 'C', 'Y', 'r', 'w', 'g', 'b', 'm', 'c', 'y']
+    RANDOM_COLORS_ALL = 'R,W,G,B,M,C,Y,r,w,g,b,m,c,y'
 
     def __init__(self, _painter):
-        super().__init__(_painter, _priority=30,
+        super().__init__(_painter, _priority=35,
                          _modifies=RenderProps.COLORS, _allows=RenderProps.ALL)
-        # TODO: figure out random colors stuff
+        self._count = 0
+        if self.object.part_RandomColors is not None:
+            maincolors = self.object.part_RandomColors_MainColor
+            maincolors = maincolors if maincolors != 'all' else self.RANDOM_COLORS_ALL
+            detailcolors = self.object.part_RandomColors_DetailColor
+            detailcolors = detailcolors if detailcolors != 'all' else self.RANDOM_COLORS_ALL
+            tilecolors = self.object.part_RandomColors_TileColor
+            tilecolors = tilecolors if tilecolors != 'all' else self.RANDOM_COLORS_ALL
+            bgcolors = self.object.part_RandomColors_BackgroundColor
+            bgcolors = bgcolors if bgcolors != 'all' else self.RANDOM_COLORS_ALL
+            pairmaindetail = self.object.part_RandomColors_PairDetailWithForeground == 'true'
+            if pairmaindetail:
+                # Keep all values, even duplicates
+                maincolors = maincolors.split(',')
+                detailcolors = detailcolors.split(',')
+            else:
+                # Filter out duplicates by temporary conversion to a set
+                maincolors = [None] if maincolors is None else list(set(maincolors.split(',')))
+                detailcolors = [None] if detailcolors is None \
+                    else list(set(detailcolors.split(',')))
+            tilecolors = [None] if tilecolors is None else list(set(tilecolors.split(',')))
+            bgcolors = [None] if bgcolors is None else list(set(bgcolors.split(',')))
+            # Generate unique combinations
+            if not pairmaindetail:
+                self._combos = list(itertools.product(*[maincolors, detailcolors,
+                                                        tilecolors, bgcolors]))
+            else:
+                self._combos = []
+                for mc, dc in zip(maincolors, detailcolors):
+                    for tc in tilecolors:
+                        for bc in bgcolors:
+                            self._combos.append((mc, dc, tc, bc))
+            # Update count
+            self._count = len(self._combos)
 
     def _modification_count(self) -> int:
-        return 0  # TODO: Implement this
+        return self._count
 
     def _apply_modification(self, index: int) -> StyleMetadata:
-        pass  # TODO: Implement this
+        maincolor, detailcolor, tilecolor, bgcolor = self._combos[index]
+        if bgcolor is None:
+            bgcolor = extract_background_char(self.painter.color)
+            if bgcolor is None:
+                bgcolor = extract_background_char(self.painter.tilecolor)
+        if maincolor is not None:
+            self.painter.color = self.painter.tilecolor = maincolor
+        if tilecolor is not None:
+            self.painter.tilecolor = tilecolor
+        if bgcolor is not None:
+            self.painter.trans = bgcolor
+        if detailcolor is not None:
+            self.painter.detail = detailcolor
+        pfix = ''.join([(c if c is not None else '_') for c in self._combos[index]])
+        return StyleMetadata(meta_type=f'color #{index + 1}',
+                             f_postfix=f' (colors {pfix})',
+                             meta_type_after=True)
 
 
 class StyleVillageMonument(TileStyle):
@@ -207,7 +256,7 @@ class StyleVillageMonument(TileStyle):
             preserved_state = random.getstate()
             random.seed(self.object.name)
             while len(self._color_combos) < 30:
-                vals = random.sample(StyleRandomColors.RANDOM_COLORS_ALL, 2)
+                vals = random.sample(StyleRandomColors.RANDOM_COLORS_ALL.split(','), 2)
                 colors = f'{vals[0]}{vals[1]}'
                 if colors not in self._color_combos:
                     self._color_combos.append(colors)

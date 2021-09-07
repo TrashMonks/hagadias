@@ -369,8 +369,8 @@ def extract_background_color(colorstr: str, default: Optional[str] = None) -> Un
 
 def extract_background_char(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
     """Extracts background (^) color from a colorstring, returning only the color char."""
-    bg = extract_background_color(colorstr, f'^{default}')
-    return None if bg is None else bg[1]
+    bg = extract_background_color(colorstr)
+    return default if bg is None else bg[1]
 
 
 def extract_foreground_color(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
