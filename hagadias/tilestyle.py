@@ -530,11 +530,13 @@ class StylePistonPress(TileStyle):
                              f_postfix=StylePistonPress.POSTFIXES[index])
 
 
-class StyleMachineWallHotTubing(TileStyle):
-    """Styles for the MachineWallHotTubing object."""
+class StyleMachineWallTubing(TileStyle):
+    """Styles for machine wall objects."""
 
-    TYPES = ['hot', 'hot (glowing in the dark)', 'empty']
-    POSTFIXES = [' hot', ' hot glowing', ' empty']
+    TYPES = {'MachineWallHotTubing': ['hot', 'hot (glowing in the dark)', 'empty'],
+             'MachineWallColdTubing': ['cold', 'cold (glowing in the dark)', 'empty']}
+    POSTFIXES = {'MachineWallHotTubing': [' hot', ' hot glowing', ' empty'],
+                 'MachineWallColdTubing': [' cold', ' cold glowing', ' empty']}
 
     def __init__(self, _painter):
         super().__init__(_painter, _priority=90,
@@ -542,7 +544,7 @@ class StyleMachineWallHotTubing(TileStyle):
                          _allows=RenderProps.FILE | RenderProps.DETAIL)
 
     def _modification_count(self) -> int:
-        return 3 if self.object.name == 'MachineWallHotTubing' else 0
+        return 3 if self.object.name in self.TYPES else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         if index == 1:
@@ -552,8 +554,8 @@ class StyleMachineWallHotTubing(TileStyle):
                 self.painter.color = self.painter.tilecolor = f'&{fg}^{bg}'
         if index == 2:
             self.painter.color = self.painter.tilecolor = '&y^c'  # MachineWallEmptyTubing
-        return StyleMetadata(meta_type=StyleMachineWallHotTubing.TYPES[index],
-                             f_postfix=StyleMachineWallHotTubing.POSTFIXES[index])
+        return StyleMetadata(meta_type=self.TYPES[self.object.name][index],
+                             f_postfix=self.POSTFIXES[self.object.name][index])
 
 
 class StyleHarvestable(TileStyle):
@@ -807,7 +809,7 @@ class StyleManager:
                                      StyleHarvestable,
                                      StyleHologram,
                                      StyleLiquidVolume,
-                                     StyleMachineWallHotTubing,
+                                     StyleMachineWallTubing,
                                      StyleOrnatePottedPlant,
                                      StylePistonPress,
                                      StyleRandomColors,
