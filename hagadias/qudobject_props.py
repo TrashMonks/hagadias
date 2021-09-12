@@ -244,6 +244,8 @@ class QudObjectProps(QudObject):
                 ammo = self.part_LiquidFueledPowerPlant_Liquid
         elif self.part_LiquidAmmoLoader:
             ammo = self.part_LiquidAmmoLoader_Liquid
+        elif self.part_BioAmmoLoader:
+            ammo = self.part_BioAmmoLoader_LiquidConsumed
         return ammo
 
     @property
@@ -891,6 +893,8 @@ class QudObjectProps(QudObject):
         """The number of drams of liquid consumed by each shot action."""
         if self.is_specified('part_LiquidAmmoLoader'):
             return 1  # LiquidAmmoLoader always uses 1 dram per action
+        elif self.is_specified('part_BioAmmoLoader'):
+            return int_or_none(self.part_BioAmmoLoader_ConsumeAmount)
         # TODO: calculate fractional value for blood-gradient hand vacuum
 
     @property
