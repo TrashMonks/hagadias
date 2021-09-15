@@ -6,7 +6,7 @@ from typing import Union, Tuple, List
 from hagadias.character_codes import STAT_NAMES
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
-    CHARGE_USE_REASONS
+    CHARGE_USE_REASONS, EMPSENSITIVE_PARTS
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
     str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
@@ -1028,24 +1028,22 @@ class QudObjectProps(QudObject):
 
     @property
     def empsensitive(self) -> Union[bool, None]:
-        """Returns yes if the object is empensitive. Can be found in multiple parts."""
-        parts = ['EquipStatBoost',
-                 'BootSequence',
-                 'NavigationBonus',
-                 'SaveModifier',
-                 'LiquidFueledPowerPlant',
-                 'LiquidProducer',
-                 'TemperatureAdjuster'
-                 ]
-        if any(getattr(self, f'part_{part}_IsEMPSensitive') == 'true' for part in parts):
-            return True
-        parts = ['EnergyCellSocket',
-                 'ZeroPointEnergyCollector',
-                 'ModFlaming',
-                 'ModFreezing',
-                 'ModElectrified']
-        if any(getattr(self, f'part_{part}') is not None for part in parts):
-            return True
+        """Returns yes if the object is EMP-sensitive. This typically means that some feature of
+        the object does not function as expected while pulsed by an EMP effect.
+        Note that the game will show an "[EMP]" tag in the display name of more things than are
+        actually empsensitive, including anything metal or robotic (like an iron long sword)."""
+        all_parts = getattr(self, 'part')
+        if all_parts is not None:
+            emp_sensitive = None
+            # object is emp sensitive if any single part on the object is emp sensitive:
+            for partname, partattribs in all_parts.items():
+                if partname in EMPSENSITIVE_PARTS:
+                    if partname == 'ModHardened':
+                        return None  # ModHardened overrides anything else, so we return early
+                    if partattribs.get('IsEMPSensitive', EMPSENSITIVE_PARTS[partname]['default']):
+                        print(f'object "{self.name}" empsensitive due to part "{partname}"')
+                        emp_sensitive = True
+            return emp_sensitive
 
     @property
     def energycellrequired(self) -> Union[bool, None]:
