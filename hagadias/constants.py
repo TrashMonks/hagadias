@@ -246,8 +246,8 @@ LIQUID_COLORS = {'acid': '&G^g',
                  'wine': '&m^r'
                  }
 
-# The following includes anything descending from IActivePart, which defines the IsEMPSensitive
-# field. This list should be accurate as of patch 202.79.
+# The following includes all descending from IActivePart, which defines the IsEMPSensitive field.
+# This list is accurate as of patch 202.79. There are also a few more parts that are special cases.
 EMPSENSITIVE_PARTS = {'AccelerativeTeleporter': {'default': True},
                       'ActiveLightSource': {'default': False},
                       'AddsMutationOnEquip': {'default': False},
@@ -512,4 +512,19 @@ EMPSENSITIVE_PARTS = {'AccelerativeTeleporter': {'default': True},
                       'WindTurbine': {'default': True},
                       'Windup': {'default': False},
                       'ZeroPointEnergyCollector': {'default': True},
-                      'ZoneAdjust': {'default': True}}
+                      'ZoneAdjust': {'default': True},
+                      # Special cases (not descending from IActivePart):
+                      'ConveyorBelt': {'default': True},
+                      'ConveyorPad': {'default': True},
+                      'CryochamberWall': {'default': True},
+                      'CyberneticsNightVision': {'default': True},
+                      'GeomagneticDisc': {'default': True},
+                      'MagnetizedApplicator': {'default': True},
+                      'Robot': {'default': True},
+                      'Tinkering_Mine': {'default': True},
+                      'WalltrapAcid': {'default': True},
+                      'WalltrapClockworkBeetles': {'default': True},
+                      'WalltrapCrabs': {'default': True},
+                      'WalltrapFire': {'default': True},
+                      'WalltrapGas': {'default': True},
+                      'WalltrapShock': {'default': True}}
