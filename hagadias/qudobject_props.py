@@ -1041,7 +1041,6 @@ class QudObjectProps(QudObject):
                     if partname == 'ModHardened':
                         return None  # ModHardened overrides anything else, so we return early
                     if partattribs.get('IsEMPSensitive', EMPSENSITIVE_PARTS[partname]['default']):
-                        print(f'object "{self.name}" empsensitive due to part "{partname}"')
                         emp_sensitive = True
             return emp_sensitive
 
