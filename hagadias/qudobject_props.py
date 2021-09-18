@@ -6,7 +6,7 @@ from typing import Union, Tuple, List
 from hagadias.character_codes import STAT_NAMES
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
-    CHARGE_USE_REASONS, EMPSENSITIVE_PARTS
+    CHARGE_USE_REASONS, EMPSENSITIVE_PARTS, STAT_DISPLAY_NAMES
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
     str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
@@ -675,6 +675,15 @@ class QudObjectProps(QudObject):
                     resists.append(f"{{{{{attr_color}|{resist_str}}}}}")
             if len(resists) > 0:
                 desc_extra.append('\n'.join(resists))
+            # EquipStatBoost attributes
+            if self.part_EquipStatBoost_Boosts is not None:
+                for boostinfo in self.part_EquipStatBoost_Boosts.split(';'):
+                    stat, amt = boostinfo.split(':')
+                    stat = stat if stat not in STAT_DISPLAY_NAMES else STAT_DISPLAY_NAMES[stat]
+                    amt = int_or_none(amt)
+                    if amt is not None:
+                        symbol = '+' if amt > 0 else ''
+                        desc_extra.append('{{' + f'rules|{symbol}{amt} {stat}' + '}}')
             # carrybonus
             carry_bonus = self.carrybonus
             if carry_bonus:

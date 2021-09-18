@@ -246,6 +246,14 @@ LIQUID_COLORS = {'acid': '&G^g',
                  'wine': '&m^r'
                  }
 
+STAT_DISPLAY_NAMES = {'AcidResistance': 'acid resistance',
+                      'ColdResistance': 'cold resistance',
+                      'ElectricResistance': 'electric resistance',
+                      'HeatResistance': 'heat resistance',
+                      'Hitpoints': 'hit points',
+                      'MoveSpeed': 'move speed',
+                      'Speed': 'quickness'}
+
 # The following includes all descending from IActivePart, which defines the IsEMPSensitive field.
 # This list is accurate as of patch 202.79. There are also a few more parts that are special cases.
 EMPSENSITIVE_PARTS = {'AccelerativeTeleporter': {'default': True},
