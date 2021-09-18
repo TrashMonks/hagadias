@@ -553,11 +553,10 @@ class QudObjectProps(QudObject):
         if projectiledamage:
             val = projectiledamage
         if self.part_ElectricalDischargeLoader is not None:
-            # There should be a way to calculate these dynamically but it is... very complicated
-            if self.name == 'Arc Winder':
-                val = '4d4'
-            elif self.name == 'High-Voltage Arc Winder':
-                val = '8d4'
+            chargefactor = int_or_default(self.part_ElectricalDischargeLoader_ChargeFactor, 15)
+            chargebasis = int_or_default(self.part_ElectricalDischargeLoader_ChargeUse, 300)
+            dicecount = (chargefactor * chargebasis) // 1000
+            val = f'{dicecount}d4'
         return val
 
     @property
