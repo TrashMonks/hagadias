@@ -412,7 +412,8 @@ class QudObjectProps(QudObject):
             if chg is not None and int(chg) > 0:
                 if part == 'StunOnHit':
                     func = 'Stun effect'
-                elif part == 'EnergyAmmoLoader' or part == 'Gaslight':
+                elif part == 'EnergyAmmoLoader' or part == 'Gaslight' \
+                        or part == 'ElectricalDischargeLoader':
                     func = 'Weapon Power'
                 elif part == 'VibroWeapon':
                     func = 'Adaptive Penetration'
