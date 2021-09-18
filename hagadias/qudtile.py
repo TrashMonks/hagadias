@@ -98,7 +98,9 @@ class QudTile:
             self.tilecolor_letter = raw_tilecolor
             self.transparentcolor = QUD_COLORS[raw_transparent]
         self.transparentcolor_letter = raw_transparent if raw_transparent != 'transparent' else None
-        if raw_detailcolor is None:
+        if not raw_detailcolor:
+            if raw_detailcolor == '':
+                logging.warning(f'Object "{self.qudname}" has empty DetailColor')
             self.detailcolor = QUD_COLORS['transparent']
             self.detailcolor_letter = None
         else:
