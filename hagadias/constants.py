@@ -189,10 +189,12 @@ CYBERNETICS_HARDCODED_POSTFIXES = {
 }
 
 HARDCODED_CHARGE_USE = {
-    'Neuro Animator': 5000
+    'Neuro Animator': 5000,
+    'Night-vision Goggles': 1
 }
 CHARGE_USE_REASONS = {
-    'Neuro Animator': 'Object Animation'
+    'Neuro Animator': 'Object Animation',
+    'Night-vision Goggles': 'Night Vision'
 }
 
 QUD_COLORS = {'r': (166, 74, 46),  # dark red

@@ -386,6 +386,9 @@ class QudObjectProps(QudObject):
         for part in self.all_attributes['part']:
             if part == 'ProgrammableRecoiler':
                 continue  # parts ignored or handled elsewhere
+            if part == 'Teleprojector':
+                return int(self.part_Teleprojector_InitialChargeUse) + \
+                    int(self.part_Teleprojector_MaintainChargeUse)
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
                 charge += int(chg)
@@ -402,6 +405,9 @@ class QudObjectProps(QudObject):
         for part in self.all_attributes['part']:
             if part == 'ProgrammableRecoiler':
                 continue  # parts ignored or handled elsewhere
+            if part == 'Teleprojector':
+                return f'Initiate Domination [{self.part_Teleprojector_InitialChargeUse}], ' + \
+                    f'Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]'
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
                 if part == 'StunOnHit':
