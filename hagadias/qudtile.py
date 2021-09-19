@@ -275,7 +275,18 @@ class StandInTiles:
         return None
 
     @staticmethod
-    def make_vortex_glyph(displaychar: str, color: str, trans: bool = False) -> PILImage:
+    def make_font_glyph(displaychar: str, color: str, trans: bool = False) -> PILImage:
+        """Creates a Source Code Pro character tile using the specified displaychar and color. For
+        example, can create glyphs used by the Space-Time Vortex effect.
+
+        Args:
+            displaychar: single character to render, such as '$'
+            color: qud color character for the font, such as 'R'
+            trans: Whether to use a transparent background. If false, a background of 'k' will be
+                   used. Note that if this glyph will be used to create a GIF, it must have trans
+                   set to False. The Pillow GIF library doesn't properly support partial alpha,
+                   which will be present in any font-based character tile created by this method.
+        """
         # draw large and then shrink with bicubic sampling to better imitate the in-game look
         image = Image.new('RGBA', (160, 240), color=QUD_COLORS['transparent' if trans else 'k'])
         draw = ImageDraw.Draw(image)
@@ -288,7 +299,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  §  character, which is used by SpaceTimeVortex
         animations. Also returns 'False' to indicate no further coloration is needed."""
         if StandInTiles._spacetime_vortex_glyph1 is None:
-            StandInTiles._spacetime_vortex_glyph1 = StandInTiles.make_vortex_glyph('§', 'W', True)
+            StandInTiles._spacetime_vortex_glyph1 = StandInTiles.make_font_glyph('§', 'W', True)
         return StandInTiles._spacetime_vortex_glyph1, False
 
     @staticmethod

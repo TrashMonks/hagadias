@@ -663,7 +663,7 @@ class TileAnimator:
         for _ in range(frame_count):
             color = random.choice(colors)
             glyph = random.choice(glyphs) if random.randint(0, 20) != 0 else '•'
-            generator = TileProvider(lambda: (StandInTiles.make_vortex_glyph(glyph, color), False))
+            generator = TileProvider(lambda: (StandInTiles.make_font_glyph(glyph, color), False))
             frames.append(QudTile.from_image_provider(generator, self.qud_object.name))
         self._make_gif(frames, [50] * frame_count)
 
