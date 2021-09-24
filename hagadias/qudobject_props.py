@@ -904,13 +904,17 @@ class QudObjectProps(QudObject):
         return dname
 
     @property
-    def dramsperuse(self) -> Union[int, None]:
+    def dramsperuse(self) -> Union[int, float, None]:
         """The number of drams of liquid consumed by each shot action."""
         if self.is_specified('part_LiquidAmmoLoader'):
             return 1  # LiquidAmmoLoader always uses 1 dram per action
         elif self.is_specified('part_BioAmmoLoader'):
-            return int_or_none(self.part_BioAmmoLoader_ConsumeAmount)
-        # TODO: calculate fractional value for blood-gradient hand vacuum
+            val = int_or_none(self.part_BioAmmoLoader_ConsumeAmount)
+            val = 1 if val is None else val
+            chance = float_or_none(self.part_BioAmmoLoader_ConsumeChance)
+            if chance is not None:
+                return chance / 100.0 * float(val)
+            return val
 
     @property
     def dv(self) -> Union[int, None]:
