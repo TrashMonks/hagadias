@@ -1221,6 +1221,15 @@ class QudObjectProps(QudObject):
             return 10000  # default IProgrammableRecoiler charge use
 
     @property
+    def inhaled(self) -> Union[str, None]:
+        """For gases, whether this gas is respiration-based."""
+        if self.part_Gas is not None:
+            if self.name in ['ConfusionGas', 'Miasma', 'MiasmaticAsh',
+                             'PoisonGas', 'SleepGas', 'StunGas']:
+                return 'yes'  # these are hard-coded
+            return 'no'
+
+    @property
     def inheritingfrom(self) -> Union[str, None]:
         """The ID of the parent object in the Qud object hierarchy.
 
@@ -1333,13 +1342,14 @@ class QudObjectProps(QudObject):
         return val
 
     @property
-    def liquidgen(self) -> Union[int, None]:
+    def liquidgenrate(self) -> Union[int, None]:
         """For liquid generators. how many turns it takes for 1 dram to generate."""
-        # TODO: is this correct?
-        return int_or_none(self.part_LiquidProducer_Rate)
+        if self.part_LiquidProducer:
+            amount_range = self.part_LiquidProducer_VariableRate
+            return amount_range if amount_range is not None else self.part_LiquidProducer_Rate
 
     @property
-    def liquidtype(self) -> Union[str, None]:
+    def liquidgentype(self) -> Union[str, None]:
         """For liquid generators, the type of liquid generated."""
         return self.part_LiquidProducer_Liquid
 
