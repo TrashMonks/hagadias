@@ -6,7 +6,7 @@ from typing import Union, Tuple, List
 from hagadias.character_codes import STAT_NAMES
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
-    CHARGE_USE_REASONS, EMPSENSITIVE_PARTS, STAT_DISPLAY_NAMES
+    CHARGE_USE_REASONS, EMPSENSITIVE_PARTS, STAT_DISPLAY_NAMES, BUTCHERABLE_POPTABLES
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
     str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
@@ -342,9 +342,19 @@ class QudObjectProps(QudObject):
         return self.part_Body_Anatomy
 
     @property
-    def butcheredinto(self) -> Union[str, None]:
+    def butcheredinto(self) -> Union[List[dict], None]:
         """What a corpse item can be butchered into."""
-        return self.part_Butcherable_OnSuccess
+        butcher_obj = self.part_Butcherable_OnSuccess
+        if butcher_obj:
+            if butcher_obj[:1] == '@':
+                if butcher_obj[1:] not in BUTCHERABLE_POPTABLES:
+                    print(f'FIXME: Butcherable poptable {butcher_obj} not recognized.')
+                else:
+                    outcomes = []
+                    for butcherable, info in BUTCHERABLE_POPTABLES[butcher_obj[1:]].items():
+                        outcomes.append({**{'Object': butcherable}, **info})
+                    return outcomes
+            return [{'Object': butcher_obj, 'Number': 1, 'Weight': 100}]
 
     @property
     def canbuild(self) -> Union[bool, None]:

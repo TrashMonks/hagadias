@@ -540,3 +540,76 @@ EMPSENSITIVE_PARTS = {'AccelerativeTeleporter': {'default': True},
                       'WalltrapFire': {'default': True},
                       'WalltrapGas': {'default': True},
                       'WalltrapShock': {'default': True}}
+
+# The 'Butcherable' part can contain a population tables reference if it begins with an '@' symbol.
+# One day, we could potentially replace this if we start loading data from PopulationTables.xml.
+BUTCHERABLE_POPTABLES = {
+    'Eyeless Crab Corpse': {
+        'Eyeless Crab Legs': {
+            'Number': 1,
+            'Weight': 95
+        },
+        'EyelessCrabShell': {
+            'Number': 1,
+            'Weight': 5
+        }
+    },
+    'Knollworm Corpse': {
+        'Raw Worm Meat': {
+            'Number': 1,
+            'Weight': 98
+        },
+        'Knollworm Skull': {
+            'Number': 1,
+            'Weight': 2
+        }
+    },
+    'Albino ape corpse': {
+        'Albino Ape Heart': {
+            'Number': 1,
+            'Weight': 10
+        },
+        'Ape Fur Cloak': {
+            'Number': 1,
+            'Weight': 20
+        },
+        'Albino Ape Pelt': {
+            'Number': 1,
+            'Weight': 70
+        }
+    },
+    'Ogre ape corpse': {
+        'Ogre Ape Heart': {
+            'Number': 1,
+            'Weight': 30
+        },
+        'Ogre Ape Pelt': {
+            'Number': 1,
+            'Weight': 70
+        }
+    },
+    'Salthopper Corpse': {
+        'Salthopper Chip': {
+            'Number': 1,
+            'Weight': 85
+        },
+        'SalthopperMandible': {
+            'Number': 1,
+            'Weight': 15
+        }
+    },
+    'Quartz Baboon Corpse': {
+        'Quartzfur Hat': {
+            'Number': 1,
+            'Weight': 20
+        },
+        'Quartzfur Cloak': {
+            'Number': 1,
+            'Weight': 20
+        },
+        'Quartzfur Gloves': {
+            'Number': 1,
+            'Weight': 20
+        }
+    }
+}
