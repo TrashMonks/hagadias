@@ -1852,6 +1852,11 @@ class QudObjectProps(QudObject):
                     return val
 
     @property
+    def supportedmods(self) -> Union[str, None]:
+        """The categories of mods that are supported by this item"""
+        return self.tag_Mods_Value
+
+    @property
     def swarmbonus(self) -> Union[int, None]:
         """The additional bonus that Swarmers receive."""
         return int_or_none(self.part_Swarmer_ExtraBonus)
