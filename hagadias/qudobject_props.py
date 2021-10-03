@@ -1087,6 +1087,11 @@ class QudObjectProps(QudObject):
             return True
 
     @property
+    def filtersgas(self) -> Union[bool, None]:
+        """Whether this object acts as a gas mask."""
+        return True if self.part_GasMask is not None else None
+
+    @property
     def faction(self) -> Union[list, None]:
         """The factions this creature has loyalty to.
 
