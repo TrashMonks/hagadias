@@ -797,6 +797,7 @@ class QudObjectProps(QudObject):
                         self.part_SaveModifier_ShowInShortDescription == 'true':
                     amt = self.part_SaveModifier_Amount
                     amt = '1' if amt is None else amt
+                    amt = amt if amt[:1] == '-' else f'+{amt}'
                     vs = self.part_SaveModifier_Vs
                     save_mod_str = f'{amt} on saves'
                     if vs is not None and vs != '':
