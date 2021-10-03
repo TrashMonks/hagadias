@@ -1862,7 +1862,9 @@ class QudObjectProps(QudObject):
     @property
     def supportedmods(self) -> Union[str, None]:
         """The categories of mods that are supported by this item"""
-        return self.tag_Mods_Value
+        val = self.tag_Mods_Value
+        if val is not None and val != 'None':
+            return val
 
     @property
     def swarmbonus(self) -> Union[int, None]:
