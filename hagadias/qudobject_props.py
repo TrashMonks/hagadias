@@ -1777,10 +1777,12 @@ class QudObjectProps(QudObject):
         return self.part_SaveModifier_Vs
 
     @property
-    def savemodifieramt(self) -> Union[int, None]:
+    def savemodifieramt(self) -> Union[str, None]:
         """returns amount of the save modifer."""
         if self.part_SaveModifier_Vs is not None:
-            return int_or_none(self.part_SaveModifier_Amount)
+            val = int_or_none(self.part_SaveModifier_Amount)
+            if val is not None:
+                return str(val) if val < 0 else f'+{val}'
 
     @property
     def seeping(self) -> Union[str, None]:
