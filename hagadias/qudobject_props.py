@@ -1811,6 +1811,11 @@ class QudObjectProps(QudObject):
         return int_or_none(self.part_MissileWeapon_ShotsPerAction)
 
     @property
+    def shrinelike(self) -> Union[bool, None]:
+        """Whether this object has the 'Shrine' part, which affects behavior such as descration."""
+        return True if self.part_Shrine is not None else None
+
+    @property
     def skills(self) -> Union[str, None]:
         """The skills that certain creatures have."""
         if self.skill is not None:
