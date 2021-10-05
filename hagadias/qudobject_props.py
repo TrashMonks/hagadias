@@ -762,6 +762,10 @@ class QudObjectProps(QudObject):
                 desc_extra.append('{{rules|On penetration, this weapon causes bleeding: '
                                   + f'{damage} damage per round, save difficulty {savetarget}'
                                   + '}}')
+            # ModGlassArmor
+            if self.part_ModGlassArmor_Tier is not None:
+                desc_extra.append('{{rules|' + f'Reflects {self.part_ModGlassArmor_Tier}% damage '
+                                  + 'back at your attackers, rounded up.}}')
             # shields
             if self.part_Shield is not None:
                 desc_extra.append('{{rules|Shields only grant their AV when you ' +
