@@ -191,12 +191,14 @@ CYBERNETICS_HARDCODED_POSTFIXES = {
 HARDCODED_CHARGE_USE = {
     'Neuro Animator': 5000,
     'Night-vision Goggles': 1,
-    'Displacer Bracelet': 1
+    'Displacer Bracelet': 1,
+    'Stopsvaalinn': 500,
 }
 CHARGE_USE_REASONS = {
     'Neuro Animator': 'Object Animation',
     'Night-vision Goggles': 'Night Vision',
-    'Displacer Bracelet': 'SpatialTransposer'
+    'Displacer Bracelet': 'SpatialTransposer',
+    'Stopsvaalinn': 'ForceEmitter',
 }
 
 QUD_COLORS = {'r': (166, 74, 46),  # dark red
