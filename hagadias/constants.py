@@ -190,6 +190,7 @@ CYBERNETICS_HARDCODED_POSTFIXES = {
 
 HARDCODED_CHARGE_USE = {
     'Displacer Bracelet': 1,
+    'Force Bracelet': 500,
     'Neuro Animator': 5000,
     'Night-vision Goggles': 1,
     'Ninefold Boots': 250,
@@ -197,6 +198,7 @@ HARDCODED_CHARGE_USE = {
 }
 CHARGE_USE_REASONS = {
     'Displacer Bracelet': 'SpatialTransposer',
+    'Force Bracelet': 'ForceEmitter',
     'Neuro Animator': 'Object Animation',
     'Night-vision Goggles': 'Night Vision',
     'Ninefold Boots': 'Accelerative Teleporter',
