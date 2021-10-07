@@ -2009,14 +2009,14 @@ class QudObjectProps(QudObject):
             return False
 
     @property
-    def unknowntile(self) -> Union[str, None]:
+    def unidentifiedimage(self) -> Union[str, None]:
         """The filename of the object's 'unidentified' tile variant."""
         meta = self.unidentified_metadata()
         if meta is not None:
             return meta.filename
 
     @property
-    def unknownname(self) -> Union[str, None]:
+    def unidentifiedname(self) -> Union[str, None]:
         """The name of the object when unidentified, such as 'weird artifact'."""
         complexity = self.complexity
         if complexity is not None and complexity > 0:
@@ -2028,7 +2028,7 @@ class QudObjectProps(QudObject):
                     return unknown_name
 
     @property
-    def unknownaltname(self) -> Union[str, None]:
+    def unidentifiedaltname(self) -> Union[str, None]:
         """The name of the object when partially identified, such as 'backpack'."""
         complexity = self.complexity
         if complexity is not None and complexity > 0:
