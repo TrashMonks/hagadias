@@ -264,288 +264,1133 @@ STAT_DISPLAY_NAMES = {'AcidResistance': 'acid resistance',
                       'MoveSpeed': 'move speed',
                       'Speed': 'quickness'}
 
-# The following includes all descending from IActivePart, which defines the IsEMPSensitive field.
-# This list is accurate as of patch 202.79. There are also a few more parts that are special cases.
-EMPSENSITIVE_PARTS = {'AccelerativeTeleporter': {'default': True},
-                      'ActiveLightSource': {'default': False},
-                      'AddsMutationOnEquip': {'default': False},
-                      'AddsRep': {'default': False},
-                      'AdjustSpecialEffectChances': {'default': True},
-                      'AilingQuickness': {'default': False},
-                      'AloePorta': {'default': False},
-                      'AmbientCollector': {'default': True},
-                      'AnimateObject': {'default': True},
-                      'ArtifactDetection': {'default': False},
-                      'ArtificialIntelligence': {'default': True},
-                      'AutomatedExternalDefibrillator': {'default': True},
-                      'Banner': {'default': False},
-                      'Bed': {'default': False},
-                      'BioAmmoLoader': {'default': False},
-                      'BleedingOnHit': {'default': False},
-                      'BootSequence': {'default': True},
-                      'BroadcastPowerReceiver': {'default': True},
-                      'BroadcastPowerTransmitter': {'default': True},
-                      'BurnMe': {'default': False},
-                      'Campfire': {'default': False},
-                      'CannotBeInfluenced': {'default': False},
-                      'Capacitor': {'default': True},
-                      'CardiacArrestOnHit': {'default': False},
-                      'CatacombsExitTeleporter': {'default': True},
-                      'Chair': {'default': False},
-                      'ChargeSink': {'default': True},
-                      'Circuitry': {'default': True},
-                      'Clockwork': {'default': False},
-                      'CompanionCapacity': {'default': False},
-                      'ComputeNode': {'default': True},
-                      'CrossFlameOnStep': {'default': False},
-                      'Cursed': {'default': False},
-                      'CyberneticsAutomatedInternalDefibrillator': {'default': True},
-                      'CyberneticsBiodynamicPowerPlant': {'default': True},
-                      'CyberneticsEffectSuppressor': {'default': False},
-                      'CyberneticsMedassistModule': {'default': True},
-                      'CyberneticsMicromanipulatorArray': {'default': True},
-                      'CyberneticsOnboardRecoilerImprinting': {'default': True},
-                      'CyberneticsOnboardRecoilerTeleporter': {'default': True},
-                      'CyberneticsPenetratingRadar': {'default': True},
-                      'DamageContents': {'default': True},
-                      'DecoyHologramEmitter': {'default': True},
-                      'DeploymentMaintainer': {'default': True},
-                      'DepositCorpses': {'default': False},
-                      'DestroyMe': {'default': False},
-                      'DiggingTool': {'default': False},
-                      'DischargeOnHit': {'default': False},
-                      'DischargeOnStep': {'default': False},
-                      'DismemberAdjacentHostiles': {'default': True},
-                      'Displacement': {'default': False},
-                      'Displacer': {'default': True},
-                      'Drill': {'default': True},
-                      'DrinkMagnifier': {'default': False},
-                      'ElectricalDischargeLoader': {'default': True},
-                      'ElectricalPowerTransmission': {'default': True},
-                      'ElementalDamage': {'default': False},
-                      'EmergencyTeleporter': {'default': True},
-                      'EmitGasOnHit': {'default': False},
-                      'Enclosing': {'default': False},
-                      'EnergyAmmoLoader': {'default': True},
-                      'EnergyCell': {'default': True},
-                      'EnergyCellSocket': {'default': True},
-                      'Engulfing': {'default': False},
-                      'EquipCharge': {'default': False},
-                      'EquipIntProperties': {'default': False},
-                      'EquipStatBoost': {'default': False},
-                      'FabricateFromSelf': {'default': False},
-                      'Fan': {'default': True},
-                      'FeelingOnTarget': {'default': False},
-                      'FireSuppressionSystem': {'default': True},
-                      'FlareCompensation': {'default': False},
-                      'Flywheel': {'default': False},
-                      'FoliageCamouflage': {'default': False},
-                      'FollowersGetTeleport': {'default': True},
-                      'FoodProcessor': {'default': True},
-                      'ForceEmitter': {'default': True},
-                      'ForceProjector': {'default': True},
-                      'FugueOnStep': {'default': False},
-                      'FungalFortitude': {'default': False},
-                      'FusionReactor': {'default': True},
-                      'Gaslight': {'default': True},
-                      'GasTumbler': {'default': True},
-                      'GenericPowerTransmission': {'default': True},
-                      'GenericTerminal': {'default': True},
-                      'GlimmerAlteration': {'default': True},
-                      'GrandfatherHorn': {'default': False},
-                      'GritGateMainframeTerminal': {'default': True},
-                      'GroundOnHit': {'default': True},
-                      'HighBitBonus': {'default': False},
-                      'HologramMaterialPrimary': {'default': True},
-                      'HUD': {'default': True},
-                      'HydraulicPowerTransmission': {'default': False},
-                      'HydroTurbine': {'default': True},
-                      'InductionCharger': {'default': True},
-                      'InductionChargeReceiver': {'default': True},
-                      'IntegralRecharger': {'default': True},
-                      'IntegratedPowerSystems': {'default': True},
-                      'IntPropertyChanger': {'default': True},
-                      'ItemElements': {'default': False},
-                      'LatchesOn': {'default': False},
-                      'LeaksFluid': {'default': False},
-                      'LifeSaver': {'default': True},
-                      'LiquidAmmoLoader': {'default': False},
-                      'LiquidFueledEnergyCell': {'default': True},
-                      'LiquidFueledPowerPlant': {'default': False},
-                      'LiquidProducer': {'default': False},
-                      'LiquidPump': {'default': True},
-                      'LiquidRepellent': {'default': False},
-                      'LowStatBooster': {'default': True},
-                      'MagazineAmmoLoader': {'default': False},
-                      'MechanicalPowerTransmission': {'default': False},
-                      'MechanicalWings': {'default': False},
-                      'MentalScreen': {'default': True},
-                      'Mill': {'default': True},
-                      'MissilePerformance': {'default': False},
-                      'ModAirfoil': {'default': False},
-                      'ModAntiGravity': {'default': True},
-                      'ModBeamsplitter': {'default': False},
-                      'ModBeetlehost': {'default': True},
-                      'ModBlinkEscape': {'default': True},
-                      'ModCleated': {'default': False},
-                      'ModColossal': {'default': False},
-                      'ModCoProcessor': {'default': True},
-                      'ModCounterweighted': {'default': False},
-                      'ModDesecrated': {'default': False},
-                      'ModDisguise': {'default': False},
-                      'ModDisplacer': {'default': True},
-                      'ModDrumLoaded': {'default': False},
-                      'ModElectrified': {'default': True},
-                      'ModEngraved': {'default': False},
-                      'ModExtradimensional': {'default': False},
-                      'ModFactionSlayer': {'default': False},
-                      'ModFatecaller': {'default': False},
-                      'ModFeathered': {'default': False},
-                      'ModFeatherweight': {'default': False},
-                      'ModFilters': {'default': False},
-                      'ModFlaming': {'default': True},
-                      'ModFlareCompensating': {'default': True},
-                      'ModFlexiweaved': {'default': False},
-                      'ModFreezing': {'default': True},
-                      'ModGearbox': {'default': False},
-                      'ModGesticulating': {'default': False},
-                      'ModGlassArmor': {'default': False},
-                      'ModGlazed': {'default': False},
-                      'ModHardened': {'default': False},
-                      'ModHeatSeeking': {'default': False},
-                      'ModHighCapacity': {'default': False},
-                      'ModHorrifying': {'default': False},
-                      'ModHUD': {'default': False},
-                      'ModIlluminated': {'default': False},
-                      'ModImprovedBerserk': {'default': False},
-                      'ModImprovedBlock': {'default': False},
-                      'ModImprovedBludgeon': {'default': False},
-                      'ModImprovedHobble': {'default': False},
-                      'ModImprovedWindmillStance': {'default': False},
-                      'ModInduction': {'default': False},
-                      'ModJacked': {'default': False},
-                      'ModJewelEncrusted': {'default': False},
-                      'ModLacquered': {'default': False},
-                      'ModLanterned': {'default': False},
-                      'ModLight': {'default': False},
-                      'ModLiquidCooled': {'default': False},
-                      'ModMagnetized': {'default': True},
-                      'ModMasterwork': {'default': False},
-                      'ModMercurial': {'default': True},
-                      'ModMetallized': {'default': False},
-                      'ModMetered': {'default': False},
-                      'ModMighty': {'default': False},
-                      'ModMorphogenetic': {'default': True},
-                      'ModNanochelated': {'default': False},
-                      'ModNanon': {'default': False},
-                      'ModNav': {'default': True},
-                      'ModNormalizing': {'default': False},
-                      'ModOverloaded': {'default': True},
-                      'ModPadded': {'default': False},
-                      'ModPainted': {'default': False},
-                      'ModPhaseConjugate': {'default': False},
-                      'ModPhaseHarmonic': {'default': False},
-                      'ModPiping': {'default': False},
-                      'ModPolarized': {'default': False},
-                      'ModPsionic': {'default': False},
-                      'ModRadioPowered': {'default': False},
-                      'ModRazored': {'default': False},
-                      'ModRecycling': {'default': False},
-                      'ModRefractive': {'default': False},
-                      'ModReinforced': {'default': False},
-                      'ModRelicFreezing': {'default': True},
-                      'ModScaled': {'default': False},
-                      'ModScoped': {'default': False},
-                      'ModSerene': {'default': False},
-                      'ModSharp': {'default': False},
-                      'ModSirocco': {'default': False},
-                      'ModSixFingered': {'default': False},
-                      'ModSmart': {'default': False},
-                      'ModSnailEncrusted': {'default': False},
-                      'ModSpiked': {'default': False},
-                      'ModSpringLoaded': {'default': False},
-                      'ModSturdy': {'default': False},
-                      'ModSuspensor': {'default': True},
-                      'ModTimereaver': {'default': True},
-                      'ModTransmuteOnHit': {'default': False},
-                      'ModTwoFaced': {'default': False},
-                      'ModVisored': {'default': False},
-                      'ModWallSocket': {'default': False},
-                      'ModWeightless': {'default': False},
-                      'ModWired': {'default': False},
-                      'ModWooly': {'default': False},
-                      'MultiIntPropertyChanger': {'default': True},
-                      'MultiNavigationBonus': {'default': True},
-                      'NavigationBonus': {'default': True},
-                      'NightSightInterpolators': {'default': True},
-                      'NightVision': {'default': True},
-                      'NoKnockdown': {'default': False},
-                      'PartsGas': {'default': True},
-                      'PetPhylactery': {'default': True},
-                      'PointDefense': {'default': True},
-                      'Pounder': {'default': False},
-                      'PowerCord': {'default': True},
-                      'PoweredFloating': {'default': True},
-                      'PowerOutlet': {'default': True},
-                      'PowerSwitch': {'default': False},
-                      'ProgrammableRecoiler': {'default': True},
-                      'PsychicMeridian': {'default': False},
-                      'RadiusEventSender': {'default': True},
-                      'RealityStabilization': {'default': True},
-                      'RealityStabilizeOnHit': {'default': True},
-                      'ReclamationCist': {'default': True},
-                      'RecoilOnDeath': {'default': False},
-                      'ReduceCooldowns': {'default': True},
-                      'ReduceEnergyCosts': {'default': True},
-                      'ReflectProjectiles': {'default': True},
-                      'RemotePowerSwitch': {'default': True},
-                      'RequiresPowerToEquip': {'default': True},
-                      'RespondToEvent': {'default': True},
-                      'RocketSkates': {'default': False},
-                      'SapChargeOnHit': {'default': False},
-                      'SaveModifier': {'default': False},
-                      'SaveModifiers': {'default': False},
-                      'SlipRing': {'default': False},
-                      'SlottedCellCharger': {'default': True},
-                      'Smartgun': {'default': True},
-                      'SolarArray': {'default': True},
-                      'Stopsvaalinn': {'default': True},
-                      'StrideMason': {'default': True},
-                      'StunOnHit': {'default': True},
-                      'Suspensor': {'default': True},
-                      'SwapOnHit': {'default': False},
-                      'TattooGun': {'default': False},
-                      'Teleporter': {'default': True},
-                      'TeleporterPair': {'default': True},
-                      'TemperatureAdjuster': {'default': True},
-                      'TemplarPhylactery': {'default': True},
-                      'ThermalAmp': {'default': True},
-                      'Toolbox': {'default': True},
-                      'UniversalCharger': {'default': True},
-                      'UrbanCamouflage': {'default': False},
-                      'VampiricWeapon': {'default': False},
-                      'VibroWeapon': {'default': True},
-                      'Waldopack': {'default': True},
-                      'WaterRitualDiscount': {'default': False},
-                      'WindTurbine': {'default': True},
-                      'Windup': {'default': False},
-                      'ZeroPointEnergyCollector': {'default': True},
-                      'ZoneAdjust': {'default': True},
-                      # Special cases (not descending from IActivePart):
-                      'ConveyorBelt': {'default': True},
-                      'ConveyorPad': {'default': True},
-                      'CryochamberWall': {'default': True},
-                      'CyberneticsNightVision': {'default': True},
-                      'GeomagneticDisc': {'default': True},
-                      'MagnetizedApplicator': {'default': True},
-                      'Robot': {'default': True},
-                      'Tinkering_Mine': {'default': True},
-                      'WalltrapAcid': {'default': True},
-                      'WalltrapClockworkBeetles': {'default': True},
-                      'WalltrapCrabs': {'default': True},
-                      'WalltrapFire': {'default': True},
-                      'WalltrapGas': {'default': True},
-                      'WalltrapShock': {'default': True}}
+# The following includes all parts descending from IActivePart, which defines the IsEMPSensitive and
+# PowerLoadSensitive fields. This holds the hard-coded defaults. These can be overridden in the XML.
+# This list is accurate as of patch 202.84. There are also a few special cases not descending from
+# IActivePart, called out with a comment near the bottom of the dictionary.
+ACTIVE_PARTS = {
+    'AccelerativeTeleporter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ActiveLightSource': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': True
+    },
+    'AddsMutationOnEquip': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'AddsRep': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'AdjustSpecialEffectChances': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'AilingQuickness': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'AloePorta': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'AmbientCollector': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'AnimateObject': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ArtifactDetection': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ArtificialIntelligence': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'AutomatedExternalDefibrillator': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Banner': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Bed': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'BioAmmoLoader': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'BleedingOnHit': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'BootSequence': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'BroadcastPowerReceiver': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'BroadcastPowerTransmitter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'BurnMe': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Campfire': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'CannotBeInfluenced': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Capacitor': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CardiacArrestOnHit': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'CatacombsExitTeleporter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Chair': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ChargeSink': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Circuitry': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Clockwork': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'CompanionCapacity': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ComputeNode': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'CrossFlameOnStep': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Cursed': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsAutomatedInternalDefibrillator': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsBiodynamicPowerPlant': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsEffectSuppressor': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsMedassistModule': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsMicromanipulatorArray': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsOnboardRecoilerImprinting': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsOnboardRecoilerTeleporter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsPenetratingRadar': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'DamageContents': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'DecoyHologramEmitter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'DeploymentMaintainer': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'DepositCorpses': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'DestroyMe': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'DiggingTool': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'DischargeOnHit': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'DischargeOnStep': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'DismemberAdjacentHostiles': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'Displacement': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Displacer': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'Drill': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'DrinkMagnifier': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ElectricalDischargeLoader': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ElectricalPowerTransmission': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ElementalDamage': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'EmergencyTeleporter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'EmitGasOnHit': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Enclosing': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'EnergyAmmoLoader': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'EnergyCell': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'EnergyCellSocket': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Engulfing': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'EquipCharge': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'EquipIntProperties': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'EquipStatBoost': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'FabricateFromSelf': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Fan': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'FeelingOnTarget': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'FireSuppressionSystem': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'FlareCompensation': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Flywheel': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'FoliageCamouflage': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'FollowersGetTeleport': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'FoodProcessor': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ForceEmitter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ForceProjector': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'FugueOnStep': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'FungalFortitude': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'FusionReactor': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Gaslight': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'GasTumbler': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'GenericPowerTransmission': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'GenericTerminal': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'GlimmerAlteration': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'GrandfatherHorn': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'GritGateMainframeTerminal': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'GroundOnHit': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'HighBitBonus': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'HologramMaterialPrimary': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'HUD': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'HydraulicPowerTransmission': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'HydroTurbine': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'InductionCharger': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'InductionChargeReceiver': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'IntegralRecharger': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'IntegratedPowerSystems': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'IntPropertyChanger': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ItemElements': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'LatchesOn': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'LeaksFluid': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'LifeSaver': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'LiquidAmmoLoader': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'LiquidFueledEnergyCell': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'LiquidFueledPowerPlant': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'LiquidProducer': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'LiquidPump': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'LiquidRepellent': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'LowStatBooster': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'MagazineAmmoLoader': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'MechanicalPowerTransmission': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'MechanicalWings': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'MentalScreen': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Mill': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'MissilePerformance': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModAirfoil': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModAntiGravity': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModBeamsplitter': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModBeetlehost': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModBlinkEscape': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModCleated': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModColossal': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModCoProcessor': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ModCounterweighted': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModDesecrated': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModDisguise': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModDisplacer': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ModDrumLoaded': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModElectrified': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ModEngraved': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModExtradimensional': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFactionSlayer': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFatecaller': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFeathered': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFeatherweight': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFilters': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFlaming': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ModFlareCompensating': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFlexiweaved': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModFreezing': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ModGearbox': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModGesticulating': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModGlassArmor': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModGlazed': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModHardened': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModHeatSeeking': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModHighCapacity': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModHorrifying': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModHUD': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModIlluminated': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModImprovedBerserk': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModImprovedBlock': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModImprovedBludgeon': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModImprovedHobble': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModImprovedWindmillStance': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModInduction': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModJacked': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModJewelEncrusted': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModLacquered': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModLanterned': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModLight': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModLiquidCooled': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModMagnetized': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModMasterwork': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModMercurial': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModMetallized': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModMetered': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModMighty': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModMorphogenetic': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ModNanochelated': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModNanon': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': True
+    },
+    'ModNav': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModNormalizing': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': True
+    },
+    'ModOverloaded': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModPadded': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModPainted': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModPhaseConjugate': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModPhaseHarmonic': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModPiping': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModPolarized': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModPsionic': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModRadioPowered': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModRazored': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModRecycling': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModRefractive': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModReinforced': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModRelicFreezing': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ModScaled': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModScoped': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSerene': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSharp': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSirocco': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSixFingered': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSmart': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSnailEncrusted': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSpiked': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSpringLoaded': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSturdy': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModSuspensor': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModTimereaver': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ModTransmuteOnHit': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModTwoFaced': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModVisored': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModWallSocket': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModWeightless': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModWired': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ModWooly': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'MultiIntPropertyChanger': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'MultiNavigationBonus': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'NavigationBonus': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'NightSightInterpolators': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'NightVision': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'NoKnockdown': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'PartsGas': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'PetPhylactery': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'PointDefense': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'Pounder': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'PowerCord': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'PoweredFloating': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'PowerOutlet': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'PowerSwitch': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ProgrammableRecoiler': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'PsychicMeridian': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'RadiusEventSender': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'RealityStabilization': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'RealityStabilizeOnHit': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'ReclamationCist': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'RecoilOnDeath': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ReduceCooldowns': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ReduceEnergyCosts': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ReflectProjectiles': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'RemotePowerSwitch': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'RequiresPowerToEquip': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'RespondToEvent': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'RocketSkates': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'SapChargeOnHit': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'SaveModifier': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'SaveModifiers': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'SlipRing': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': True
+    },
+    'SlottedCellCharger': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Smartgun': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'SolarArray': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Stopsvaalinn': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'StrideMason': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'StunOnHit': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'Suspensor': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'SwapOnHit': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'TattooGun': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'Teleporter': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'TeleporterPair': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'TemperatureAdjuster': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'TemplarPhylactery': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ThermalAmp': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Toolbox': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'UniversalCharger': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'UrbanCamouflage': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'VampiricWeapon': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'VibroWeapon': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Waldopack': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'WaterRitualDiscount': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'WindTurbine': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Windup': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': False
+    },
+    'ZeroPointEnergyCollector': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ZoneAdjust': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+
+    # Special cases (not descending from IActivePart):
+    'ConveyorBelt': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'ConveyorPad': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CryochamberWall': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'CyberneticsNightVision': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'GeomagneticDisc': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': True
+    },
+    'MagnetizedApplicator': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Robot': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'Teleprojector': {
+        'IsEMPSensitive': False,
+        'IsPowerLoadSensitive': True
+    },
+    'Tinkering_Mine': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'WalltrapAcid': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'WalltrapClockworkBeetles': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'WalltrapCrabs': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'WalltrapFire': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'WalltrapGas': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    },
+    'WalltrapShock': {
+        'IsEMPSensitive': True,
+        'IsPowerLoadSensitive': False
+    }}
 
 # The 'Butcherable' part can contain a population tables reference if it begins with an '@' symbol.
 # One day, we could potentially replace this if we start loading data from PopulationTables.xml.

@@ -6,7 +6,7 @@ from typing import Union, Tuple, List
 from hagadias.character_codes import STAT_NAMES
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
-    CHARGE_USE_REASONS, EMPSENSITIVE_PARTS, STAT_DISPLAY_NAMES, BUTCHERABLE_POPTABLES
+    CHARGE_USE_REASONS, ACTIVE_PARTS, STAT_DISPLAY_NAMES, BUTCHERABLE_POPTABLES
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
     str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
@@ -1071,10 +1071,10 @@ class QudObjectProps(QudObject):
             emp_sensitive = None
             # object is emp sensitive if any single part on the object is emp sensitive:
             for partname, partattribs in all_parts.items():
-                if partname in EMPSENSITIVE_PARTS:
+                if partname in ACTIVE_PARTS:
                     if partname == 'ModHardened':
                         return None  # ModHardened overrides anything else, so we return early
-                    if partattribs.get('IsEMPSensitive', EMPSENSITIVE_PARTS[partname]['default']):
+                    if partattribs.get('IsEMPSensitive', ACTIVE_PARTS[partname]['IsEMPSensitive']):
                         emp_sensitive = True
             return emp_sensitive
 
@@ -1624,6 +1624,19 @@ class QudObjectProps(QudObject):
             duration = duration if duration is not None else '6-9'
             return f'{pct}% to poison on hit, toughness save {save}.' + \
                    f' {dmg} damage for {duration} turns.'
+
+    @property
+    def powerloadsensitive(self) -> Union[bool, None]:
+        """Returns yes if the object is power load sensitive. This means that the object can support
+        the overloaded item mod."""
+        all_parts = getattr(self, 'part')
+        if all_parts is not None:
+            # object is powerload sensitive if any single part on the object is powerload sensitive:
+            for partname, partattribs in all_parts.items():
+                if partname in ACTIVE_PARTS:
+                    if partattribs.get('IsPowerLoadSensitive',
+                                       ACTIVE_PARTS[partname]['IsPowerLoadSensitive']):
+                        return True
 
     @property
     def preservedinto(self) -> Union[str, None]:
