@@ -762,10 +762,31 @@ class QudObjectProps(QudObject):
                 desc_extra.append('{{rules|On penetration, this weapon causes bleeding: '
                                   + f'{damage} damage per round, save difficulty {savetarget}'
                                   + '}}')
-            # ModGlassArmor
+            # light-related effects
             if self.part_ModGlassArmor_Tier is not None:
                 desc_extra.append('{{rules|' + f'Reflects {self.part_ModGlassArmor_Tier}% damage '
                                   + 'back at your attackers, rounded up.}}')
+            if self.part_FlareCompensation is not None:
+                shouldshow = self.part_FlareCompensation_ShowInShortDescription
+                if shouldshow is None or shouldshow.lower() == 'true':
+                    desc_extra.append('{{rules|Offers protection against visual flash effects.}}')
+            if self.part_RefractLight is not None:
+                shouldshow = self.part_RefractLight_ShowInShortDescription
+                if shouldshow.lower() == 'true':
+                    chance = int_or_default(self.part_RefractLight_Chance)
+                    variance = self.part_RefractLight_RetroVariance
+                    txt = f'Has a {chance}% chance to refract light-based attacks, sending them '
+                    if variance is None:
+                        txt += 'in a random direction.'
+                    else:
+                        dice = DiceBag(variance)
+                        dmin = dice.minimum()
+                        dmax = dice.maximum()
+                        if dmin == 0 and dmax == 0:
+                            txt += 'back the way they came.'
+                        else:
+                            txt += f'back the way they came, plus or minus up to {dmax} degrees.'
+                    desc_extra.append('{{rules|' + txt + '}}')
             # shields
             if self.part_Shield is not None:
                 desc_extra.append('{{rules|Shields only grant their AV when you ' +
@@ -1122,6 +1143,12 @@ class QudObjectProps(QudObject):
         """The temperature that this object sets on fire. Only for items."""
         if self.inherits_from('Item') and self.is_specified('part_Physics'):
             return int_or_none(self.part_Physics_FlameTemperature)
+
+    @property
+    def flashprotection(self) -> Union[bool, None]:
+        """True if this item offers protection against visual flash effects."""
+        if self.part_FlareCompensation is not None or self.part_ModPolarized is not None:
+            return True
 
     @property
     def flyover(self) -> Union[bool, None]:
@@ -1745,6 +1772,12 @@ class QudObjectProps(QudObject):
     def reflect(self) -> Union[int, None]:
         """If it reflects, what percentage of damage is reflected."""
         return int_or_none(self.part_ModGlassArmor_Tier)
+
+    @property
+    def refractive(self) -> Union[bool, None]:
+        """True if this object or creature refracts light."""
+        if self.part_RefractLight is not None or self.part_ModRefractive is not None:
+            return True
 
     @property
     def renderstr(self) -> Union[str, None]:
