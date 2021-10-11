@@ -1,23 +1,18 @@
 [[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-
-[dev-packages]
-flake8 = "*"
-pre-commit = "*"
-pytest = "*"
-coverage = "*"
+name = "pypi"
 
 [packages]
 anytree = "*"
-pillow = "*"
 pefile = "*"
-flake8 = "==3.8.4"
+pillow = "*"
+
+[dev-packages]
+coverage = "*"
+flake8 = "*"
+pre-commit = "*"
+pytest = "*"
 
 [requires]
-python_version = "3.8"
-
-[scripts]
-lint = "python -m flake8"
-test = "python -m pytest"
+python_version = "3.10"
