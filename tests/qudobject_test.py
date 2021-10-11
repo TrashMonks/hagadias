@@ -2,16 +2,16 @@
 
 The qindex fixture is supplied by tests/conftest.py."""
 
-from hagadias.qudtile import QudTile
+from hagadias import qudtile
 
 
 def test_tile(qindex):
     obj = qindex['Young Ivory']
-    assert isinstance(obj.tile, QudTile)
+    assert isinstance(obj.tile, qudtile.QudTile)
     # This tile exists in the game but its texture file is not included with hagadias
     # This test is to ensure exceptions from missing files do not raise
     obj = qindex['Glowfish']
-    assert obj.tile is None
+    assert obj.tile.image is qudtile.blank_image
 
 
 def test_ui_inheritance_path(qindex):
