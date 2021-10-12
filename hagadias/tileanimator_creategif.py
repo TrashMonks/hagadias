@@ -6,7 +6,7 @@
 # using PIL.Image.save(). This code works around the issue and allows us to properly generate
 # transparent GIFs.
 
-from typing import Tuple, List, Union
+from typing import Tuple, List
 from collections import defaultdict
 from random import randrange
 from itertools import chain
@@ -113,8 +113,7 @@ class TransparentAnimatedGifConverter(object):
         return self._img_p
 
 
-def _create_animated_gif(images: List[Image], durations: Union[int, List[int]]) \
-        -> Tuple[Image, dict]:
+def _create_animated_gif(images: List[Image], durations: int | List[int]) -> Tuple[Image, dict]:
     """If the image is a GIF, create an its thumbnail here."""
     save_kwargs = dict()
     new_images: List[Image] = []
@@ -139,7 +138,7 @@ def _create_animated_gif(images: List[Image], durations: Union[int, List[int]]) 
     return output_image, save_kwargs
 
 
-def save_transparent_gif(images: List[Image], durations: Union[int, List[int]], save_file):
+def save_transparent_gif(images: List[Image], durations: int | List[int], save_file):
     """Creates a transparent GIF, adjusting to avoid transparency issues that are present in the
     PIL library.
 

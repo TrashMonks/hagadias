@@ -1,5 +1,5 @@
 import os
-from typing import List, Union, Optional, Tuple, Callable
+from typing import List, Optional, Tuple, Callable
 
 from PIL import Image, ImageDraw
 
@@ -56,7 +56,7 @@ class TilePainter:
 
             self.prefab_imitator = TilePrefabImitator.get_fake_prefab_for(obj)
 
-    def tile(self, tile_index: int = 0) -> Union[QudTile, None]:
+    def tile(self, tile_index: int = 0) -> QudTile | None:
         """Retrieves the painted QudTile for this object. If an index is supplied for an object that
         has multiple tiles, returns the alternate tile at the specified index."""
         if tile_index >= len(self._tiles):
@@ -376,7 +376,7 @@ class TilePainterMetadata:
         return self._filename_noextension() + '.png'
 
     @property
-    def gif_filename(self) -> Union[str, None]:
+    def gif_filename(self) -> str | None:
         """The recommended filename for this tile's GIF."""
         if not self.is_animated():
             return None

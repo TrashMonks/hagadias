@@ -1,7 +1,7 @@
 import logging
 import random
 from io import BytesIO
-from typing import List, Callable, Union
+from typing import List, Callable
 from PIL import Image, ImageSequence
 
 from hagadias.helpers import lowest_common_multiple, extract_foreground_char, \
@@ -31,7 +31,7 @@ class TileAnimator:
         can inexpensively instantiate a TileAnimator simply to check the .has_gif() property for a
         particular QudObject."""
         self.qud_object = qud_object
-        self.qud_tile: Union[QudTile, None] = qud_tile
+        self.qud_tile: QudTile | None = qud_tile
         self._gif_image = None
 
     @property

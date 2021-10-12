@@ -5,7 +5,7 @@ import os
 import random
 import re
 from math import gcd
-from typing import Iterator, List, Tuple, Union, Optional
+from typing import Iterator, List, Tuple, Optional
 
 import pefile
 
@@ -72,7 +72,7 @@ def int_or_default(value, default=0) -> int:
     return value
 
 
-def int_or_none(value) -> Union[int, None]:
+def int_or_none(value) -> int | None:
     """Return the result of int(value), or else None if value is None or is not an int."""
     if value is not None:
         try:
@@ -93,7 +93,7 @@ def float_or_default(value, default=0.0) -> float:
     return value
 
 
-def float_or_none(value) -> Union[float, None]:
+def float_or_none(value) -> float | None:
     """Return the result of float(value), or else None if value is None or is not a float."""
     if value is not None:
         try:
@@ -351,7 +351,7 @@ def strip_oldstyle_qud_colors(text: str) -> str:
     return re.sub('&[rRwWcCbBgGmMyYkKoO]', '', text)
 
 
-def extract_color(colorstr: str, prefix_symbol: str) -> Union[str, None]:
+def extract_color(colorstr: str, prefix_symbol: str) -> str | None:
     """Generic function to extract a color codes and its prefixing symbol."""
     c = None
     if colorstr is not None and prefix_symbol in colorstr:
@@ -361,25 +361,25 @@ def extract_color(colorstr: str, prefix_symbol: str) -> Union[str, None]:
     return c
 
 
-def extract_background_color(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+def extract_background_color(colorstr: str, default: Optional[str] = None) -> str | None:
     """Extracts background (^) color from a colorstring, including both caret and color char."""
     bg = extract_color(colorstr, '^')
     return default if bg is None else bg
 
 
-def extract_background_char(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+def extract_background_char(colorstr: str, default: Optional[str] = None) -> str | None:
     """Extracts background (^) color from a colorstring, returning only the color char."""
     bg = extract_background_color(colorstr, f'^{default}')
     return None if bg is None else bg[1]
 
 
-def extract_foreground_color(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+def extract_foreground_color(colorstr: str, default: Optional[str] = None) -> str | None:
     """Extracts foreground (&) color from a colorstring, including both ampersand and color char."""
     fg = extract_color(colorstr, '&')
     return default if fg is None else fg
 
 
-def extract_foreground_char(colorstr: str, default: Optional[str] = None) -> Union[str, None]:
+def extract_foreground_char(colorstr: str, default: Optional[str] = None) -> str | None:
     """Extracts foreground (&) color from a colorstring, returning only the color char."""
     fg = extract_foreground_color(colorstr, f'&{default}')
     return None if fg is None else fg[1]

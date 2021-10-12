@@ -1,7 +1,7 @@
 """attr specification:
 QudObject.part_name_attribute"""
 from copy import deepcopy
-from typing import Tuple, Union, List
+from typing import Tuple, List
 
 from anytree import NodeMixin
 
@@ -181,7 +181,7 @@ class QudObject(NodeMixin):
         """Returns true if this object qualifies for GIF rendering."""
         return TileAnimator(self).has_gif
 
-    def unidentified_tile_and_metadata(self) -> Union[Tuple, None]:
+    def unidentified_tile_and_metadata(self) -> Tuple | None:
         if self.part_Examiner is not None:
             if self.number_of_tiles() > 1:
                 tiles, metadata = self.tiles_and_metadata()
@@ -290,7 +290,7 @@ class QudObject(NodeMixin):
             return False
         return True
 
-    def __getattr__(self, attr) -> Union[str, None]:
+    def __getattr__(self, attr) -> str | None:
         """Implemented to get explicit or inherited tags from the Qud object tree.
 
         These virtual attributes take the form
