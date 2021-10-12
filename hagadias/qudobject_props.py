@@ -293,18 +293,19 @@ class QudObjectProps(QudObject):
             applied_body_av = False
             if self.mutation:
                 for mutation, info in self.mutation.items():
-                    if mutation == 'Carapace':
-                        av += int(info['Level']) // 2 + 3
-                        applied_body_av = True
-                    elif mutation == 'Quills':
-                        av += int(info['Level']) // 3 + 2
-                        applied_body_av = True
-                    elif mutation == 'Horns':
-                        av += (int(info['Level']) - 1) // 3 + 1
-                    elif mutation == 'MultiHorns':
-                        av += (int(info['Level']) + 1) // 4
-                    elif mutation == 'SlogGlands':
-                        av += 1
+                    match mutation:
+                        case 'Carapace':
+                            av += int(info['Level']) // 2 + 3
+                            applied_body_av = True
+                        case 'Quills':
+                            av += int(info['Level']) // 3 + 2
+                            applied_body_av = True
+                        case 'Horns':
+                            av += (int(info['Level']) - 1) // 3 + 1
+                        case 'MultiHorns':
+                            av += (int(info['Level']) + 1) // 4
+                        case 'SlogGlands':
+                            av += 1
             if self.inventoryobject:
                 # might be wearing armor
                 for name in list(self.inventoryobject.keys()):
@@ -402,40 +403,42 @@ class QudObjectProps(QudObject):
                 continue  # parts ignored or handled elsewhere
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
-                if part == 'StunOnHit':
-                    func = 'Stun effect'
-                elif part == 'EnergyAmmoLoader' or part == 'Gaslight':
-                    func = 'Weapon Power'
-                elif part == 'VibroWeapon':
-                    func = 'Adaptive Penetration'
-                elif part == 'MechanicalWings':
-                    func = 'Flight'
-                elif part == 'RocketSkates':
-                    func = 'Power Skate'
-                elif part == 'GeomagneticDisc':
-                    func = 'Throw Effect'
-                elif part == 'Teleporter':
-                    func = 'Teleportation'
-                elif part == 'EquipStatBoost':
-                    func = 'Stat Boost'
-                elif part == 'PartsGas':
-                    func = 'Gas Dispersion'
-                elif part == 'ReduceCooldowns':
-                    func = 'Cooldown Reduction'
-                elif part == 'RealityStabilization':
-                    func = 'Reality Stabilization'
-                elif part == 'LatchesOn':
-                    func = 'Latch Effect'
-                elif part == 'Toolbox':
-                    func = 'Tinker Bonus'
-                elif part == 'ConversationScript':
-                    func = 'Audio Processing'
-                elif getattr(self, f'part_{part}_NameForStatus') is not None:
-                    func = getattr(self, f'part_{part}_NameForStatus')
-                elif part == 'Chair':  # handle chairs without a NameForStatus
-                    func = 'Chair Effect'
-                else:
-                    func = part  # default to part name if no other match
+                match part:
+                    case 'StunOnHit':
+                        func = 'Stun effect'
+                    case 'EnergyAmmoLoader' | 'Gaslight':
+                        func = 'Weapon Power'
+                    case 'VibroWeapon':
+                        func = 'Adaptive Penetration'
+                    case 'MechanicalWings':
+                        func = 'Flight'
+                    case 'RocketSkates':
+                        func = 'Power Skate'
+                    case 'GeomagneticDisc':
+                        func = 'Throw Effect'
+                    case 'Teleporter':
+                        func = 'Teleportation'
+                    case 'EquipStatBoost':
+                        func = 'Stat Boost'
+                    case 'PartsGas':
+                        func = 'Gas Dispersion'
+                    case 'ReduceCooldowns':
+                        func = 'Cooldown Reduction'
+                    case 'RealityStabilization':
+                        func = 'Reality Stabilization'
+                    case 'LatchesOn':
+                        func = 'Latch Effect'
+                    case 'Toolbox':
+                        func = 'Tinker Bonus'
+                    case 'ConversationScript':
+                        func = 'Audio Processing'
+                    case _:
+                        if getattr(self, f'part_{part}_NameForStatus') is not None:
+                            func = getattr(self, f'part_{part}_NameForStatus')
+                        elif part == 'Chair':  # handle chairs without a NameForStatus
+                            func = 'Chair Effect'
+                        else:
+                            func = part  # default to part name if no other match
                 if func is not None:
                     funcs.append(func)
                     detailedfuncs.append(func + ' [' + chg + ']')
@@ -1006,7 +1009,7 @@ class QudObjectProps(QudObject):
 
     @property
     def empsensitive(self) -> bool | None:
-        """Returns yes if the object is empensitive. Can be found in multiple parts."""
+        """Returns yes if the object is emp sensitive. Can be found in multiple parts."""
         parts = ['EquipStatBoost',
                  'BootSequence',
                  'NavigationBonus',
@@ -1855,24 +1858,18 @@ class QudObjectProps(QudObject):
     def title(self) -> str | None:
         """The display name of the item."""
         val = self.name
-        if self.builder_GoatfolkHero1_ForceName:
+        predefs = {'Wraith-Knight Templar': '&MWraith-Knight Templar of the Binary Honorum',
+                   'TreeSkillsoft': '&YSkillsoft Plus',
+                   'SingleSkillsoft1': '&YSkillsoft [&Wlow sp&Y]',
+                   'SingleSkillsoft2': '&YSkillsoft [&Wmedium sp&Y]',
+                   'SingleSkillsoft3': '&YSkillsoft [&Whigh sp&Y]',
+                   'Schemasoft2': '&YSchemasoft [&Wlow-tier&Y]',
+                   'Schemasoft3': '&YSchemasoft [&Wmid-tier&Y]',
+                   'Schemasoft4': '&YSchemasoft [&Whigh-tier&Y]'}
+        if self.name in predefs:
+            val = predefs[self.name]
+        elif self.builder_GoatfolkHero1_ForceName:
             val = self.builder_GoatfolkHero1_ForceName  # for Mamon
-        elif self.name == "Wraith-Knight Templar":
-            val = "&MWraith-Knight Templar of the Binary Honorum"  # override for Wraith Knights
-        elif self.name == 'TreeSkillsoft':
-            val = '&YSkillsoft Plus'  # override for Skillsoft Plus
-        elif self.name == 'SingleSkillsoft1':
-            val = '&YSkillsoft [&Wlow sp&Y]'  # override for Skillsoft [0-50sp]
-        elif self.name == 'SingleSkillsoft2':
-            val = '&YSkillsoft [&Wmedium sp&Y]'  # override for Skillsoft [51-150]
-        elif self.name == 'SingleSkillsoft3':
-            val = '&YSkillsoft [&Whigh sp&Y]'  # override for Skillsoft [151+]
-        elif self.name == 'Schemasoft2':
-            val = '&YSchemasoft [&Wlow-tier&Y]'  # override for Schemasoft [low-tier]
-        elif self.name == 'Schemasoft3':
-            val = '&YSchemasoft [&Wmid-tier&Y]'  # override for Schemasoft [mid-tier]
-        elif self.name == 'Schemasoft4':
-            val = '&YSchemasoft [&Whigh-tier&Y]'  # override for Schemasoft [high-tier]
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
         if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
@@ -2071,14 +2068,15 @@ class QudObjectProps(QudObject):
         if xp == '*XP':
             role = self.role
             role = 'Minion' if role is None else role
-            if role == 'Minion':
-                xp = level * 10
-            elif role == 'Leader':
-                xp = level * 50
-            elif role == 'Hero':
-                xp = level * 100
-            else:
-                xp = level * 25
+            match role:
+                case 'Minion':
+                    xp = level * 10
+                case 'Leader':
+                    xp = level * 50
+                case 'Hero':
+                    xp = level * 100
+                case _:
+                    xp = level * 25
         else:
             xp = int_or_none(xp)
             if xp is None:

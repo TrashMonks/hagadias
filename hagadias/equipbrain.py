@@ -49,27 +49,27 @@ class EquipBrain:
         # does this creature have mutations that affect equippable body parts?
         if self.creature.mutation:
             for mutation, info in self.creature.mutation.items():
-                if mutation == 'MultipleArms':
-                    self.equippable_body_slots['Arm'] += 2
-                    self.equippable_body_slots['Hand'] += 2
-                    self.equippable_body_slots['Hands'] += 1
-                if mutation == 'MultipleLegs':
-                    self.equippable_body_slots['Feet'] += 1
-                if mutation == 'TwoHeaded':
-                    self.equippable_body_slots['Head'] += 1
-                if mutation == 'Carapace' or mutation == 'Quills':
-                    self.equippable_body_slots['Body'] -= 1
-                if mutation == 'Stinger' or mutation == 'Wings':
-                    self.equippable_body_slots['Back'] -= 1
-                if mutation == 'BurrowingClaws' or mutation == 'FlamingHands'\
-                   or mutation == 'FreezingHands':
-                    self.equippable_body_slots['Hands'] -= 1
-                if mutation == 'Horns':
-                    self.equippable_body_slots['Head'] -= 1
+                match mutation:
+                    case 'MultipleArms':
+                        self.equippable_body_slots['Arm'] += 2
+                        self.equippable_body_slots['Hand'] += 2
+                        self.equippable_body_slots['Hands'] += 1
+                    case 'MultipleLegs':
+                        self.equippable_body_slots['Feet'] += 1
+                    case 'TwoHeaded':
+                        self.equippable_body_slots['Head'] += 1
+                    case 'Carapace' | 'Quills':
+                        self.equippable_body_slots['Body'] -= 1
+                    case 'Stinger' | 'Wings':
+                        self.equippable_body_slots['Back'] -= 1
+                    case  'BurrowingClaws' | 'FlamingHands' | 'FreezingHands':
+                        self.equippable_body_slots['Hands'] -= 1
+                    case 'Horns':
+                        self.equippable_body_slots['Head'] -= 1
         # figure out what should be equipped in each slot
         for key, val in self.equippable_body_slots.items():
             # not yet implemented
-            _ = 1
+            pass
 
     def get_items_for_slot(self, slot: str, type_: str = ''):
         # not yet fully implemented
