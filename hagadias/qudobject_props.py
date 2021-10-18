@@ -6,7 +6,7 @@ from typing import Tuple, List
 from hagadias.character_codes import STAT_NAMES
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
-    CHARGE_USE_REASONS
+    CHARGE_USE_REASONS, ACTIVE_PARTS, STAT_DISPLAY_NAMES, BUTCHERABLE_POPTABLES
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
     str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
@@ -24,7 +24,7 @@ ACTIVE_CHAR = 1
 INACTIVE_CHAR = 2
 # make them different from active characters. Usually immobile and have no attributes.
 BEHAVIOR_DESCRIPTION_PARTS = ['LatchesOn', 'SapChargeOnHit', 'TemperatureAdjuster', 'Toolbox',
-                              'Cybernetics2BaseItem', 'FollowersGetTeleport', 'IntPropertyChanger']
+                              'CyberneticsBaseItem', 'FollowersGetTeleport', 'IntPropertyChanger']
 
 
 class QudObjectProps(QudObject):
@@ -244,6 +244,8 @@ class QudObjectProps(QudObject):
                 ammo = self.part_LiquidFueledPowerPlant_Liquid
         elif self.part_LiquidAmmoLoader:
             ammo = self.part_LiquidAmmoLoader_Liquid
+        elif self.part_BioAmmoLoader:
+            ammo = self.part_BioAmmoLoader_LiquidConsumed
         return ammo
 
     @property
@@ -341,9 +343,19 @@ class QudObjectProps(QudObject):
         return self.part_Body_Anatomy
 
     @property
-    def butcheredinto(self) -> str | None:
+    def butcheredinto(self) -> List[dict] | None:
         """What a corpse item can be butchered into."""
-        return self.part_Butcherable_OnSuccess
+        butcher_obj = self.part_Butcherable_OnSuccess
+        if butcher_obj:
+            if butcher_obj[:1] == '@':
+                if butcher_obj[1:] not in BUTCHERABLE_POPTABLES:
+                    print(f'FIXME: Butcherable poptable {butcher_obj} not recognized.')
+                else:
+                    outcomes = []
+                    for butcherable, info in BUTCHERABLE_POPTABLES[butcher_obj[1:]].items():
+                        outcomes.append({**{'Object': butcherable}, **info})
+                    return outcomes
+            return [{'Object': butcher_obj, 'Number': 1, 'Weight': 100}]
 
     @property
     def canbuild(self) -> bool | None:
@@ -385,6 +397,9 @@ class QudObjectProps(QudObject):
         for part in self.all_attributes['part']:
             if part == 'ProgrammableRecoiler':
                 continue  # parts ignored or handled elsewhere
+            if part == 'Teleprojector':
+                return int(self.part_Teleprojector_InitialChargeUse) + \
+                    int(self.part_Teleprojector_MaintainChargeUse)
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
                 charge += int(chg)
@@ -401,12 +416,15 @@ class QudObjectProps(QudObject):
         for part in self.all_attributes['part']:
             if part == 'ProgrammableRecoiler':
                 continue  # parts ignored or handled elsewhere
+            if part == 'Teleprojector':
+                return f'Initiate Domination [{self.part_Teleprojector_InitialChargeUse}], ' + \
+                    f'Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]'
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
                 match part:
                     case 'StunOnHit':
                         func = 'Stun effect'
-                    case 'EnergyAmmoLoader' | 'Gaslight':
+                    case 'EnergyAmmoLoader' | 'Gaslight' | 'ElectricalDischargeLoader':
                         func = 'Weapon Power'
                     case 'VibroWeapon':
                         func = 'Adaptive Penetration'
@@ -547,6 +565,11 @@ class QudObjectProps(QudObject):
         projectiledamage = self.projectile_object('part_Projectile_BaseDamage')
         if projectiledamage:
             val = projectiledamage
+        if self.part_ElectricalDischargeLoader is not None:
+            chargefactor = int_or_default(self.part_ElectricalDischargeLoader_ChargeFactor, 15)
+            chargebasis = int_or_default(self.part_ElectricalDischargeLoader_ChargeUse, 300)
+            dicecount = (chargefactor * chargebasis) // 1000
+            val = f'{dicecount}d4'
         return val
 
     @property
@@ -561,299 +584,346 @@ class QudObjectProps(QudObject):
     @property
     def desc(self) -> str | None:
         """The short description of the object, with color codes included (ampersands escaped)."""
-        desc = None
+        desc_txt = self.part_Description_Short
+        if desc_txt is None or len(desc_txt) < 1:
+            return None  # notably, Cherubs
+            # Note that many other things without a description will inherit 'A hideous specimen.'
+
+        # TODO: Refactor or break into a separate file.
+        # Note that the order of description rules below is meaningful - it attempts to do the
+        # best job possible mimicking the order of rules on items in game. It is not perfect,
+        # however. To perfectly represent everything, we would need to actually iterate over the
+        # object's parts in XML order (and output associated rules in that same order)
+
         desc_extra = []
-        if self.part_Description_Short == 'A hideous specimen.':
-            pass  # hide items with default description
-        elif self.part_Description_Short:
-            # TODO: Refactor or break into a separate file.
-            # Note that the order of description rules below is meaningful - it attempts to do the
-            # best job possible mimicking the order of rules on items in game. It's probably
-            # not possible to perfectly represent everything unless we actually iterate over the
-            # object's parts in XML order (and output associated rules in that same order)
-            desc = self.part_Description_Short
-            is_item = False
-            if self.inherits_from("Item"):  # append resistances, attributes, and other rules text
-                is_item = True
-                # reputation
-                if self.part_AddsRep is not None:
-                    factions = self.part_AddsRep_Faction.split(',')
-                    rep_value = self.part_AddsRep_Value
-                    for faction in factions:
-                        amt = rep_value
-                        if ':' in faction:
-                            vals = faction.split(':')
-                            amt = vals[1]
-                            faction = vals[0]
-                        if amt[0] not in ['+', '-']:
-                            amt = f'+{amt}'
-                        if faction == '*allvisiblefactions':
-                            txt = f'{amt} reputation with every faction'
-                        else:
-                            if faction in FACTION_ID_TO_NAME:
-                                faction = FACTION_ID_TO_NAME[faction]
-                            txt = f'{amt} reputation with {faction}'
-                        desc_extra.append('{{rules|' + txt + '}}')
-                # missile weapon rules
-                if self.part_MissileWeapon is not None:
-                    skill = str_or_default(self.part_MissileWeapon_Skill, 'Rifle')
-                    if skill == 'Rifle':
-                        skill = 'Bows & Rifles'
-                    elif skill == 'HeavyWeapons':
-                        skill = 'Heavy Weapon'
-                    accuracy = int_or_default(self.part_MissileWeapon_WeaponAccuracy, 0)
-                    accuracy_str = 'Very Low'
-                    if accuracy <= 0:
-                        accuracy_str = 'Very High'
-                    elif accuracy < 5:
-                        accuracy_str = 'High'
-                    elif accuracy < 10:
-                        accuracy_str = 'Medium'
-                    elif accuracy < 25:
-                        accuracy_str = 'Low'
-                    ammoper = int_or_default(self.part_MissileWeapon_AmmoPerAction, 1)
-                    shotsper = int_or_default(self.part_MissileWeapon_ShotsPerAction, 1)
-                    showshots = bool_or_default(self.part_MissileWeapon_bShowShotsPerAction, True)
-                    nowildfire = bool_or_default(self.part_MissileWeapon_NoWildfire, False)
-                    penstat = self.part_MissileWeapon_ProjectilePenetrationStat
-                    txt = '{{rules|'
-                    txt += f'Weapon Class: {skill}'
-                    txt += f'\nAccuracy: {accuracy_str}'
-                    if ammoper > 1:
-                        txt += f'\nMultiple ammo used per shot: {ammoper}'
-                    if showshots and shotsper > 1:
-                        txt += f'\nMultiple projectiles per shot: {shotsper}'
-                    if nowildfire:
-                        txt += '\nSpray fire: This item can be fired while adjacent to multiple ' \
-                               + 'enemies without risk of the shot going wild.'
-                    if skill == 'Heavy Weapon':
-                        txt += '\n-25 move speed'
-                    if penstat:
-                        txt += '\nProjectiles fired with this weapon receive bonus penetration ' \
-                               + f'based on the wielder\'s {penstat}.'
-                    txt += '}}'
-                    desc_extra.append(txt)
-                # resists
-                resists = []
-                # attributes [positiveColor, negativeColor, isResistance]
-                attrs = {'heat': ['R', 'R', True],
-                         'cold': ['C', 'C', True],
-                         'electrical': ['W', 'W', True],
-                         'acid': ['G', 'G', True],
-                         'willpower': ['C', 'R', False],
-                         'ego': ['C', 'R', False],
-                         'agility': ['C', 'R', False],
-                         'toughness': ['C', 'R', False],
-                         'strength': ['C', 'R', False],
-                         'intelligence': ['C', 'R', False],
-                         'quickness': ['C', 'R', False],
-                         'movespeedbonus': ['C', 'R', False]}
-                for attr in attrs:
-                    resist = getattr(self, f'{attr}')
-                    if resist:
-                        if self.name == 'Stopsvaalinn' and attr == 'ego':
-                            continue  # Stopsvaalinn's ego bonus is already displayed in rule text
-                        if self.name == 'Cyclopean Prism':  # special handling for amaranthine prism
-                            if attr == 'ego':
-                                resist = '+1'
-                            elif attr == 'willpower':
-                                resist = '-1'
-                        if str(resist)[0] not in ['+', '-']:
-                            resist_str = f'{pos_or_neg(resist)}{resist}'
-                        else:
-                            resist_str = str(resist)
-                        attr_name = attr if attr != 'movespeedbonus' else 'move speed'
-                        attr_color = attrs[attr][0] if resist_str[0] != '-' else attrs[attr][1]
-                        resist_str = f"{resist_str} " + attr_name.title() + \
-                                     (" Resistance" if attrs[attr][2] is True else "")
-                        resists.append(f"{{{{{attr_color}|{resist_str}}}}}")
-                if len(resists) > 0:
-                    desc_extra.append('\n'.join(resists))
-                # carrybonus
-                carry_bonus = self.carrybonus
-                if carry_bonus:
-                    if carry_bonus > 0:
-                        carry_bonus = f'+{carry_bonus}'
-                    desc_extra.append('{{rules|' + carry_bonus + '% carry capacity}}')
-                # melee weapon rules
-                if self.is_melee_weapon() and self.tag_ShowMeleeWeaponStats is not None \
-                        and not self.inherits_from('Projectile'):
-                    # technically these stats are also shown for projectiles in game, but it seems
-                    # prudent to carve out an exception for wiki - feels misleading to show "Weapon
-                    # Class: Cudgel (dazes on critical hits)" in every wiki arrow description...
-                    weapon_stat = str_or_default(self.part_MeleeWeapon_Stat, 'Strength')
-                    rule_lines = []
-                    # Ego bonus (part_MeleeWeapon_Ego) is already handled in the attr section above
-                    tohit = self.part_MeleeWeapon_HitBonus
-                    if tohit is not None and int(tohit) > 0:
-                        rule_lines.append(f'+{tohit} To-Hit')
-                    maxpv = self.maxpv
-                    pv = self.pv
-                    if maxpv is not None and pv is not None and maxpv > pv:
-                        if maxpv == 999:
-                            rule_lines.append(f'{weapon_stat} Bonus Cap: no limit')
-                        else:
-                            rule_lines.append(f'{weapon_stat} Bonus Cap: {maxpv - pv}')
-                    skill = str_or_default(self.part_MeleeWeapon_Skill, 'Cudgel')
-                    if skill == 'Cudgel':
-                        skill = 'Cudgel (dazes on critical hit)'
-                    elif skill == 'LongBlades':
-                        skill = 'Long Blades (increased penetration on critical hit)'
-                    elif skill == 'ShortBlades':
-                        skill = 'Short Blades (causes bleeding on critical hit)'
-                    elif skill == 'Axe':
-                        skill = 'Axe (cleaves armor on critical hit)'
+        is_item = False
+        if self.inherits_from("Item"):  # append resistances, attributes, and other rules text
+            is_item = True
+            # reputation
+            if self.part_AddsRep is not None:
+                factions = self.part_AddsRep_Faction.split(',')
+                rep_value = self.part_AddsRep_Value
+                for faction in factions:
+                    amt = rep_value
+                    if ':' in faction:
+                        vals = faction.split(':')
+                        amt = vals[1]
+                        faction = vals[0]
+                    if amt[0] not in ['+', '-']:
+                        amt = f'+{amt}'
+                    if faction == '*allvisiblefactions':
+                        txt = f'{amt} reputation with every faction'
                     else:
-                        skill = None
-                    if skill is not None:
-                        rule_lines.append(f'Weapon Class: {skill}')
-                    if len(rule_lines) > 0:
-                        desc_extra.append('{{rules|' + '\n'.join(rule_lines) + '}}')
-                # HornsProperties
-                if self.part_HornsProperties is not None:
-                    level = int_or_default(self.part_HornsProperties_HornLevel, 1)
-                    damage = '1'
-                    if level > 3:
-                        damage += 'd2'
-                        if level > 6:
-                            damage += f'+{(level - 4) // 3}'
-                    savetarget = 20 + 3 * level
-                    desc_extra.append('{{rules|On penetration, this weapon causes bleeding: '
-                                      + f'{damage} damage per round, save difficulty {savetarget}'
-                                      + '}}')
-                # shields
-                if self.part_Shield is not None:
-                    desc_extra.append('{{rules|Shields only grant their AV when you ' +
-                                      'successfully block an attack.}}')
-                # compute nodes
-                if self.part_ComputeNode is not None:
-                    if self.part_ComputeNode_WorksOnEquipper == 'true':
-                        power = self.part_ComputeNode_Power
-                        power = '20' if power is None else power
-                        desc_extra.append('{{rules|When equipped and powered, provides ' + power +
-                                          ' units of compute power to the local lattice.}}')
-                # active light source
-                if self.part_ActiveLightSource is not None:
-                    if self.part_ActiveLightSource_WorksOnEquipper == 'true':
-                        if self.part_ActiveLightSource_ShowInShortDescription is None or \
-                                self.part_ActiveLightSource_ShowInShortDescription == 'true':
-                            radius = self.part_ActiveLightSource_Radius
-                            radius = '5' if radius is None else radius
-                            desc_extra.append('{{rules|When equipped, provides light in radius ' +
-                                              radius + '.}}')
-                # add item-specific rules text, if applicable
-                if self.name == 'Rocket Skates':
-                    rule1 = 'Replaces Sprint with Power Skate (unlimited duration).'
-                    rule2 = 'Emits plumes of fire when the wearer moves while power skating.'
-                    desc_extra.append('{{rules|' + rule1 + '}}')
-                    desc_extra.append('{{rules|' + rule2 + '}}')
-                elif self.name == 'Banner of the Holy Rhombus':
-                    desc_extra.append('{{rules|Bestows the {{r|war trance}} effect to the' +
-                                      ' Putus Templar who can see this item.')
-                # add rules text for save modifier, if applicable
-                if self.part_SaveModifier is not None:
-                    if self.part_SaveModifier_ShowInShortDescription is None or \
-                            self.part_SaveModifier_ShowInShortDescription == 'true':
-                        amt = self.part_SaveModifier_Amount
-                        amt = '1' if amt is None else amt
-                        vs = self.part_SaveModifier_Vs
-                        save_mod_str = f'{amt} on saves'
-                        if vs is not None and vs != '':
-                            save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
-                        desc_extra.append('{{rules|' + save_mod_str + '.}}')
-                # add rules text for point defense compute power
-                if self.part_PointDefense is not None:
-                    val = float_or_default(self.part_PointDefense_ComputePowerFactor, 1.0)
-                    if val != 0.0:
-                        desc_extra.append('{{rules|Compute power on the local lattice '
-                                          + ('decreases' if val < 0.0 else 'increases')
-                                          + ' this item\'s effectiveness.}}')
-                # add rules text for bioloading compute power
-                if self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor is not None:
-                    val = float_or_none(self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor)
-                    if val is not None and val != 0.0:
-                        desc_extra.append('{{rules|Compute power on the local lattice '
-                                          + ('decreases' if val > 0.0 else 'increases') + ' the'
-                                          + ' time needed for this item to generate ammunition.}}')
-            if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
-                desc_postfix = 'There is a low, persistent hum emanating outward.' \
-                    if not self.part_Roboticized_DescriptionPostfix \
-                    else self.part_Roboticized_DescriptionPostfix
-                desc += f' {desc_postfix}'
-            if self.part_PartsGas is not None:
-                chance = self.part_PartsGas_Chance
-                if chance is not None:
-                    rule = f'{chance}% chance per turn to repel gases near its'
+                        if faction in FACTION_ID_TO_NAME:
+                            faction = FACTION_ID_TO_NAME[faction]
+                        txt = f'{amt} reputation with {faction}'
+                    desc_extra.append('{{rules|' + txt + '}}')
+            # missile weapon rules
+            if self.part_MissileWeapon is not None:
+                skill = str_or_default(self.part_MissileWeapon_Skill, 'Rifle')
+                if skill == 'Rifle':
+                    skill = 'Bows & Rifles'
+                elif skill == 'HeavyWeapons':
+                    skill = 'Heavy Weapon'
+                accuracy = int_or_default(self.part_MissileWeapon_WeaponAccuracy, 0)
+                accuracy_str = 'Very Low'
+                if accuracy <= 0:
+                    accuracy_str = 'Very High'
+                elif accuracy < 5:
+                    accuracy_str = 'High'
+                elif accuracy < 10:
+                    accuracy_str = 'Medium'
+                elif accuracy < 25:
+                    accuracy_str = 'Low'
+                ammoper = int_or_default(self.part_MissileWeapon_AmmoPerAction, 1)
+                shotsper = int_or_default(self.part_MissileWeapon_ShotsPerAction, 1)
+                showshots = bool_or_default(self.part_MissileWeapon_bShowShotsPerAction, True)
+                nowildfire = bool_or_default(self.part_MissileWeapon_NoWildfire, False)
+                penstat = self.part_MissileWeapon_ProjectilePenetrationStat
+                txt = '{{rules|'
+                txt += f'Weapon Class: {skill}'
+                txt += f'\nAccuracy: {accuracy_str}'
+                if ammoper > 1:
+                    txt += f'\nMultiple ammo used per shot: {ammoper}'
+                if showshots and shotsper > 1:
+                    txt += f'\nMultiple projectiles per shot: {shotsper}'
+                if nowildfire:
+                    txt += '\nSpray fire: This item can be fired while adjacent to multiple ' \
+                           + 'enemies without risk of the shot going wild.'
+                if skill == 'Heavy Weapon':
+                    txt += '\n-25 move speed'
+                if penstat:
+                    txt += '\nProjectiles fired with this weapon receive bonus penetration ' \
+                           + f'based on the wielder\'s {penstat}.'
+                txt += '}}'
+                desc_extra.append(txt)
+            # resists
+            resists = []
+            # attributes [positiveColor, negativeColor, isResistance]
+            attrs = {'heat': ['R', 'R', True],
+                     'cold': ['C', 'C', True],
+                     'electrical': ['W', 'W', True],
+                     'acid': ['G', 'G', True],
+                     'willpower': ['C', 'R', False],
+                     'ego': ['C', 'R', False],
+                     'agility': ['C', 'R', False],
+                     'toughness': ['C', 'R', False],
+                     'strength': ['C', 'R', False],
+                     'intelligence': ['C', 'R', False],
+                     'quickness': ['C', 'R', False],
+                     'movespeedbonus': ['C', 'R', False]}
+            for attr in attrs:
+                resist = getattr(self, f'{attr}')
+                if resist:
+                    if self.name == 'Stopsvaalinn' and attr == 'ego':
+                        continue  # Stopsvaalinn's ego bonus is already displayed in rule text
+                    if self.name == 'Cyclopean Prism':  # special handling for amaranthine prism
+                        if attr == 'ego':
+                            resist = '+1'
+                        elif attr == 'willpower':
+                            resist = '-1'
+                    if str(resist)[0] not in ['+', '-']:
+                        resist_str = f'{pos_or_neg(resist)}{resist}'
+                    else:
+                        resist_str = str(resist)
+                    attr_name = attr if attr != 'movespeedbonus' else 'move speed'
+                    attr_color = attrs[attr][0] if resist_str[0] != '-' else attrs[attr][1]
+                    resist_str = f"{resist_str} " + attr_name.title() + \
+                                 (" Resistance" if attrs[attr][2] is True else "")
+                    resists.append(f"{{{{{attr_color}|{resist_str}}}}}")
+            if len(resists) > 0:
+                desc_extra.append('\n'.join(resists))
+            # EquipStatBoost attributes
+            if self.part_EquipStatBoost_Boosts is not None:
+                for boostinfo in self.part_EquipStatBoost_Boosts.split(';'):
+                    stat, amt = boostinfo.split(':')
+                    stat = stat if stat not in STAT_DISPLAY_NAMES else STAT_DISPLAY_NAMES[stat]
+                    amt = int_or_none(amt)
+                    if amt is not None:
+                        symbol = '+' if amt > 0 else ''
+                        desc_extra.append('{{' + f'rules|{symbol}{amt} {stat}' + '}}')
+            # carrybonus
+            carry_bonus = self.carrybonus
+            if carry_bonus:
+                if carry_bonus > 0:
+                    carry_bonus = f'+{carry_bonus}'
+                desc_extra.append('{{rules|' + carry_bonus + '% carry capacity}}')
+            # melee weapon rules
+            if self.is_melee_weapon() and self.tag_ShowMeleeWeaponStats is not None \
+                    and not self.inherits_from('Projectile'):
+                # technically these stats are also shown for projectiles in game, but it seems
+                # prudent to carve out an exception for wiki - feels misleading to show "Weapon
+                # Class: Cudgel (dazes on critical hits)" in every wiki arrow description...
+                weapon_stat = str_or_default(self.part_MeleeWeapon_Stat, 'Strength')
+                rule_lines = []
+                # Ego bonus (part_MeleeWeapon_Ego) is already handled in the attr section above
+                tohit = self.part_MeleeWeapon_HitBonus
+                if tohit is not None and int(tohit) > 0:
+                    rule_lines.append(f'+{tohit} To-Hit')
+                maxpv = self.maxpv
+                pv = self.pv
+                if maxpv is not None and pv is not None and maxpv > pv:
+                    if maxpv == 999:
+                        rule_lines.append(f'{weapon_stat} Bonus Cap: no limit')
+                    else:
+                        rule_lines.append(f'{weapon_stat} Bonus Cap: {maxpv - pv}')
+                skill = str_or_default(self.part_MeleeWeapon_Skill, 'Cudgel')
+                if skill == 'Cudgel':
+                    skill = 'Cudgel (dazes on critical hit)'
+                elif skill == 'LongBlades':
+                    skill = 'Long Blades (increased penetration on critical hit)'
+                elif skill == 'ShortBlades':
+                    skill = 'Short Blades (causes bleeding on critical hit)'
+                elif skill == 'Axe':
+                    skill = 'Axe (cleaves armor on critical hit)'
                 else:
-                    rule = 'Repels gases near its'
-                if is_item:
-                    rule += ' wielder or wearer.' if self.name == 'Wrist Fan' else ' user.'
-                else:
-                    rule += 'elf.'
-                desc_extra.append('{{rules|' + rule + '}}')
-            if self.intproperty_GenotypeBasedDescription:
-                desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
-                desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
-            # cybernetics infixes
-            cybernetic_rules = '{{rules|'
-            for part in CYBERNETICS_HARDCODED_INFIXES:
+                    skill = None
+                if skill is not None:
+                    rule_lines.append(f'Weapon Class: {skill}')
+                if self.part_ElementalDamage is not None:
+                    dmg = self.part_ElementalDamage_Damage
+                    dmg = dmg if dmg is not None else '1d4'
+                    typ = self.part_ElementalDamage_Attributes
+                    typ = typ if typ is not None else 'Heat'
+                    chc = self.part_ElementalDamage_Chance
+                    chc = int(chc) if chc is not None else 100
+                    txt = f'Causes {dmg} {typ.lower()} damage on hit'
+                    txt += '.' if chc >= 100 else f' {chc}% of the time.'
+                    rule_lines.append(txt)
+                if len(rule_lines) > 0:
+                    desc_extra.append('{{rules|' + '\n'.join(rule_lines) + '}}')
+            # HornsProperties
+            if self.part_HornsProperties is not None:
+                level = int_or_default(self.part_HornsProperties_HornLevel, 1)
+                damage = '1'
+                if level > 3:
+                    damage += 'd2'
+                    if level > 6:
+                        damage += f'+{(level - 4) // 3}'
+                savetarget = 20 + 3 * level
+                desc_extra.append('{{rules|On penetration, this weapon causes bleeding: '
+                                  + f'{damage} damage per round, save difficulty {savetarget}'
+                                  + '}}')
+            # light-related effects
+            if self.part_ModGlassArmor_Tier is not None:
+                desc_extra.append('{{rules|' + f'Reflects {self.part_ModGlassArmor_Tier}% damage '
+                                  + 'back at your attackers, rounded up.}}')
+            if self.part_FlareCompensation is not None:
+                shouldshow = self.part_FlareCompensation_ShowInShortDescription
+                if shouldshow is None or shouldshow.lower() == 'true':
+                    desc_extra.append('{{rules|Offers protection against visual flash effects.}}')
+            if self.part_RefractLight is not None:
+                shouldshow = self.part_RefractLight_ShowInShortDescription
+                if shouldshow.lower() == 'true':
+                    chance = int_or_default(self.part_RefractLight_Chance)
+                    variance = self.part_RefractLight_RetroVariance
+                    txt = f'Has a {chance}% chance to refract light-based attacks, sending them '
+                    if variance is None:
+                        txt += 'in a random direction.'
+                    else:
+                        dice = DiceBag(variance)
+                        dmin = dice.minimum()
+                        dmax = dice.maximum()
+                        if dmin == 0 and dmax == 0:
+                            txt += 'back the way they came.'
+                        else:
+                            txt += f'back the way they came, plus or minus up to {dmax} degrees.'
+                    desc_extra.append('{{rules|' + txt + '}}')
+            # shields
+            if self.part_Shield is not None:
+                desc_extra.append('{{rules|Shields only grant their AV when you ' +
+                                  'successfully block an attack.}}')
+            # compute nodes
+            if self.part_ComputeNode is not None:
+                if self.part_ComputeNode_WorksOnEquipper == 'true':
+                    power = self.part_ComputeNode_Power
+                    power = '20' if power is None else power
+                    desc_extra.append('{{rules|When equipped and powered, provides ' + power +
+                                      ' units of compute power to the local lattice.}}')
+            # active light source
+            if self.part_ActiveLightSource is not None:
+                if self.part_ActiveLightSource_WorksOnEquipper == 'true':
+                    if self.part_ActiveLightSource_ShowInShortDescription is None or \
+                            self.part_ActiveLightSource_ShowInShortDescription == 'true':
+                        radius = self.part_ActiveLightSource_Radius
+                        radius = '5' if radius is None else radius
+                        desc_extra.append('{{rules|When equipped, provides light in radius ' +
+                                          radius + '.}}')
+            # add item-specific rules text, if applicable
+            if self.name == 'Rocket Skates':
+                rule1 = 'Replaces Sprint with Power Skate (unlimited duration).'
+                rule2 = 'Emits plumes of fire when the wearer moves while power skating.'
+                desc_extra.append('{{rules|' + rule1 + '}}')
+                desc_extra.append('{{rules|' + rule2 + '}}')
+            elif self.name == 'Banner of the Holy Rhombus':
+                desc_extra.append('{{rules|Bestows the {{r|war trance}} effect to the' +
+                                  ' Putus Templar who can see this item.')
+            # add rules text for save modifier, if applicable
+            if self.part_SaveModifier is not None:
+                if self.part_SaveModifier_ShowInShortDescription is None or \
+                        self.part_SaveModifier_ShowInShortDescription == 'true':
+                    amt = self.part_SaveModifier_Amount
+                    amt = '1' if amt is None else amt
+                    amt = amt if amt[:1] == '-' else f'+{amt}'
+                    vs = self.part_SaveModifier_Vs
+                    save_mod_str = f'{amt} on saves'
+                    if vs is not None and vs != '':
+                        save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
+                    desc_extra.append('{{rules|' + save_mod_str + '.}}')
+            # add rules text for point defense compute power
+            if self.part_PointDefense is not None:
+                val = float_or_default(self.part_PointDefense_ComputePowerFactor, 1.0)
+                if val != 0.0:
+                    desc_extra.append('{{rules|Compute power on the local lattice '
+                                      + ('decreases' if val < 0.0 else 'increases')
+                                      + ' this item\'s effectiveness.}}')
+            # add rules text for bioloading compute power
+            if self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor is not None:
+                val = float_or_none(self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor)
+                if val is not None and val != 0.0:
+                    desc_extra.append('{{rules|Compute power on the local lattice '
+                                      + ('decreases' if val > 0.0 else 'increases') + ' the'
+                                      + ' time needed for this item to generate ammunition.}}')
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+            desc_postfix = 'There is a low, persistent hum emanating outward.' \
+                if not self.part_Roboticized_DescriptionPostfix \
+                else self.part_Roboticized_DescriptionPostfix
+            desc_txt += f' {desc_postfix}'
+        if self.part_PartsGas is not None:
+            chance = self.part_PartsGas_Chance
+            if chance is not None:
+                rule = f'{chance}% chance per turn to repel gases near its'
+            else:
+                rule = 'Repels gases near its'
+            if is_item:
+                rule += ' wielder or wearer.' if self.name == 'Wrist Fan' else ' user.'
+            else:
+                rule += 'elf.'
+            desc_extra.append('{{rules|' + rule + '}}')
+        if self.intproperty_GenotypeBasedDescription:
+            desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
+            desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
+        # cybernetics infixes
+        cybernetic_rules = '{{rules|'
+        for part in CYBERNETICS_HARDCODED_INFIXES:
+            if self.is_specified(f'part_{part}'):
+                cybernetic_rules += f'{CYBERNETICS_HARDCODED_INFIXES[part]}\n\n'
+                break
+        # BehaviorDescriptions (predominantly cybernetics, but also includes some other items)
+        for part in BEHAVIOR_DESCRIPTION_PARTS:
+            if self.is_specified(f'part_{part}'):
+                behavior_desc = getattr(self, f'part_{part}_BehaviorDescription')
+                if behavior_desc is not None and behavior_desc != '':
+                    cybernetic_rules += behavior_desc
+        # additional cybernetics postfixes
+        if self.part_CyberneticsBaseItem_Slots is not None:
+            body_parts = self.part_CyberneticsBaseItem_Slots
+            body_parts = body_parts.replace(',', ', ')
+            cost = self.part_CyberneticsBaseItem_Cost
+            if len(desc_extra) > 0 or len(cybernetic_rules) > len('{{rules|'):
+                cybernetic_rules += '\n\n'
+            txt = ''
+            if self.tag_CyberneticsDestroyOnRemoval is not None:
+                txt += 'Destroyed when uninstalled.\n'
+            txt += f'Target body parts: {body_parts}\n'
+            txt += f'License points: {cost}\n'
+            txt += 'Only compatible with True Kin genotypes'
+            for part in CYBERNETICS_HARDCODED_POSTFIXES:
                 if self.is_specified(f'part_{part}'):
-                    cybernetic_rules += f'{CYBERNETICS_HARDCODED_INFIXES[part]}\n\n'
+                    txt += f'\n{CYBERNETICS_HARDCODED_POSTFIXES[part]}'
                     break
-            # BehaviorDescriptions (predominantly cybernetics, but also includes some other items)
-            for part in BEHAVIOR_DESCRIPTION_PARTS:
-                if self.is_specified(f'part_{part}'):
-                    behavior_desc = getattr(self, f'part_{part}_BehaviorDescription')
-                    if behavior_desc is not None and behavior_desc != '':
-                        cybernetic_rules += behavior_desc
-            # additional cybernetics postfixes
-            if self.part_Cybernetics2BaseItem_Slots is not None:
-                body_parts = self.part_Cybernetics2BaseItem_Slots
-                body_parts = body_parts.replace(',', ', ')
-                cost = self.part_Cybernetics2BaseItem_Cost
-                if len(desc_extra) > 0 or len(cybernetic_rules) > len('{{rules|'):
-                    cybernetic_rules += '\n\n'
-                txt = ''
-                if self.tag_CyberneticsDestroyOnRemoval is not None:
-                    txt += 'Destroyed when uninstalled.\n'
-                txt += f'Target body parts: {body_parts}\n'
-                txt += f'License points: {cost}\n'
-                txt += 'Only compatible with True Kin genotypes'
-                for part in CYBERNETICS_HARDCODED_POSTFIXES:
-                    if self.is_specified(f'part_{part}'):
-                        txt += f'\n{CYBERNETICS_HARDCODED_POSTFIXES[part]}'
-                        break
-                cybernetic_rules += txt + '}}'
-            # append rules if we found any
-            if len(cybernetic_rules) > len('{{rules|'):
-                desc_extra.append(cybernetic_rules)
-            if self.part_RulesDescription:
-                if self.part_RulesDescription_AltForGenotype == "True Kin":
-                    desc_extra.append(f"[Mutant]\n{{{{rules|{self.part_RulesDescription_Text}}}}}")
-                    desc_extra.append("[True Kin]\n{{rules|" +
-                                      self.part_RulesDescription_GenotypeAlt + "}}")
-                else:
-                    desc_extra.append(f"{{{{rules|{self.part_RulesDescription_Text}}}}}")
-            if self.part_AddsTelepathyOnEquip is not None:
-                desc_extra.insert(0, "{{rules|Grants you Telepathy.}}")
-            if self.part_ReduceEnergyCosts and \
-                    (self.part_ReduceEnergyCosts_GenerateShortDescription is None or
-                     self.part_ReduceEnergyCosts_GenerateShortDescription == 'true'):
-                num = int(self.part_ReduceEnergyCosts_PercentageReduction)
-                pre = '' if (int(self.part_ReduceEnergyCosts_ChargeUse) == 0) else 'when powered, '
-                temp = f"{pre}provides {num}% reduction in " \
-                       f"{self.part_ReduceEnergyCosts_ScopeDescription}."
-                desc_extra.append("{{rules|" + temp[0].upper() + temp[1:] + "}}")
-            if self.part_Description_Mark:
-                desc_extra.append(self.part_Description_Mark)
-            if self.part_BonusPostfix is not None:
-                desc_extra.append(self.part_BonusPostfix_Postfix)
-        if desc is not None:
-            if len(desc_extra) > 0:
-                desc += '\n\n' + '\n'.join(desc_extra)
-            desc = desc.replace('\r\n', '\n')  # currently, only the description for Bear
-            desc = desc.replace('~J211', '')
-        return desc
+            cybernetic_rules += txt + '}}'
+        # append rules if we found any
+        if len(cybernetic_rules) > len('{{rules|'):
+            desc_extra.append(cybernetic_rules)
+        if self.part_RulesDescription:
+            if self.part_RulesDescription_AltForGenotype == "True Kin":
+                desc_extra.append(f"[Mutant]\n{{{{rules|{self.part_RulesDescription_Text}}}}}")
+                desc_extra.append("[True Kin]\n{{rules|" +
+                                  self.part_RulesDescription_GenotypeAlt + "}}")
+            else:
+                desc_extra.append(f"{{{{rules|{self.part_RulesDescription_Text}}}}}")
+        if self.part_AddsTelepathyOnEquip is not None:
+            desc_extra.insert(0, "{{rules|Grants you Telepathy.}}")
+        if self.part_ReduceEnergyCosts and \
+                (self.part_ReduceEnergyCosts_GenerateShortDescription is None or
+                 self.part_ReduceEnergyCosts_GenerateShortDescription == 'true'):
+            num = int(self.part_ReduceEnergyCosts_PercentageReduction)
+            pre = '' if (int(self.part_ReduceEnergyCosts_ChargeUse) == 0) else 'when powered, '
+            temp = f"{pre}provides {num}% reduction in " \
+                   f"{self.part_ReduceEnergyCosts_ScopeDescription}."
+            desc_extra.append("{{rules|" + temp[0].upper() + temp[1:] + "}}")
+        if self.part_Description_Mark:
+            desc_extra.append(self.part_Description_Mark)
+        if self.part_BonusPostfix is not None:
+            desc_extra.append(self.part_BonusPostfix_Postfix)
+
+        # Finalize the description:
+        if len(desc_extra) > 0:
+            desc_txt += '\n\n' + '\n'.join(desc_extra)
+        desc_txt = desc_txt.replace('\r\n', '\n')  # currently, only the description for Bear
+
+        return desc_txt
 
     @property
     def destroyonunequip(self) -> bool | None:
@@ -872,11 +942,17 @@ class QudObjectProps(QudObject):
         return dname
 
     @property
-    def dramsperuse(self) -> int | None:
+    def dramsperuse(self) -> int | float | None:
         """The number of drams of liquid consumed by each shot action."""
         if self.is_specified('part_LiquidAmmoLoader'):
             return 1  # LiquidAmmoLoader always uses 1 dram per action
-        # TODO: calculate fractional value for blood-gradient hand vacuum
+        elif self.is_specified('part_BioAmmoLoader'):
+            val = int_or_none(self.part_BioAmmoLoader_ConsumeAmount)
+            val = 1 if val is None else val
+            chance = float_or_none(self.part_BioAmmoLoader_ConsumeChance)
+            if chance is not None:
+                return chance / 100.0 * float(val)
+            return val
 
     @property
     def dv(self) -> int | None:
@@ -991,7 +1067,7 @@ class QudObjectProps(QudObject):
             tierstr = self.part_ModElectrified_Tier
             elestr = str(int(tierstr)) + '-' + str(int(int(tierstr) * 1.5))
         else:
-            elestr = self.part_MeleeWeapon_ElementalDamage
+            elestr = self.part_ElementalDamage_Damage
         return elestr
 
     @property
@@ -1004,29 +1080,26 @@ class QudObjectProps(QudObject):
         elif self.is_specified('part_ModElectrified'):
             elestr = 'Electric'
         else:
-            elestr = self.part_MeleeWeapon_Element
+            elestr = self.part_ElementalDamage_Attributes
         return elestr
 
     @property
     def empsensitive(self) -> bool | None:
-        """Returns yes if the object is emp sensitive. Can be found in multiple parts."""
-        parts = ['EquipStatBoost',
-                 'BootSequence',
-                 'NavigationBonus',
-                 'SaveModifier',
-                 'LiquidFueledPowerPlant',
-                 'LiquidProducer',
-                 'TemperatureAdjuster'
-                 ]
-        if any(getattr(self, f'part_{part}_IsEMPSensitive') == 'true' for part in parts):
-            return True
-        parts = ['EnergyCellSocket',
-                 'ZeroPointEnergyCollector',
-                 'ModFlaming',
-                 'ModFreezing',
-                 'ModElectrified']
-        if any(getattr(self, f'part_{part}') is not None for part in parts):
-            return True
+        """Returns yes if the object is EMP-sensitive. This typically means that some feature of
+        the object does not function as expected while pulsed by an EMP effect.
+        Note that the game will show an "[EMP]" tag in the display name of more things than are
+        actually empsensitive, including anything metal or robotic (like an iron long sword)."""
+        all_parts = getattr(self, 'part')
+        if all_parts is not None:
+            emp_sensitive = None
+            # object is emp sensitive if any single part on the object is emp sensitive:
+            for partname, partattribs in all_parts.items():
+                if partname in ACTIVE_PARTS:
+                    if partname == 'ModHardened':
+                        return None  # ModHardened overrides anything else, so we return early
+                    if partattribs.get('IsEMPSensitive', ACTIVE_PARTS[partname]['IsEMPSensitive']):
+                        emp_sensitive = True
+            return emp_sensitive
 
     @property
     def energycellrequired(self) -> bool | None:
@@ -1039,6 +1112,11 @@ class QudObjectProps(QudObject):
         """When preserved, whether the player must explicitly agree to preserve it."""
         if self.tag_ChooseToPreserve is not None:
             return True
+
+    @property
+    def filtersgas(self) -> Union[bool, None]:
+        """Whether this object acts as a gas mask."""
+        return True if self.part_GasMask is not None else None
 
     @property
     def faction(self) -> list | None:
@@ -1067,6 +1145,12 @@ class QudObjectProps(QudObject):
         """The temperature that this object sets on fire. Only for items."""
         if self.inherits_from('Item') and self.is_specified('part_Physics'):
             return int_or_none(self.part_Physics_FlameTemperature)
+
+    @property
+    def flashprotection(self) -> Union[bool, None]:
+        """True if this item offers protection against visual flash effects."""
+        if self.part_FlareCompensation is not None or self.part_ModPolarized is not None:
+            return True
 
     @property
     def flyover(self) -> bool | None:
@@ -1190,6 +1274,15 @@ class QudObjectProps(QudObject):
             return 10000  # default IProgrammableRecoiler charge use
 
     @property
+    def inhaled(self) -> Union[str, None]:
+        """For gases, whether this gas is respiration-based."""
+        if self.part_Gas is not None:
+            if self.name in ['ConfusionGas', 'Miasma', 'MiasmaticAsh',
+                             'PoisonGas', 'SleepGas', 'StunGas']:
+                return 'yes'  # these are hard-coded
+            return 'no'
+
+    @property
     def inheritingfrom(self) -> str | None:
         """The ID of the parent object in the Qud object hierarchy.
 
@@ -1302,13 +1395,14 @@ class QudObjectProps(QudObject):
         return val
 
     @property
-    def liquidgen(self) -> int | None:
+    def liquidgenrate(self) -> int | None:
         """For liquid generators. how many turns it takes for 1 dram to generate."""
-        # TODO: is this correct?
-        return int_or_none(self.part_LiquidProducer_Rate)
+        if self.part_LiquidProducer:
+            amount_range = self.part_LiquidProducer_VariableRate
+            return amount_range if amount_range is not None else self.part_LiquidProducer_Rate
 
     @property
-    def liquidtype(self) -> str | None:
+    def liquidgentype(self) -> str | None:
         """For liquid generators, the type of liquid generated."""
         return self.part_LiquidProducer_Liquid
 
@@ -1561,6 +1655,19 @@ class QudObjectProps(QudObject):
                    f' {dmg} damage for {duration} turns.'
 
     @property
+    def powerloadsensitive(self) -> Union[bool, None]:
+        """Returns yes if the object is power load sensitive. This means that the object can support
+        the overloaded item mod."""
+        all_parts = getattr(self, 'part')
+        if all_parts is not None:
+            # object is powerload sensitive if any single part on the object is powerload sensitive:
+            for partname, partattribs in all_parts.items():
+                if partname in ACTIVE_PARTS:
+                    if partattribs.get('IsPowerLoadSensitive',
+                                       ACTIVE_PARTS[partname]['IsPowerLoadSensitive']):
+                        return True
+
+    @property
     def preservedinto(self) -> str | None:
         """When preserved, what a preservable item produces."""
         return self.part_PreservableItem_Result
@@ -1569,6 +1676,14 @@ class QudObjectProps(QudObject):
     def preservedquantity(self) -> int | None:
         """When preserved, how many preserves a preservable item produces."""
         return int_or_none(self.part_PreservableItem_Number)
+
+    @property
+    def primarydamageelement(self) -> Union[str, None]:
+        """If a weapon's primary damage is elemental, this returns the type of element.
+        This is distinct from elementaldamage/elementaltype - those properties are used when a
+        weapon has secondary elemental damage (in addition to its "normal" damage)."""
+        if self.part_ElectricalDischargeLoader is not None:
+            return 'Electric'
 
     @property
     def pronouns(self) -> str | None:
@@ -1661,6 +1776,12 @@ class QudObjectProps(QudObject):
         return int_or_none(self.part_ModGlassArmor_Tier)
 
     @property
+    def refractive(self) -> Union[bool, None]:
+        """True if this object or creature refracts light."""
+        if self.part_RefractLight is not None or self.part_ModRefractive is not None:
+            return True
+
+    @property
     def renderstr(self) -> str | None:
         """The character used to render this object in ASCII mode."""
         render = None
@@ -1713,10 +1834,12 @@ class QudObjectProps(QudObject):
         return self.part_SaveModifier_Vs
 
     @property
-    def savemodifieramt(self) -> int | None:
+    def savemodifieramt(self) -> str | None:
         """returns amount of the save modifer."""
         if self.part_SaveModifier_Vs is not None:
-            return int_or_none(self.part_SaveModifier_Amount)
+            val = int_or_none(self.part_SaveModifier_Amount)
+            if val is not None:
+                return str(val) if val < 0 else f'+{val}'
 
     @property
     def seeping(self) -> str | None:
@@ -1738,6 +1861,11 @@ class QudObjectProps(QudObject):
     def shots(self) -> int | None:
         """How many shots are fired in one round."""
         return int_or_none(self.part_MissileWeapon_ShotsPerAction)
+
+    @property
+    def shrinelike(self) -> Union[bool, None]:
+        """Whether this object has the 'Shrine' part, which affects behavior such as descration."""
+        return True if self.part_Shrine is not None else None
 
     @property
     def skills(self) -> str | None:
@@ -1787,6 +1915,13 @@ class QudObjectProps(QudObject):
                         val += 6
                 if val != 0:
                     return val
+
+    @property
+    def supportedmods(self) -> Union[str, None]:
+        """The categories of mods that are supported by this item"""
+        val = self.tag_Mods_Value
+        if val is not None and val != 'None':
+            return val
 
     @property
     def swarmbonus(self) -> int | None:
@@ -1916,14 +2051,14 @@ class QudObjectProps(QudObject):
             return False
 
     @property
-    def unknowntile(self) -> str | None:
+    def unidentifiedimage(self) -> str | None:
         """The filename of the object's 'unidentified' tile variant."""
         meta = self.unidentified_metadata()
         if meta is not None:
             return meta.filename
 
     @property
-    def unknownname(self) -> str | None:
+    def unidentifiedname(self) -> str | None:
         """The name of the object when unidentified, such as 'weird artifact'."""
         complexity = self.complexity
         if complexity is not None and complexity > 0:
@@ -1935,7 +2070,7 @@ class QudObjectProps(QudObject):
                     return unknown_name
 
     @property
-    def unknownaltname(self) -> str | None:
+    def unidentifiedaltname(self) -> str | None:
         """The name of the object when partially identified, such as 'backpack'."""
         complexity = self.complexity
         if complexity is not None and complexity > 0:

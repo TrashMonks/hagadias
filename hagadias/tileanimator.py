@@ -6,7 +6,7 @@ from PIL import Image, ImageSequence
 
 from hagadias.helpers import lowest_common_multiple, extract_foreground_char, \
     extract_background_char, parse_comma_equals_str_into_dict
-from hagadias.qudtile import QudTile, StandInTiles
+from hagadias.qudtile import QudTile, StandInTiles, TileProvider
 from hagadias.tileanimator_creategif import save_transparent_gif
 from hagadias.tilepainter import TilePainter
 
@@ -116,6 +116,8 @@ class TileAnimator:
                         animators.append(self.apply_power_transmission)
         if obj.part_Walltrap is not None:
             animators.append(self.apply_walltrap_animation)
+        if obj.part_SpaceTimeVortex is not None:
+            animators.append(self.apply_vortex_animation)
         return animators
 
     def apply_animated_material_electric(self) -> None:
@@ -404,10 +406,10 @@ class TileAnimator:
     def apply_gas_animation(self) -> None:
         """Renders a GIF that replicates the behavior of the Gas part."""
         t = self.qud_tile
-        glyph1 = StandInTiles.gas_glyph1
-        glyph2 = StandInTiles.gas_glyph2
-        glyph3 = StandInTiles.gas_glyph3
-        glyph4 = StandInTiles.gas_glyph4
+        glyph1 = TileProvider(StandInTiles.gas_glyph1)
+        glyph2 = TileProvider(StandInTiles.gas_glyph2)
+        glyph3 = TileProvider(StandInTiles.gas_glyph3)
+        glyph4 = TileProvider(StandInTiles.gas_glyph4)
         frame1 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor,
                          t.qudname, t.raw_transparent, glyph1)
         frame2 = QudTile(None, t.colorstring, t.raw_tilecolor, t.raw_detailcolor,
@@ -429,9 +431,9 @@ class TileAnimator:
         Cryptogull invokes this with the random_sequence parameter, which instead creates a random
         holographic animation sequence."""
         tile = self.qud_tile
-        glyph1 = StandInTiles.hologram_material_glyph1
-        glyph2 = StandInTiles.hologram_material_glyph2
-        glyph3 = StandInTiles.hologram_material_glyph3
+        glyph1 = TileProvider(StandInTiles.hologram_material_glyph1)
+        glyph2 = TileProvider(StandInTiles.hologram_material_glyph2)
+        glyph3 = TileProvider(StandInTiles.hologram_material_glyph3)
         # base most of the time
         if is_concealed:
             base = tile
@@ -496,9 +498,9 @@ class TileAnimator:
         This is very similar to the holographic animiation but it uses different colors and is
         designed to animate at half the speed, more or less."""
         tile = self.qud_tile
-        glyph1 = StandInTiles.hologram_material_glyph1
-        glyph2 = StandInTiles.hologram_material_glyph2
-        glyph3 = StandInTiles.hologram_material_glyph3
+        glyph1 = TileProvider(StandInTiles.hologram_material_glyph1)
+        glyph2 = TileProvider(StandInTiles.hologram_material_glyph2)
+        glyph3 = TileProvider(StandInTiles.hologram_material_glyph3)
         # base most of the time
         base = QudTile(tile.filename, '&K', '&K', 'y', tile.qudname, tile.raw_transparent)
         # 2-4 somewhat common
@@ -650,6 +652,20 @@ class TileAnimator:
         final_frame_duration = turninterval * 1200 - 1600
         final_frame_duration = 20 if final_frame_duration < 20 else final_frame_duration
         self._make_gif([frame1, frame2, frame1], [1600, 1200, final_frame_duration])
+
+    def apply_vortex_animation(self) -> None:
+        """Renders a GIF loosely based on the behavior of the SpaceTimeVortex part."""
+        frame_count = 50
+        random.seed(self.qud_object.name)
+        glyphs = ['§', 'φ', '☼', '○']  # '•'
+        colors = ['B', 'R', 'C', 'W', 'K']
+        frames: List[QudTile] = []
+        for _ in range(frame_count):
+            color = random.choice(colors)
+            glyph = random.choice(glyphs) if random.randint(0, 20) != 0 else '•'
+            generator = TileProvider(lambda: (StandInTiles.make_font_glyph(glyph, color), False))
+            frames.append(QudTile.from_image_provider(generator, self.qud_object.name))
+        self._make_gif(frames, [50] * frame_count)
 
     def _make_gif(self, qud_tiles: List[QudTile], durations: List[int]) -> Image:
         """Performs the actual GIF Image creation. Resizes the supplied array of QudTile frames, and

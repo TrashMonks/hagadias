@@ -1,13 +1,15 @@
 from __future__ import annotations  # allow forward type references
 import logging
 import itertools
+import os
 import random
 from enum import Flag, auto
 from typing import List, Optional, Type, Tuple
 
 from hagadias.constants import LIQUID_COLORS
 from hagadias.dicebag import DiceBag
-from hagadias.helpers import obj_has_any_part, extract_foreground_char, int_or_default
+from hagadias.helpers import obj_has_any_part, extract_foreground_char, int_or_default, \
+    extract_background_char
 
 
 class RenderProps(Flag):
@@ -177,20 +179,90 @@ class TileStyle:
 
 
 class StyleRandomColors(TileStyle):
+    """Styles for the RandomColors part."""
 
-    RANDOM_COLORS_BRIGHT = ['R', 'W', 'G', 'B', 'M', 'C', 'Y']
-    RANDOM_COLORS_ALL = ['R', 'W', 'G', 'B', 'M', 'C', 'Y', 'r', 'w', 'g', 'b', 'm', 'c', 'y']
+    RANDOM_COLORS_ALL = 'R,W,G,B,M,C,Y,r,w,g,b,m,c,y'
+    INDEX_MULTIPLIER = {'Bouquet': 5, 'Flower': 6, 'Flowers': 5}
+    INDEX_OFFSET = {'Bouquet': 0, 'Flower': 1, 'Flowers': 2}
 
     def __init__(self, _painter):
-        super().__init__(_painter, _priority=30,
+        super().__init__(_painter, _priority=35,
                          _modifies=RenderProps.COLORS, _allows=RenderProps.ALL)
-        # TODO: figure out random colors stuff
+        self._count = 0
+        if self.object.part_RandomColors is not None:
+            maincolors = self.object.part_RandomColors_MainColor
+            maincolors = maincolors if maincolors != 'all' else self.RANDOM_COLORS_ALL
+            detailcolors = self.object.part_RandomColors_DetailColor
+            detailcolors = detailcolors if detailcolors != 'all' else self.RANDOM_COLORS_ALL
+            tilecolors = self.object.part_RandomColors_TileColor
+            tilecolors = tilecolors if tilecolors != 'all' else self.RANDOM_COLORS_ALL
+            bgcolors = self.object.part_RandomColors_BackgroundColor
+            bgcolors = bgcolors if bgcolors != 'all' else self.RANDOM_COLORS_ALL
+            pairmaindetail = self.object.part_RandomColors_PairDetailWithForeground == 'true'
+            if pairmaindetail:
+                # Keep all values, even duplicates
+                maincolors = maincolors.split(',')
+                detailcolors = detailcolors.split(',')
+            else:
+                # Filter out duplicates by temporary conversion to a set
+                maincolors = [None] if maincolors is None else list(set(maincolors.split(',')))
+                detailcolors = [None] if detailcolors is None \
+                    else list(set(detailcolors.split(',')))
+            tilecolors = [None] if tilecolors is None else list(set(tilecolors.split(',')))
+            bgcolors = [None] if bgcolors is None else list(set(bgcolors.split(',')))
+            # Sort and then shuffle using Object ID as seed, to always get the same result
+            random.seed(self.object.name)
+            if not pairmaindetail:
+                maincolors.sort()
+                random.shuffle(maincolors)
+                detailcolors.sort()
+                random.shuffle(detailcolors)
+            tilecolors.sort()
+            random.shuffle(tilecolors)
+            bgcolors.sort()
+            random.shuffle(bgcolors)
+            # Generate unique combinations
+            if not pairmaindetail:
+                self._combos = list(itertools.product(*[maincolors, detailcolors,
+                                                        tilecolors, bgcolors]))
+            else:
+                self._combos = []
+                for mc, dc in zip(maincolors, detailcolors):
+                    for tc in tilecolors:
+                        for bc in bgcolors:
+                            self._combos.append((mc, dc, tc, bc))
+            # Update count
+            self._count = len(self._combos)
 
     def _modification_count(self) -> int:
-        return 0  # TODO: Implement this
+        return self._count
 
     def _apply_modification(self, index: int) -> StyleMetadata:
-        pass  # TODO: Implement this
+        if self.object.name in self.INDEX_MULTIPLIER:
+            # Special indexing for tiles with a lot of variations - this better shows off the color
+            # variety of the tile, rather than repeating the same colors many times while we iterate
+            # over other styles (like RandomTile)
+            colorindex = index * self.INDEX_MULTIPLIER[self.object.name] \
+                         + self.INDEX_OFFSET[self.object.name]
+        else:
+            colorindex = index
+        maincolor, detailcolor, tilecolor, bgcolor = self._combos[colorindex]
+        if bgcolor is None:
+            bgcolor = extract_background_char(self.painter.color)
+            if bgcolor is None:
+                bgcolor = extract_background_char(self.painter.tilecolor)
+        if maincolor is not None:
+            self.painter.color = self.painter.tilecolor = maincolor
+        if tilecolor is not None:
+            self.painter.tilecolor = tilecolor
+        if bgcolor is not None:
+            self.painter.trans = bgcolor
+        if detailcolor is not None:
+            self.painter.detail = detailcolor
+        pfix = ''.join([(c if c is not None else '_') for c in self._combos[colorindex]])
+        return StyleMetadata(meta_type=f'color #{index + 1}',
+                             f_postfix=f' (colors {pfix})',
+                             meta_type_after=True)
 
 
 class StyleVillageMonument(TileStyle):
@@ -205,7 +277,7 @@ class StyleVillageMonument(TileStyle):
             preserved_state = random.getstate()
             random.seed(self.object.name)
             while len(self._color_combos) < 30:
-                vals = random.sample(StyleRandomColors.RANDOM_COLORS_ALL, 2)
+                vals = random.sample(StyleRandomColors.RANDOM_COLORS_ALL.split(','), 2)
                 colors = f'{vals[0]}{vals[1]}'
                 if colors not in self._color_combos:
                     self._color_combos.append(colors)
@@ -321,8 +393,10 @@ class StyleLiquidVolume(TileStyle):
             if liquid_name in LIQUID_COLORS and pct > highest_pct:
                 highest_pct = pct
                 primary_liquid = liquid_name
-        self.painter.detail = 'transparent'
-        self.painter.color = self.painter.tilecolor = LIQUID_COLORS[primary_liquid]
+        self.painter.trans = 'transparent'
+        self.painter.detail = extract_background_char(LIQUID_COLORS[primary_liquid], 'transparent')
+        self.painter.tilecolor = extract_foreground_char(LIQUID_COLORS[primary_liquid], 'y')
+        self.painter.color = self.painter.tilecolor
         self.painter.file = self._tiles[index]
         return StyleMetadata(meta_type='large pool' if index == 0 else f'puddle sprite #{index}',
                              f_postfix=f'variation {index}' if index > 0 else '')
@@ -456,11 +530,13 @@ class StylePistonPress(TileStyle):
                              f_postfix=StylePistonPress.POSTFIXES[index])
 
 
-class StyleMachineWallHotTubing(TileStyle):
-    """Styles for the MachineWallHotTubing object."""
+class StyleMachineWallTubing(TileStyle):
+    """Styles for machine wall objects."""
 
-    TYPES = ['hot', 'hot (glowing in the dark)', 'empty']
-    POSTFIXES = [' hot', ' hot glowing', ' empty']
+    TYPES = {'MachineWallHotTubing': ['hot', 'hot (glowing in the dark)', 'empty'],
+             'MachineWallColdTubing': ['cold', 'cold (glowing in the dark)', 'empty']}
+    POSTFIXES = {'MachineWallHotTubing': [' hot', ' hot glowing', ' empty'],
+                 'MachineWallColdTubing': [' cold', ' cold glowing', ' empty']}
 
     def __init__(self, _painter):
         super().__init__(_painter, _priority=90,
@@ -468,7 +544,7 @@ class StyleMachineWallHotTubing(TileStyle):
                          _allows=RenderProps.FILE | RenderProps.DETAIL)
 
     def _modification_count(self) -> int:
-        return 3 if self.object.name == 'MachineWallHotTubing' else 0
+        return 3 if self.object.name in self.TYPES else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         if index == 1:
@@ -478,8 +554,8 @@ class StyleMachineWallHotTubing(TileStyle):
                 self.painter.color = self.painter.tilecolor = f'&{fg}^{bg}'
         if index == 2:
             self.painter.color = self.painter.tilecolor = '&y^c'  # MachineWallEmptyTubing
-        return StyleMetadata(meta_type=StyleMachineWallHotTubing.TYPES[index],
-                             f_postfix=StyleMachineWallHotTubing.POSTFIXES[index])
+        return StyleMetadata(meta_type=self.TYPES[self.object.name][index],
+                             f_postfix=self.POSTFIXES[self.object.name][index])
 
 
 class StyleHarvestable(TileStyle):
@@ -637,6 +713,85 @@ class StyleHangable(TileStyle):
         return StyleMetadata(meta_type=descriptor)
 
 
+class StyleSofa(TileStyle):
+    """Styles for the Sofa object."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=40,
+                         _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE)
+
+    def _modification_count(self) -> int:
+        return 3 if self.object.name == 'Sofa' or self.object.inheritingfrom == 'Sofa' else 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        suffix, descriptor = [('l', 'left'), ('c', 'center'), ('r', 'right')][index]
+        filename, fileext = os.path.splitext(self.object.part_Render_Tile)
+        self.painter.file = filename[:-1] + suffix + fileext
+        return StyleMetadata(meta_type=descriptor)
+
+
+class StyleOrnatePottedPlant(TileStyle):
+    """Styles for the Ornate Potted Plant 1-4 objects."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=40,
+                         _modifies=RenderProps.ALL, _allows=RenderProps.NONE)
+
+    def _modification_count(self) -> int:
+        return 4 if self.object.name.startswith('Ornate Potted Plant ') else 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        objkey = f'Ornate Potted Plant {index + 1}'
+        if objkey in self.object.qindex:
+            self.painter.color = self.object.qindex[objkey].part_Render_ColorString
+            self.painter.tilecolor = self.object.qindex[objkey].part_Render_TileColor
+            self.painter.detail = self.object.qindex[objkey].part_Render_DetailColor
+            self.painter.file = self.object.qindex[objkey].part_Render_Tile
+        descriptor = f'sprite #{index + 1}'
+        postfix = f' variation {index}' if index > 0 else ''
+        return StyleMetadata(meta_type=descriptor, f_postfix=postfix)
+
+
+class StyleFixtureWithChildAlternates(TileStyle):
+    """Styles for walls and other fixtures that define their own colors, and also have
+    child (inherting) objects with the same display name that define variations of those colors."""
+
+    PARENT_WALL_OBJECTS = ['FulcreteWithSquareWave', 'ColumbariumWall', 'GlassHydraulicPipe']
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=40,
+                         _modifies=RenderProps.COLORS | RenderProps.TRANS, _allows=RenderProps.FILE)
+        self._matches = None
+        for wallname in self.PARENT_WALL_OBJECTS:
+            if self.object.name == wallname or self.object.inheritingfrom == wallname:
+                self._matches = [obj for obj in self.object.qindex.values()
+                                 if (obj.inheritingfrom == wallname or obj.name == wallname)]
+                if len(self._matches) > 0:
+                    uniquecolorcombos = {}
+                    self._matches.sort(key=lambda obj: obj.name)  # sort by object name
+                    for obj in self._matches:
+                        colorstring = obj.part_Render_ColorString
+                        tilecolor = obj.part_Render_TileColor
+                        detailcolor = obj.part_Render_DetailColor
+                        uniquecolorcombos[(colorstring, tilecolor, detailcolor)] = True
+                    self._matches = list(uniquecolorcombos.keys())
+                break
+
+    def _modification_count(self) -> int:
+        return 0 if self._matches is None else len(self._matches)
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        if self._matches[index][0] is not None:
+            self.painter.color = self.painter.tilecolor = self._matches[index][0]  # colorstring
+        if self._matches[index][1] is not None:
+            self.painter.tilecolor = self._matches[index][1]  # tilecolor
+        if self._matches[index][2] is not None:
+            self.painter.detail = self._matches[index][2]  # detailcolor
+        return StyleMetadata(meta_type=f'style #{index + 1}',
+                             f_postfix=f'variation {index}' if index > 0 else '',
+                             meta_type_after=True)
+
+
 class StyleManager:
     # TODO: support grabbing a random style (for cryptogull)
 
@@ -648,16 +803,19 @@ class StyleManager:
                                      StyleDoubleContainer,
                                      StyleEnclosing,
                                      StyleExaminerUnknown,
+                                     StyleFixtureWithChildAlternates,
                                      StyleFracti,
                                      StyleHangable,
                                      StyleHarvestable,
                                      StyleHologram,
                                      StyleLiquidVolume,
-                                     StyleMachineWallHotTubing,
+                                     StyleMachineWallTubing,
+                                     StyleOrnatePottedPlant,
                                      StylePistonPress,
                                      StyleRandomColors,
                                      StyleRandomTile,
                                      StyleRandomTonic,
+                                     StyleSofa,
                                      StyleSultanShrine,
                                      StyleTombstone,
                                      StyleVillageMonument]
