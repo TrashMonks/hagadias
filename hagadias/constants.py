@@ -1462,5 +1462,29 @@ BUTCHERABLE_POPTABLES = {
             'Number': 1,
             'Weight': 20
         }
+    },
+    'Kaleidoslug Corpse': {
+        'Kaleidocera Cape': {
+            'Number': 1,
+            'Weight': 20
+        },
+        'Kaleidocera Muffs': {
+            'Number': 1,
+            'Weight': 20
+        },
+        'Kaleidocera Krakows': {
+            'Number': 1,
+            'Weight': 20
+        }
+    },
+    'Enigma Snail Corpse': {
+        'Enigma Cone': {
+            'Number': 1,
+            'Weight': 20
+        },
+        'Enigma Cap': {
+            'Number': 1,
+            'Weight': 20
+        }
     }
 }
