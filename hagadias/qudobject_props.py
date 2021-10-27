@@ -844,6 +844,15 @@ class QudObjectProps(QudObject):
                     desc_extra.append('{{rules|Compute power on the local lattice '
                                       + ('decreases' if val > 0.0 else 'increases') + ' the'
                                       + ' time needed for this item to generate ammunition.}}')
+        # signs
+        if self.part_Chat_ShowInShortDescription == 'true':
+            says = self.part_Chat_Says
+            if says is not None and len(says) > 0:
+                if says[0] == '[':
+                    says = says.replace('[', '').replace(']', '')
+                    desc_extra.append(f'It bears {says}')
+                else:
+                    desc_extra.append(f'It reads, \'{says}\'.')
         if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
             desc_postfix = 'There is a low, persistent hum emanating outward.' \
                 if not self.part_Roboticized_DescriptionPostfix \
