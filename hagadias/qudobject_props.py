@@ -774,7 +774,7 @@ class QudObjectProps(QudObject):
                     desc_extra.append('{{rules|Offers protection against visual flash effects.}}')
             if self.part_RefractLight is not None:
                 shouldshow = self.part_RefractLight_ShowInShortDescription
-                if shouldshow.lower() == 'true':
+                if shouldshow is not None and shouldshow.lower() == 'true':
                     chance = int_or_default(self.part_RefractLight_Chance)
                     variance = self.part_RefractLight_RetroVariance
                     txt = f'Has a {chance}% chance to refract light-based attacks, sending them '
