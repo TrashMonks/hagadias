@@ -2003,13 +2003,13 @@ class QudObjectProps(QudObject):
         """The display name of the item."""
         val = self.name
         predefs = {'Wraith-Knight Templar': '&MWraith-Knight Templar of the Binary Honorum',
-                   'TreeSkillsoft': '&YSkillsoft Plus',
-                   'SingleSkillsoft1': '&YSkillsoft [&Wlow sp&Y]',
-                   'SingleSkillsoft2': '&YSkillsoft [&Wmedium sp&Y]',
-                   'SingleSkillsoft3': '&YSkillsoft [&Whigh sp&Y]',
-                   'Schemasoft2': '&YSchemasoft [&Wlow-tier&Y]',
-                   'Schemasoft3': '&YSchemasoft [&Wmid-tier&Y]',
-                   'Schemasoft4': '&YSchemasoft [&Whigh-tier&Y]'}
+                   'TreeSkillsoft': '&Yskillsoft plus',
+                   'SingleSkillsoft1': '&Yskillsoft [&Wlow sp&Y]',
+                   'SingleSkillsoft2': '&Yskillsoft [&Wmedium sp&Y]',
+                   'SingleSkillsoft3': '&Yskillsoft [&Whigh sp&Y]',
+                   'Schemasoft2': '&Yschemasoft [&Wlow-tier&Y]',
+                   'Schemasoft3': '&Yschemasoft [&Wmid-tier&Y]',
+                   'Schemasoft4': '&Yschemasoft [&Whigh-tier&Y]'}
         if self.name in predefs:
             val = predefs[self.name]
         elif self.builder_GoatfolkHero1_ForceName:
