@@ -194,6 +194,7 @@ HARDCODED_CHARGE_USE = {
     'Neuro Animator': 5000,
     'Night-vision Goggles': 1,
     'Ninefold Boots': 250,
+    'Slip Ring': 1,
     'Stopsvaalinn': 500,
 }
 CHARGE_USE_REASONS = {
@@ -202,6 +203,7 @@ CHARGE_USE_REASONS = {
     'Neuro Animator': 'Object Animation',
     'Night-vision Goggles': 'Night Vision',
     'Ninefold Boots': 'Accelerative Teleporter',
+    'Slip Ring': 'Slipperiness',
     'Stopsvaalinn': 'ForceEmitter',
 }
 
