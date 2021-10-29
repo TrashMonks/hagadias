@@ -902,6 +902,9 @@ class QudObjectProps(QudObject):
                 desc_extra.append('{{rules|' + f'+{savebonus} to saves vs. being grabbed\n' +
                                   f'+{activationchance}% chance to slip away from natural melee' +
                                   ' attacks}}')
+            if self.part_Cursed_RevealInDescription == 'true':
+                desc_extra.append('{{rules|' + str_or_default(self.part_Cursed_DescriptionPostfix,
+                                  'Cannot be removed once equipped.') + '}}')
         # signs
         if self.part_Chat_ShowInShortDescription == 'true':
             says = self.part_Chat_Says
