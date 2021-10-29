@@ -889,6 +889,12 @@ class QudObjectProps(QudObject):
                         txt += f'{"{{C|+" if coldmod > 0 else "{{c|-"}{coldmod}% ' + \
                                'to the intensity of your cooling effects}}\n'
                     desc_extra.append(txt[:-1])  # remove trailing line break
+            if self.part_SlipRing is not None:
+                savebonus = int_or_default(self.part_SlipRing_SaveBonus, 15)
+                activationchance = int_or_default(self.part_SlipRing_ActivationChance, 5)
+                desc_extra.append('{{rules|' + f'+{savebonus} to saves vs. being grabbed\n' +
+                                  f'+{activationchance}% chance to slip away from natural melee' +
+                                  ' attacks}}')
         # signs
         if self.part_Chat_ShowInShortDescription == 'true':
             says = self.part_Chat_Says
