@@ -388,7 +388,12 @@ class QudObjectProps(QudObject):
     @property
     def chargeperdram(self) -> int | None:
         """How much charge is available per dram (for liquid-fueled cells or machines)."""
-        return int_or_none(self.part_LiquidFueledEnergyCell_ChargePerDram)
+        chargeperdram = int_or_none(self.part_LiquidFueledEnergyCell_ChargePerDram)
+        if chargeperdram is not None:
+            return chargeperdram
+        elif self.part_LiquidFueledPowerPlant is not None:
+            chargeperdram = int_or_default(self.part_LiquidFueledPowerPlant_ChargePerDram, 10000)
+            return chargeperdram
 
     @property
     def chargeused(self) -> int | None:
