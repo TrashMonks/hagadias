@@ -844,6 +844,25 @@ class QudObjectProps(QudObject):
                     desc_extra.append('{{rules|Compute power on the local lattice '
                                       + ('decreases' if val > 0.0 else 'increases') + ' the'
                                       + ' time needed for this item to generate ammunition.}}')
+            # mutation rules text
+            if self.part_ModImprovedConfusion is not None:
+                val = int_or_none(self.part_ModImprovedConfusion_Tier)
+                if val is not None and val > 0:
+                    desc_extra.append('{{rules|Grants you Confusion at level ' + str(val) + '. ' +
+                                      'If you already have Confusion, its level is increased by ' +
+                                      str(val) + '.}}')
+            # gas tumbler
+            if self.part_GasTumbler is not None:
+                dispersalmod = int_or_default(self.part_GasTumbler_DispersalMultiplier, 25) - 100
+                densitymod = int_or_default(self.part_GasTumbler_DensityMultiplier, 200) - 100
+                pos = True if densitymod >= 0 else False
+                densitystr = 'Gases you release are ' + str(densitymod if pos else -densitymod) + \
+                             ('% denser.' if pos else '% less dense.')
+                pos = True if dispersalmod >= 0 else False
+                dispersalstr = 'Gases you release disperse ' + \
+                               str(dispersalmod if pos else -dispersalmod) + \
+                               ('% faster.' if pos else '% slower.')
+                desc_extra.append('{{rules|' + f'{densitystr}\n{dispersalstr}' + '}}')
         # signs
         if self.part_Chat_ShowInShortDescription == 'true':
             says = self.part_Chat_Says
