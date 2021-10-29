@@ -1123,7 +1123,7 @@ class QudObjectProps(QudObject):
             return True
 
     @property
-    def filtersgas(self) -> Union[bool, None]:
+    def filtersgas(self) -> bool | None:
         """Whether this object acts as a gas mask."""
         return True if self.part_GasMask is not None else None
 
@@ -1156,7 +1156,7 @@ class QudObjectProps(QudObject):
             return int_or_none(self.part_Physics_FlameTemperature)
 
     @property
-    def flashprotection(self) -> Union[bool, None]:
+    def flashprotection(self) -> bool | None:
         """True if this item offers protection against visual flash effects."""
         if self.part_FlareCompensation is not None or self.part_ModPolarized is not None:
             return True
@@ -1283,7 +1283,7 @@ class QudObjectProps(QudObject):
             return 10000  # default IProgrammableRecoiler charge use
 
     @property
-    def inhaled(self) -> Union[str, None]:
+    def inhaled(self) -> str | None:
         """For gases, whether this gas is respiration-based."""
         if self.part_Gas is not None:
             if self.name in ['ConfusionGas', 'Miasma', 'MiasmaticAsh',
@@ -1664,7 +1664,7 @@ class QudObjectProps(QudObject):
                    f' {dmg} damage for {duration} turns.'
 
     @property
-    def powerloadsensitive(self) -> Union[bool, None]:
+    def powerloadsensitive(self) -> bool | None:
         """Returns yes if the object is power load sensitive. This means that the object can support
         the overloaded item mod."""
         all_parts = getattr(self, 'part')
@@ -1687,7 +1687,7 @@ class QudObjectProps(QudObject):
         return int_or_none(self.part_PreservableItem_Number)
 
     @property
-    def primarydamageelement(self) -> Union[str, None]:
+    def primarydamageelement(self) -> str | None:
         """If a weapon's primary damage is elemental, this returns the type of element.
         This is distinct from elementaldamage/elementaltype - those properties are used when a
         weapon has secondary elemental damage (in addition to its "normal" damage)."""
@@ -1785,7 +1785,7 @@ class QudObjectProps(QudObject):
         return int_or_none(self.part_ModGlassArmor_Tier)
 
     @property
-    def refractive(self) -> Union[bool, None]:
+    def refractive(self) -> bool | None:
         """True if this object or creature refracts light."""
         if self.part_RefractLight is not None or self.part_ModRefractive is not None:
             return True
@@ -1872,7 +1872,7 @@ class QudObjectProps(QudObject):
         return int_or_none(self.part_MissileWeapon_ShotsPerAction)
 
     @property
-    def shrinelike(self) -> Union[bool, None]:
+    def shrinelike(self) -> bool | None:
         """Whether this object has the 'Shrine' part, which affects behavior such as descration."""
         return True if self.part_Shrine is not None else None
 
@@ -1926,7 +1926,7 @@ class QudObjectProps(QudObject):
                     return val
 
     @property
-    def supportedmods(self) -> Union[str, None]:
+    def supportedmods(self) -> str | None:
         """The categories of mods that are supported by this item"""
         val = self.tag_Mods_Value
         if val is not None and val != 'None':
