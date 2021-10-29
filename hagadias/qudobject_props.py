@@ -863,6 +863,27 @@ class QudObjectProps(QudObject):
                                str(dispersalmod if pos else -dispersalmod) + \
                                ('% faster.' if pos else '% slower.')
                 desc_extra.append('{{rules|' + f'{densitystr}\n{dispersalstr}' + '}}')
+            # thermal amp
+            if self.part_ThermalAmp is not None:
+                heatdam = int_or_default(self.part_ThermalAmp_HeatDamage, 0)
+                colddam = int_or_default(self.part_ThermalAmp_ColdDamage, 0)
+                heatmod = int_or_default(self.part_ThermalAmp_ModifyHeat, 0)
+                coldmod = int_or_default(self.part_ThermalAmp_ModifyCold, 0)
+                if heatdam != 0 or colddam != 0 or heatmod != 0 or coldmod != 0:
+                    txt = ''
+                    if heatdam != 0:
+                        txt += f'{"{{R|+" if heatdam > 0 else "{{r|-"}{heatdam}% ' + \
+                               'heat damage dealt}}\n'
+                    if colddam != 0:
+                        txt += f'{"{{C|+" if colddam > 0 else "{{c|-"}{colddam}% ' + \
+                               'cold damage dealt}}\n'
+                    if heatmod != 0:
+                        txt += f'{"{{R|+" if heatmod > 0 else "{{r|-"}{heatmod}% ' + \
+                               'to the intensity of your heating effects}}\n'
+                    if coldmod != 0:
+                        txt += f'{"{{C|+" if coldmod > 0 else "{{c|-"}{coldmod}% ' + \
+                               'to the intensity of your cooling effects}}\n'
+                    desc_extra.append(txt[:-1])  # remove trailing line break
         # signs
         if self.part_Chat_ShowInShortDescription == 'true':
             says = self.part_Chat_Says
