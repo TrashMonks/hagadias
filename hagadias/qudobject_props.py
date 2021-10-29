@@ -168,6 +168,7 @@ class QudObjectProps(QudObject):
         TODO: Consider caching this value, as it is used somewhat frequently"""
         if (self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False") and \
                 self.part_Gas is None and not self.inherits_from('MeleeWeapon') and \
+                not self.inherits_from('NaturalWeapon') and \
                 not self.is_specified('part_MeleeWeapon') and \
                 not self.inherits_from('MissileWeapon') and \
                 not self.is_specified('part_MissileWeapon'):
