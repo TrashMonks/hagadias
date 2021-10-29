@@ -714,6 +714,12 @@ class QudObjectProps(QudObject):
                 if carry_bonus > 0:
                     carry_bonus = f'+{carry_bonus}'
                 desc_extra.append('{{rules|' + carry_bonus + '% carry capacity}}')
+            # armor rules
+            if self.part_Armor is not None:
+                # most armor bonuses are handled in attr block above, but MA needs special
+                # handling, because we want to show its bonus in the description only for Armor
+                if self.part_Armor_MA is not None:
+                    desc_extra.append('{{rules|+' + self.part_Armor_MA + ' MA}}')
             # melee weapon rules
             if self.is_melee_weapon() and self.tag_ShowMeleeWeaponStats is not None \
                     and not self.inherits_from('Projectile'):
@@ -1485,7 +1491,8 @@ class QudObjectProps(QudObject):
 
     @property
     def ma(self) -> int | None:
-        """The object's mental armor. For creatures, this is an averaged value."""
+        """The object's mental armor. For creatures, this is an averaged value.
+        For items, this can be a bonus to MA as specified in the Armor part."""
         if self.hasmentalshield:
             # things like Robots, Water, Stairs, etc. are not subject to mental effects.
             return None
@@ -1500,6 +1507,8 @@ class QudObjectProps(QudObject):
             # add willpower modifier to MA
             ma += self.attribute_helper_mod('Willpower')
             return ma
+        else:  # items (char_type == 0)
+            return int_or_none(self.attribute_helper('MA'))
 
     @property
     def marange(self) -> str | None:
