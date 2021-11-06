@@ -6,7 +6,8 @@ from typing import Tuple, List
 from hagadias.character_codes import STAT_NAMES
 from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
     CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
-    CHARGE_USE_REASONS, ACTIVE_PARTS, STAT_DISPLAY_NAMES, BUTCHERABLE_POPTABLES
+    CHARGE_USE_REASONS, ACTIVE_PARTS, STAT_DISPLAY_NAMES, BUTCHERABLE_POPTABLES, CHERUBIM_DESC, \
+    MECHANICAL_CHERUBIM_DESC
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
     str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
@@ -591,9 +592,26 @@ class QudObjectProps(QudObject):
     def desc(self) -> str | None:
         """The short description of the object, with color codes included (ampersands escaped)."""
         desc_txt = self.part_Description_Short
+
+        # Handle empty descriptions first
         if desc_txt is None or len(desc_txt) < 1:
-            return None  # notably, Cherubs
-            # Note that many other things without a description will inherit 'A hideous specimen.'
+            if self.name[-7:] == ' Cherub':
+                is_mechanical = self.name[:11] == 'Mechanical '
+                txt = MECHANICAL_CHERUBIM_DESC if is_mechanical else CHERUBIM_DESC
+                skintype = str_or_default(self.xtag_TextFragments_Skin, 'skin')
+                creaturetype = str_or_default(self.tag_AlternateCreatureType_Value,
+                                              self.displayname.split()[1 if is_mechanical else 0])
+                features = self.xtag_TextFragments_PoeticFeatures.split(',')
+                if is_mechanical:
+                    features = '{}, and {}'.format(', '.join(features[:-1]),  features[-1])
+                else:
+                    features = 'the {}'.format(', the '.join(features))
+                return txt.replace('*skin*', skintype) \
+                          .replace('*creatureType*', creaturetype) \
+                          .replace('*features*', features)
+            else:
+                # Should be rare because most things without a descrip inherit 'A hideous specimen.'
+                return None
 
         # TODO: Refactor or break into a separate file.
         # Note that the order of description rules below is meaningful - it attempts to do the

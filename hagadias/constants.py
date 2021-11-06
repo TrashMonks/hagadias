@@ -1,5 +1,9 @@
 """Various constants that are unlikely to change."""
 
+# Cherubim description templates
+CHERUBIM_DESC = 'Gallium veins press against the underside of =pronouns.possessive= crystalline *skin* and gleam warmly. =pronouns.Possessive= body is perfect, and the whole of it is wet with amniotic slick; could =pronouns.subjective= have just now peeled =pronouns.reflexive= off an oil canvas? =verb:Were:afterpronoun= =pronouns.subjective= cast into the material realm by a dreaming, dripping brain? Whatever the embryo, =pronouns.subjective= =verb:are:afterpronoun= now the archetypal *creatureType*; it\'s all there in impeccable simulacrum: *features*. Perfection is realized.'  # noqa E501
+MECHANICAL_CHERUBIM_DESC = 'Dials tick and vacuum tubes mantle under synthetic *skin* and inside plastic joints. *features* are wrought from a vast and furcate machinery into the ideal form of the *creatureType*. By the artistry of =pronouns.possessive= construction, =pronouns.subjective= closely =verb:resemble:afterpronoun= =pronouns.possessive= referent, but an exposed cog here and an exhaust valve there betray the truth of =pronouns.possessive= nature. =pronouns.Possessive= movements are short and mimetic; =pronouns.subjective= =verb:inhabit:afterpronoun= the valley between the mountains of life and imagination.'  # noqa E501
+
 # BIT_TRANS: convert between the bit codes found in XML and the ones shown ingame.
 bit_table = {'G': 'B',
              'R': 'A',
