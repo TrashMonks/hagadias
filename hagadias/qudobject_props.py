@@ -1196,6 +1196,12 @@ class QudObjectProps(QudObject):
             return True
 
     @property
+    def energyammoloader(self) -> bool | None:
+        """Returns True if the object has the EnergyAmmoLoader part, which is used to control
+        whether certain mods can apply to the item."""
+        return True if self.part_EnergyAmmoLoader is not None else None
+
+    @property
     def exoticfood(self) -> bool | None:
         """When preserved, whether the player must explicitly agree to preserve it."""
         if self.tag_ChooseToPreserve is not None:
