@@ -258,6 +258,8 @@ class QudObjectProps(QudObject):
         attributes = self.projectile_object('part_Projectile_Attributes')
         if attributes is not None:
             return attributes.split()
+        elif self.part_ElectricalDischargeLoader is not None:
+            return 'Electric Shock'.split()
 
     @property
     def ammoperaction(self) -> int | None:
