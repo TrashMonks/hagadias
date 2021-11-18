@@ -792,6 +792,26 @@ class StyleFixtureWithChildAlternates(TileStyle):
                              meta_type_after=True)
 
 
+class StyleAsterisk(TileStyle):
+    """Styles for the PointedAsteriskBuilder part."""
+
+    TILES = ['Items/sw_asterisk_3.bmp', 'Items/sw_asterisk_4.bmp', 'Items/sw_asterisk_5.bmp',
+             'Items/sw_asterisk_6plus.bmp']
+    LABELS = ['three-pointed', 'four-pointed', 'five-pointed', 'many-pointed']
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=90,
+                         _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE)
+
+    def _modification_count(self) -> int:
+        return 4 if self.object.part_PointedAsteriskBuilder is not None else 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        self.painter.file = StyleAsterisk.TILES[index]
+        return StyleMetadata(meta_type=StyleAsterisk.LABELS[index],
+                             f_postfix=f'({StyleAsterisk.LABELS[index]})')
+
+
 class StyleManager:
     # TODO: support grabbing a random style (for cryptogull)
 
@@ -799,6 +819,7 @@ class StyleManager:
     """max limit for generated images for a single object ('flowers' has like 484 variants...)"""
 
     Styles: List[Type[TileStyle]] = [StyleAloes,
+                                     StyleAsterisk,
                                      StyleDoor,
                                      StyleDoubleContainer,
                                      StyleEnclosing,
