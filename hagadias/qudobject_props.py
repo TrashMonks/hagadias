@@ -1192,6 +1192,11 @@ class QudObjectProps(QudObject):
             return emp_sensitive
 
     @property
+    def enclosing(self) -> bool | None:
+        """Returns True if the object is an Enclosing object."""
+        return True if self.part_Enclosing is not None else None
+
+    @property
     def energycellrequired(self) -> bool | None:
         """Returns True if the object requires an energy cell to function."""
         if self.is_specified('part_EnergyCellSocket'):
