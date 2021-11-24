@@ -875,8 +875,6 @@ class StyleManager:
             if style.modifies_within_scope(allowed_scope=remaining):
                 # reduce allowed property scope of remaining styles
                 remaining = remaining & style.allows
-                if remaining == RenderProps.NONE:
-                    break
                 i += 1
             else:
                 logging.warning(f'StyleManager discarded {type(self._applicable_styles[i])}' +
