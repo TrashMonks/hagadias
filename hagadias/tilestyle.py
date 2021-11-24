@@ -591,6 +591,53 @@ class StyleHarvestable(TileStyle):
         return StyleMetadata(meta_type=ripe_string, f_postfix='ripe' if is_ripe else 'unripe')
 
 
+class StyleArspliceHyphae(TileStyle):
+    """Styles for Arsplice Hyphae. Similar to Harvestable, except for a few unique things:
+    Has two objects (Arsplice Hyphae A and Arsplice Hyphae B) which each contain a subset of the
+    sprites, and also includes variable tiles (all other Harvestables permute colors only). This
+    also supercedes the RandomTile part on Arsplice Hyphae to avoid additional complexity."""
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=100,
+                         _modifies=RenderProps.ALL, _allows=RenderProps.NONE)
+        self._count: int = 0
+        if self.object.inherits_from('Arsplice Hyphae'):
+            self._ripe_tiles: List[str] = []
+            self._unripe_tiles: List[str] = []
+            for objkey in ['Arsplice Hyphae A', 'Arsplice Hyphae B']:
+                if objkey in self.object.qindex:
+                    obj = self.object.qindex[objkey]
+                    self._ripe_color = obj.part_Harvestable_RipeColor
+                    self._unripe_color = obj.part_Harvestable_UnripeColor
+                    self._ripe_detail = obj.part_Harvestable_RipeDetailColor
+                    self._unripe_detail = obj.part_Harvestable_UnripeDetailColor
+                    self._ripe_tiles.extend(obj.part_Harvestable_RipeTiles.split(','))
+                    self._unripe_tiles.extend(obj.part_Harvestable_UnripeTiles.split(','))
+            self._count = len(self._ripe_tiles) + len(self._unripe_tiles)
+
+    def _modification_count(self) -> int:
+        return self._count
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        is_ripe = index % 2 == 0
+        file_idx = index // 2
+        painter = self.painter
+        if is_ripe:
+            painter.color = painter.color if self._ripe_color is None else self._ripe_color
+            painter.detail = painter.detail if self._ripe_detail is None else self._ripe_detail
+            if len(self._ripe_tiles) > file_idx:
+                painter.file = self._ripe_tiles[file_idx]
+        else:
+            painter.color = painter.color if self._unripe_color is None else self._unripe_color
+            painter.detail = painter.detail if self._unripe_detail is None else self._unripe_detail
+            if len(self._unripe_tiles) > file_idx:
+                painter.file = self._unripe_tiles[file_idx]
+        ripe_string = 'ripe' if is_ripe else 'not ripe'
+        ripe_filestring = 'ripe' if is_ripe else 'unripe'
+        return StyleMetadata(meta_type=f'{ripe_string} (variation #{file_idx + 1})',
+                             f_postfix=f'{ripe_filestring} variation {file_idx + 1}')
+
+
 class StyleAloes(TileStyle):
     """Styles for Aloe objects."""
 
@@ -819,6 +866,7 @@ class StyleManager:
     """max limit for generated images for a single object ('flowers' has like 484 variants...)"""
 
     Styles: List[Type[TileStyle]] = [StyleAloes,
+                                     StyleArspliceHyphae,
                                      StyleAsterisk,
                                      StyleDoor,
                                      StyleDoubleContainer,
