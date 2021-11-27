@@ -144,6 +144,8 @@ class QudObject(NodeMixin):
     def has_tile(self) -> bool:
         """Returns true if this object qualifies for tile rendering."""
         if self.tag_BaseObject:
+            if self.name == 'ScrapCape':
+                return True  # special case; unsure why this is marked as a BaseObject
             return False
         if self.part_Render_Tile or self.part_RandomTile is not None:
             return True
