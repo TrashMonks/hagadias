@@ -55,6 +55,8 @@ class QudObjectProps(QudObject):
                 val = getattr(self, f'stat_{attr}_Value')
         elif self.inherits_from('Armor'):
             val = getattr(self, f'part_Armor_{attr}')
+            if val == '0':
+                return None
         return val
 
     def attribute_boost_factor(self, attr: str) -> float | None:
@@ -1844,7 +1846,7 @@ class QudObjectProps(QudObject):
                         mutation_val += int(info['Level']) * 2 + 13
             if mutation_val != 0:
                 return mutation_val + \
-                       100 if self.stat_Speed_Value is None else int(self.stat_Speed_Value)
+                    100 if self.stat_Speed_Value is None else int(self.stat_Speed_Value)
             return int_or_none(self.stat_Speed_Value)
         if self.part_Armor:
             return int_or_none(self.part_Armor_SpeedBonus)
