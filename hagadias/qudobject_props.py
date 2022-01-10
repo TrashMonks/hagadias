@@ -534,6 +534,13 @@ class QudObjectProps(QudObject):
             return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
 
     @property
+    def chargeconsumemechanical(self) -> int | None:
+        """If this object consumes mechanical power, the max amount of charge
+        it can potentially consume per turn."""
+        if self.part_MechanicalPowerTransmission_IsConsumer == 'true':
+            return int_or_default(self.part_MechanicalPowerTransmission_ChargeRate, 100)
+
+    @property
     def chargeproducebroadcast(self) -> bool | None:
         """True if this object acts as a broadcast power source"""
         if self.part_BroadcastPowerTransmitter is not None:
@@ -550,6 +557,12 @@ class QudObjectProps(QudObject):
         """If this object produces hydraulic power, the amount of charge it produces per turn."""
         if self.part_HydraulicPowerTransmission_IsProducer == 'true':
             return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
+
+    @property
+    def chargeproducemechanical(self) -> int | None:
+        """If this object produces mechanical power, the amount of charge it produces per turn."""
+        if self.part_MechanicalPowerTransmission_IsProducer == 'true':
+            return int_or_default(self.part_MechanicalPowerTransmission_ChargeRate, 100)
 
     @property
     def chargeproducesolar(self) -> int | None:
