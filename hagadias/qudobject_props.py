@@ -430,6 +430,9 @@ class QudObjectProps(QudObject):
             if part == 'Teleprojector':
                 return int(self.part_Teleprojector_InitialChargeUse) + \
                     int(self.part_Teleprojector_MaintainChargeUse)
+            if part == 'ForceProjector':
+                return int_or_default(self.part_ForceProjector_ChargePerProjection, 90) + \
+                    int(self.part_ForceProjector_BaseOperatingCharge, 1)
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
                 charge += int(chg)
@@ -449,6 +452,11 @@ class QudObjectProps(QudObject):
             if part == 'Teleprojector':
                 return f'Initiate Domination [{self.part_Teleprojector_InitialChargeUse}], ' + \
                     f'Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]'
+            if part == 'ForceProjector':
+                return 'Basic Operation [' + \
+                    str_or_default(self.part_ForceProjector_ChargePerProjection, '90') + '], ' + \
+                    'Per-Tile Projection [' + \
+                    int(self.part_ForceProjector_BaseOperatingCharge, 1) + ']'
             chg = getattr(self, f'part_{part}_ChargeUse')
             if chg is not None and int(chg) > 0:
                 match part:
