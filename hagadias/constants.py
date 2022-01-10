@@ -200,6 +200,7 @@ HARDCODED_CHARGE_USE = {
     'Ninefold Boots': 250,
     'Slip Ring': 1,
     'Stopsvaalinn': 500,
+    'Food Processor': 500,
 }
 CHARGE_USE_REASONS = {
     'Displacer Bracelet': 'SpatialTransposer',
@@ -209,6 +210,7 @@ CHARGE_USE_REASONS = {
     'Ninefold Boots': 'Accelerative Teleporter',
     'Slip Ring': 'Slipperiness',
     'Stopsvaalinn': 'ForceEmitter',
+    'Food Processor': 'Food Processing',
 }
 
 QUD_COLORS = {'r': (166, 74, 46),  # dark red
