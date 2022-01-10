@@ -536,8 +536,6 @@ class QudObjectProps(QudObject):
         """If this object produces electric power, the amount of charge it produces per turn."""
         if self.part_ElectricalPowerTransmission_IsProducer == 'true':
             return int_or_default(self.part_ElectricalPowerTransmission_ChargeRate, 500)
-        elif self.part_HydraulicPowerTransmission_IsProducer == 'true':
-            return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
 
     @property
     def chargeproducehydraulic(self) -> int | None:
