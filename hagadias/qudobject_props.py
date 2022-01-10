@@ -380,16 +380,35 @@ class QudObjectProps(QudObject):
             return False  # it's interesting if an item can't be disassembled but can be built
 
     @property
-    def chairlevel(self) -> int | None:
-        """The level of this chair, used to determine the power of the Sitting effect."""
-        if self.part_Chair is not None:
-            level = int_or_none(self.part_Chair_Level)
-            return 0 if level is None else level
+    def capacitorcharge(self) -> str | None:
+        """If this object has a capacitor, the starting charge range of that capacitor."""
+        if self.part_Capacitor is not None:
+            return str_or_default(self.part_Capacitor_StartCharge,
+                                  str_or_default(self.part_Capacitor_Charge, '0'))
+
+    @property
+    def capacitormax(self) -> int | None:
+        """If this object has a capacitor, the max charge the capacitor can hold."""
+        if self.part_Capacitor is not None:
+            return int_or_default(self.part_Capacitor_MaxCharge, 10000)
+
+    @property
+    def capacitorrate(self) -> int | None:
+        """If this object has a capacitor, the maximum rate of capacitor recharge per turn."""
+        if self.part_Capacitor is not None:
+            return int_or_default(self.part_Capacitor_ChargeRate, 5)
 
     @property
     def carrybonus(self) -> int | None:
         """The carry weight bonus."""
         return int_or_none(self.part_Armor_CarryBonus)
+
+    @property
+    def chairlevel(self) -> int | None:
+        """The level of this chair, used to determine the power of the Sitting effect."""
+        if self.part_Chair is not None:
+            level = int_or_none(self.part_Chair_Level)
+            return 0 if level is None else level
 
     @property
     def chargeperdram(self) -> int | None:
@@ -484,6 +503,53 @@ class QudObjectProps(QudObject):
             return funcs[0]  # if only one function, return the simple name
         else:
             return ', '.join(detailedfuncs)  # if multiple, return names with charge amount appended
+
+    @property
+    def chargeconsumebroadcast(self) -> int | None:
+        """If this object consumes charge from broadcast power, the max amount of charge
+        it can potentially consume per turn."""
+        if self.part_BroadcastPowerReceiver is not None:
+            return int_or_default(self.part_BroadcastPowerReceiver_ChargeRate, 10)
+
+    @property
+    def chargeconsumeelectrical(self) -> int | None:
+        """If this object consumes charge from electric grids, the max amount of charge
+        it can potentially consume per turn."""
+        if self.part_ElectricalPowerTransmission_IsConsumer == 'true':
+            return int_or_default(self.part_ElectricalPowerTransmission_ChargeRate, 500)
+
+    @property
+    def chargeconsumehydraulic(self) -> int | None:
+        """If this object consumes charge from hydraulic grids, the max amount of charge
+        it can potentially consume per turn."""
+        if self.part_HydraulicPowerTransmission_IsConsumer == 'true':
+            return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
+
+    @property
+    def chargeproducebroadcast(self) -> bool | None:
+        """True if this object acts as a broadcast power source"""
+        if self.part_BroadcastPowerTransmitter is not None:
+            return True
+
+    @property
+    def chargeproduceelectric(self) -> int | None:
+        """If this object produces electric power, the amount of charge it produces per turn."""
+        if self.part_ElectricalPowerTransmission_IsProducer == 'true':
+            return int_or_default(self.part_ElectricalPowerTransmission_ChargeRate, 500)
+        elif self.part_HydraulicPowerTransmission_IsProducer == 'true':
+            return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
+
+    @property
+    def chargeproducehydraulic(self) -> int | None:
+        """If this object produces hydraulic power, the amount of charge it produces per turn."""
+        if self.part_HydraulicPowerTransmission_IsProducer == 'true':
+            return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
+
+    @property
+    def chargeproducesolar(self) -> int | None:
+        """If this object has a solar array, the amount of solar energy it produces per turn."""
+        if self.part_SolarArray is not None:
+            return int_or_default(self.part_SolarArray_ChargeRate, 10)
 
     @property
     def cold(self) -> int | None:
