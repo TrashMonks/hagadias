@@ -1190,7 +1190,7 @@ class QudObjectProps(QudObject):
                 if 'Value' in val and val['Value'] == '{{{remove}}}':
                     continue  # explicitly disallowed from an inherited dynamic table
                 tables.append(key.split(':')[1])
-        return tables if len(tables) > 0 else None
+        return list(set(tables)) if len(tables) > 0 else None
 
     @property
     def eatdesc(self) -> str | None:
