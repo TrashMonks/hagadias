@@ -1557,7 +1557,7 @@ class QudObjectProps(QudObject):
     def isswarmer(self) -> bool | None:
         """Whether a creature is a Swarmer."""
         if self.inherits_from('Creature'):
-            if self.is_specified('part_Swarmer'):
+            if self.part_Swarmer is not None:
                 return True
 
     @property
