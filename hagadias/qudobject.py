@@ -255,6 +255,11 @@ class QudObject(NodeMixin):
                         # parent has this attribute but we don't
                         if inherited[tag][name][attr] == '*noinherit':
                             # this attribute shows that its name should not be inherited
+                            # TODO: fix when the child also specifies this tag:
+                            #       BaseTierShield1 is showing up as wiki eligible when it
+                            #       shouldn't. I think it's something to do with this logic.
+                            #       Other similar base objects seemingly not affected because they
+                            #       have '[' in their display names per is_wiki_eligible() logic
                             del all_attributes[tag][name]
                         else:
                             all_attributes[tag][name][attr] = inherited[tag][name][attr]
