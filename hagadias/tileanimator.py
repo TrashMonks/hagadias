@@ -172,7 +172,8 @@ class TileAnimator:
         # the 'unpowered' animation, so we don't always want to show it if we're animating an object
         # that also has a 'powered' animation
         remove_alternate = ['Force Projector', 'GritGateChromeBeacon', 'Rodanis Y',
-                            'Industrial Fan']
+                            'Industrial Fan', 'Hydraulic Press', 'Fusion Pumping Station',
+                            'Solar Power Station', 'Solar Pumping Station']
         if self.qud_object.name in remove_alternate:
             anim_parts.pop()  # ignore AnimatedMaterialGenericAlternate
 
