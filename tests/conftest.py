@@ -21,7 +21,7 @@ _qud_object_root, _qindex = _root.get_object_tree()
 
 @pytest.fixture(scope="session")
 def gameroot() -> GameRoot:
-    """Return the game version"""
+    """Return the gameroot object"""
     return _root
 
 
