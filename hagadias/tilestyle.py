@@ -1,5 +1,4 @@
 from __future__ import annotations  # allow forward type references
-import logging
 import itertools
 import os
 import random

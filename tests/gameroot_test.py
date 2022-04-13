@@ -13,7 +13,7 @@ def test_get_character_codes(gameroot):
     """Test retrieving the character code map.
 
     This may already have been loaded into cache by a pytest fixture."""
-    character_codes = gameroot.get_character_codes()
+    gameroot.get_character_codes()
 
 
 def test_get_object_tree(gameroot):

@@ -1,6 +1,7 @@
 """attr specification:
 QudObject.part_name_attribute"""
 from copy import deepcopy
+from functools import cached_property
 from typing import Tuple, List
 
 from anytree import NodeMixin
@@ -91,16 +92,13 @@ class QudObject(NodeMixin):
                 # normal case: just assign the attributes dictionary to this <tag>-Name combo
                 self.attributes[element_tag][element_name] = element.attrib
 
-    @property
+    @cached_property
     def tile(self) -> QudTile:
         """Return a QudTile colored to match the in-game representation. This is only the
         'primary' tile for objects that have more than one tile. Use <QudObject>.tiles to
         retrieve the full tile collection.
 
-        Created on-demand to speed load times; cached in self._tile after first call."""
-        if hasattr(self, '_tile'):
-            # do we have a cached tile?
-            return self._tile
+        Created on-demand to speed load times; cached after first call."""
         tile = None  # not all objects have tiles
         if self.has_tile():
             painter = self.tile_painter
@@ -108,20 +106,20 @@ class QudObject(NodeMixin):
         self._tile = tile
         return tile
 
-    @property
+    @cached_property
     def tile_painter(self) -> TilePainter:
         if hasattr(self, '_tile_painter'):
             return self._tile_painter
         self._tile_painter = TilePainter(self)
         return self._tile_painter
 
-    @property
+    @cached_property
     def tiles(self) -> List[QudTile]:
         """Returns all of the QudTiles for this object, including any alternate tiles. If you
         want to first check whether more than one tile exists, you can call
         <QudObject>.number_of_tiles().
 
-        Created on-demand and cached in self._alltiles after first call."""
+        Created on-demand and cached after first call."""
         return self.tiles_and_metadata()[0]
 
     def tiles_and_metadata(self) -> Tuple[List[QudTile], List]:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from functools import cached_property
 from typing import Tuple, List
 
 from hagadias.character_codes import STAT_NAMES
@@ -197,29 +198,29 @@ class QudObjectProps(QudObject):
     # These properties are the heart of hagadias. They make it easy to access attributes
     # buried in the XML, or which require some computation or translation.
     # Properties all return None implicitly if the property is not applicable to the current item.
-    @property
+    @cached_property
     def accuracy(self) -> int | None:
         """How accurate the gun is."""
         if self.part_MissileWeapon is not None:
             accuracy = self.part_MissileWeapon_WeaponAccuracy
             return 0 if accuracy is None else accuracy  # 0 is default if unspecified
 
-    @property
+    @cached_property
     def acid(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Acid')
 
-    @property
+    @cached_property
     def agility(self) -> str | None:
         """The agility the mutation affects, or the agility of the creature."""
         return self.attribute_helper('Agility')
 
-    @property
+    @cached_property
     def agilitymult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic agility, if specified."""
         return self.attribute_boost_factor('Agility')
 
-    @property
+    @cached_property
     def agilityextrinsic(self) -> int | None:
         """Extra agility for a creature from extrinsic factors, such as mutations or equipment."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
@@ -228,7 +229,7 @@ class QudObjectProps(QudObject):
                     if mutation == 'HeightenedAgility':
                         return (int(info['Level']) - 1) // 2 + 2
 
-    @property
+    @cached_property
     def ammo(self) -> str | None:
         """What type of ammo is used."""
         ammo = None
@@ -252,7 +253,7 @@ class QudObjectProps(QudObject):
             ammo = self.part_BioAmmoLoader_LiquidConsumed
         return ammo
 
-    @property
+    @cached_property
     def ammodamagetypes(self) -> list | None:
         """Damage attributes associated with the projectile.
 
@@ -263,26 +264,26 @@ class QudObjectProps(QudObject):
         elif self.part_ElectricalDischargeLoader is not None:
             return 'Electric Shock'.split()
 
-    @property
+    @cached_property
     def ammoperaction(self) -> int | None:
         """How much ammo this weapon uses per action. This sometimes differs from the
         shots per action."""
         return self.part_MissileWeapon_AmmoPerAction
 
-    @property
+    @cached_property
     def animatable(self) -> bool | None:
         """If the thing can be animated using spray a brain or nanoneuro animator."""
         if self.tag_Animatable is not None:
             return True
 
-    @property
+    @cached_property
     def aquatic(self) -> bool | None:
         """If the creature requires to be submerged in water."""
         if self.inherits_from('Creature'):
             if self.part_Brain_Aquatic is not None:
                 return True if self.part_Brain_Aquatic == "true" else False
 
-    @property
+    @cached_property
     def av(self) -> int | None:
         """The AV that an item provides, or the AV that a creature has."""
         av = None
@@ -325,7 +326,7 @@ class QudObjectProps(QudObject):
                         av += int(item.av)
         return int_or_none(av)
 
-    @property
+    @cached_property
     def bits(self) -> str | None:
         """The bits you can get from disassembling the object.
 
@@ -334,7 +335,7 @@ class QudObjectProps(QudObject):
                                      self.part_TinkerItem_CanBuild != 'false'):
             return self.part_TinkerItem_Bits.translate(BIT_TRANS)
 
-    @property
+    @cached_property
     def bleedliquid(self) -> str | None:
         """What liquid something bleeds. Only returns interesting liquids (not blood)"""
         robotic = self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'
@@ -343,12 +344,12 @@ class QudObjectProps(QudObject):
             if liquid != "blood":  # it's interesting if they don't bleed blood
                 return liquid
 
-    @property
+    @cached_property
     def bodytype(self) -> str | None:
         """Returns the BodyType tag of the creature."""
         return self.part_Body_Anatomy
 
-    @property
+    @cached_property
     def butcheredinto(self) -> List[dict] | None:
         """What a corpse item can be butchered into."""
         butcher_obj = self.part_Butcherable_OnSuccess
@@ -363,7 +364,7 @@ class QudObjectProps(QudObject):
                     return outcomes
             return [{'Object': butcher_obj, 'Number': 1, 'Weight': 100}]
 
-    @property
+    @cached_property
     def canbuild(self) -> bool | None:
         """Whether or not the player can tinker up this item."""
         if self.part_TinkerItem_CanBuild == 'true':
@@ -371,7 +372,7 @@ class QudObjectProps(QudObject):
         elif self.part_TinkerItem_CanDisassemble == 'true':
             return False  # it's interesting if an item can't be built but can be disassembled
 
-    @property
+    @cached_property
     def candisassemble(self) -> bool | None:
         """Whether or not the player can disassemble this item."""
         if self.part_TinkerItem_CanDisassemble == 'true':
@@ -379,38 +380,38 @@ class QudObjectProps(QudObject):
         elif self.part_TinkerItem_CanBuild == 'true':
             return False  # it's interesting if an item can't be disassembled but can be built
 
-    @property
+    @cached_property
     def capacitorcharge(self) -> str | None:
         """If this object has a capacitor, the starting charge range of that capacitor."""
         if self.part_Capacitor is not None:
             return str_or_default(self.part_Capacitor_StartCharge,
                                   str_or_default(self.part_Capacitor_Charge, '0'))
 
-    @property
+    @cached_property
     def capacitormax(self) -> int | None:
         """If this object has a capacitor, the max charge the capacitor can hold."""
         if self.part_Capacitor is not None:
             return int_or_default(self.part_Capacitor_MaxCharge, 10000)
 
-    @property
+    @cached_property
     def capacitorrate(self) -> int | None:
         """If this object has a capacitor, the maximum rate of capacitor recharge per turn."""
         if self.part_Capacitor is not None:
             return int_or_default(self.part_Capacitor_ChargeRate, 5)
 
-    @property
+    @cached_property
     def carrybonus(self) -> int | None:
         """The carry weight bonus."""
         return int_or_none(self.part_Armor_CarryBonus)
 
-    @property
+    @cached_property
     def chairlevel(self) -> int | None:
         """The level of this chair, used to determine the power of the Sitting effect."""
         if self.part_Chair is not None:
             level = int_or_none(self.part_Chair_Level)
             return 0 if level is None else level
 
-    @property
+    @cached_property
     def chargeperdram(self) -> int | None:
         """How much charge is available per dram (for liquid-fueled cells or machines)."""
         chargeperdram = int_or_none(self.part_LiquidFueledEnergyCell_ChargePerDram)
@@ -420,7 +421,7 @@ class QudObjectProps(QudObject):
             chargeperdram = int_or_default(self.part_LiquidFueledPowerPlant_ChargePerDram, 10000)
             return chargeperdram
 
-    @property
+    @cached_property
     def chargeused(self) -> int | None:
         """How much charge is used for various item functions."""
         charge = 0
@@ -441,7 +442,7 @@ class QudObjectProps(QudObject):
         if charge > 0:
             return charge
 
-    @property
+    @cached_property
     def chargefunction(self) -> str | None:
         """The features or functions that the charge is used for."""
         funcs = []
@@ -512,70 +513,70 @@ class QudObjectProps(QudObject):
         else:
             return ', '.join(detailedfuncs)  # if multiple, return names with charge amount appended
 
-    @property
+    @cached_property
     def chargeconsumebroadcast(self) -> int | None:
         """If this object consumes charge from broadcast power, the max amount of charge
         it can potentially consume per turn."""
         if self.part_BroadcastPowerReceiver is not None:
             return int_or_default(self.part_BroadcastPowerReceiver_ChargeRate, 10)
 
-    @property
+    @cached_property
     def chargeconsumeelectrical(self) -> int | None:
         """If this object consumes charge from electric grids, the max amount of charge
         it can potentially consume per turn."""
         if self.part_ElectricalPowerTransmission_IsConsumer == 'true':
             return int_or_default(self.part_ElectricalPowerTransmission_ChargeRate, 500)
 
-    @property
+    @cached_property
     def chargeconsumehydraulic(self) -> int | None:
         """If this object consumes charge from hydraulic grids, the max amount of charge
         it can potentially consume per turn."""
         if self.part_HydraulicPowerTransmission_IsConsumer == 'true':
             return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
 
-    @property
+    @cached_property
     def chargeconsumemechanical(self) -> int | None:
         """If this object consumes mechanical power, the max amount of charge
         it can potentially consume per turn."""
         if self.part_MechanicalPowerTransmission_IsConsumer == 'true':
             return int_or_default(self.part_MechanicalPowerTransmission_ChargeRate, 100)
 
-    @property
+    @cached_property
     def chargeproducebroadcast(self) -> bool | None:
         """True if this object acts as a broadcast power source"""
         if self.part_BroadcastPowerTransmitter is not None:
             return True
 
-    @property
+    @cached_property
     def chargeproduceelectric(self) -> int | None:
         """If this object produces electric power, the amount of charge it produces per turn."""
         if self.part_ElectricalPowerTransmission_IsProducer == 'true':
             return int_or_default(self.part_ElectricalPowerTransmission_ChargeRate, 500)
 
-    @property
+    @cached_property
     def chargeproducehydraulic(self) -> int | None:
         """If this object produces hydraulic power, the amount of charge it produces per turn."""
         if self.part_HydraulicPowerTransmission_IsProducer == 'true':
             return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
 
-    @property
+    @cached_property
     def chargeproducemechanical(self) -> int | None:
         """If this object produces mechanical power, the amount of charge it produces per turn."""
         if self.part_MechanicalPowerTransmission_IsProducer == 'true':
             return int_or_default(self.part_MechanicalPowerTransmission_ChargeRate, 100)
 
-    @property
+    @cached_property
     def chargeproducesolar(self) -> int | None:
         """If this object has a solar array, the amount of solar energy it produces per turn."""
         if self.part_SolarArray is not None:
             return int_or_default(self.part_SolarArray_ChargeRate, 10)
 
-    @property
+    @cached_property
     def cold(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Cold')
 
-    @property
+    @cached_property
     def colorstr(self) -> str | None:
         """The Qud color code associated with the RenderString."""
         if self.part_Render_ColorString:
@@ -583,7 +584,7 @@ class QudObjectProps(QudObject):
         if self.part_Gas_ColorString:
             return self.part_Gas_ColorString
 
-    @property
+    @cached_property
     def commerce(self) -> float | None:
         """The value of the object."""
         if self.inherits_from('Item') or self.inherits_from('BaseThrownWeapon'):
@@ -591,7 +592,7 @@ class QudObjectProps(QudObject):
             if value is not None:
                 return float(value)
 
-    @property
+    @cached_property
     def complexity(self) -> int | None:
         """The complexity of the object, used for psychometry."""
         if self.part_Examiner_Complexity is None:
@@ -615,21 +616,21 @@ class QudObjectProps(QudObject):
         if val > 0 or self.canbuild:
             return val
 
-    @property
+    @cached_property
     def cookeffect(self) -> list | None:
         """The possible cooking effects of an item."""
         ingred_type = self.part_PreparedCookingIngredient_type
         if ingred_type is not None:
             return ingred_type.split(',')
 
-    @property
+    @cached_property
     def corpse(self) -> str | None:
         """What corpse a character drops."""
         if self.part_Corpse_CorpseBlueprint is not None and int(self.part_Corpse_CorpseChance) > 0 \
                 and (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
             return self.part_Corpse_CorpseBlueprint
 
-    @property
+    @cached_property
     def corpsechance(self) -> int | None:
         """The chance of a corpse dropping, if corpsechance is >0"""
         chance = self.part_Corpse_CorpseChance
@@ -637,13 +638,13 @@ class QudObjectProps(QudObject):
                 (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
             return int(chance)
 
-    @property
+    @cached_property
     def cursed(self) -> bool | None:
         """If the item cannot be removed by normal circumstances."""
         if self.part_Cursed is not None:
             return True
 
-    @property
+    @cached_property
     def damage(self) -> str | None:
         """The damage dealt by this object. Often a dice string."""
         val = None
@@ -668,7 +669,7 @@ class QudObjectProps(QudObject):
             val = f'{dicecount}d4'
         return val
 
-    @property
+    @cached_property
     def demeanor(self) -> str | None:
         """The demeanor of the creature."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
@@ -677,7 +678,7 @@ class QudObjectProps(QudObject):
             if self.part_Brain_Hostile is not None:
                 return "aggressive" if self.part_Brain_Hostile.lower() == "true" else "neutral"
 
-    @property
+    @cached_property
     def desc(self) -> str | None:
         """The short description of the object, with color codes included (ampersands escaped)."""
         desc_txt = self.part_Description_Short
@@ -1102,13 +1103,13 @@ class QudObjectProps(QudObject):
 
         return desc_txt
 
-    @property
+    @cached_property
     def destroyonunequip(self) -> bool | None:
         """If the object is destroyed on unequip."""
         if self.part_DestroyOnUnequip is not None:
             return True
 
-    @property
+    @cached_property
     def displayname(self) -> str | None:
         """The display name of the object, with color codes removed. Used in UI and wiki."""
         dname = ""
@@ -1118,7 +1119,7 @@ class QudObjectProps(QudObject):
             dname = strip_newstyle_qud_colors(dname)
         return dname
 
-    @property
+    @cached_property
     def dramsperuse(self) -> int | float | None:
         """The number of drams of liquid consumed by each shot action."""
         if self.is_specified('part_LiquidAmmoLoader'):
@@ -1131,7 +1132,7 @@ class QudObjectProps(QudObject):
                 return chance / 100.0 * float(val)
             return val
 
-    @property
+    @cached_property
     def dv(self) -> int | None:
         """The Dodge Value of this object."""
         dv = None
@@ -1177,7 +1178,7 @@ class QudObjectProps(QudObject):
                             dv += item.dv
         return int_or_none(dv)
 
-    @property
+    @cached_property
     def dynamictable(self) -> list | None:
         """What dynamic tables the object is a member of.
 
@@ -1192,12 +1193,12 @@ class QudObjectProps(QudObject):
                 tables.append(key.split(':')[1])
         return list(set(tables)) if len(tables) > 0 else None
 
-    @property
+    @cached_property
     def eatdesc(self) -> str | None:
         """The text when you eat this item."""
         return self.part_Food_Message
 
-    @property
+    @cached_property
     def ego(self) -> str | None:
         """The creature's ego stat or the ego bonus supplied by a piece of equipment."""
         if self.name == 'Stopsvaalinn':
@@ -1207,31 +1208,31 @@ class QudObjectProps(QudObject):
             val = self.part_MeleeWeapon_Ego
         return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
 
-    @property
+    @cached_property
     def egomult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic ego, if specified."""
         return self.attribute_boost_factor('Ego')
 
-    @property
+    @cached_property
     def egoextrinsic(self) -> int | None:
         """Extra ego for a creature from extrinsic factors, such as mutations or equipment."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.mutation and 'Beak' in self.mutation.keys():
                 return 1
 
-    @property
+    @cached_property
     def electric(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Electric')
 
-    @property
+    @cached_property
     def electrical(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has.
         *egocarib 10/4/2020 - I am pretty sure this property is unused, but leaving it here
          just in case. Most things use 'electric' since that is our wiki template field name"""
         return self.resistance('Electric')
 
-    @property
+    @cached_property
     def elementaldamage(self) -> str | None:
         """The elemental damage dealt, if any, as a range."""
         if self.is_specified('part_ModFlaming'):
@@ -1247,7 +1248,7 @@ class QudObjectProps(QudObject):
             elestr = self.part_ElementalDamage_Damage
         return elestr
 
-    @property
+    @cached_property
     def elementaltype(self) -> str | None:
         """For elemental damage dealt, what the type of that damage is."""
         if self.is_specified('part_ModFlaming'):
@@ -1260,7 +1261,7 @@ class QudObjectProps(QudObject):
             elestr = self.part_ElementalDamage_Attributes
         return elestr
 
-    @property
+    @cached_property
     def empsensitive(self) -> bool | None:
         """Returns yes if the object is EMP-sensitive. This typically means that some feature of
         the object does not function as expected while pulsed by an EMP effect.
@@ -1278,35 +1279,35 @@ class QudObjectProps(QudObject):
                         emp_sensitive = True
             return emp_sensitive
 
-    @property
+    @cached_property
     def enclosing(self) -> bool | None:
         """Returns True if the object is an Enclosing object."""
         return True if self.part_Enclosing is not None else None
 
-    @property
+    @cached_property
     def energycellrequired(self) -> bool | None:
         """Returns True if the object requires an energy cell to function."""
         if self.is_specified('part_EnergyCellSocket'):
             return True
 
-    @property
+    @cached_property
     def energyammoloader(self) -> bool | None:
         """Returns True if the object has the EnergyAmmoLoader part, which is used to control
         whether certain mods can apply to the item."""
         return True if self.part_EnergyAmmoLoader is not None else None
 
-    @property
+    @cached_property
     def exoticfood(self) -> bool | None:
         """When preserved, whether the player must explicitly agree to preserve it."""
         if self.tag_ChooseToPreserve is not None:
             return True
 
-    @property
+    @cached_property
     def filtersgas(self) -> bool | None:
         """Whether this object acts as a gas mask."""
         return True if self.part_GasMask is not None else None
 
-    @property
+    @cached_property
     def faction(self) -> list | None:
         """The factions this creature has loyalty to.
 
@@ -1328,19 +1329,19 @@ class QudObjectProps(QudObject):
                     print(f'FIXME: unexpected faction format: {part} in {self.name}')
         return ret
 
-    @property
+    @cached_property
     def flametemperature(self) -> int | None:
         """The temperature that this object sets on fire. Only for items."""
         if self.inherits_from('Item') and self.is_specified('part_Physics'):
             return int_or_none(self.part_Physics_FlameTemperature)
 
-    @property
+    @cached_property
     def flashprotection(self) -> bool | None:
         """True if this item offers protection against visual flash effects."""
         if self.part_FlareCompensation is not None or self.part_ModPolarized is not None:
             return True
 
-    @property
+    @cached_property
     def flyover(self) -> bool | None:
         """Whether a flying creature can pass over this object."""
         if self.inherits_from('Wall') or self.inherits_from('Furniture'):
@@ -1349,12 +1350,12 @@ class QudObjectProps(QudObject):
             else:
                 return False
 
-    @property
+    @cached_property
     def gasemitted(self) -> str | None:
         """The gas emitted by the weapon (typically missile weapon 'pumps')."""
         return self.projectile_object('part_GasOnHit_Blueprint')
 
-    @property
+    @cached_property
     def gender(self) -> str | None:
         """The gender of the object."""
         if ((self.tag_Gender_Value is not None or
@@ -1365,12 +1366,12 @@ class QudObjectProps(QudObject):
                 gender = self.tag_RandomGender_Value
             return gender
 
-    @property
+    @cached_property
     def harvestedinto(self) -> str | None:
         """What an item produces when harvested."""
         return self.part_Harvestable_OnSuccess
 
-    @property
+    @cached_property
     def hasmentalshield(self) -> bool | None:
         """If a creature has a mental shield."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
@@ -1378,26 +1379,26 @@ class QudObjectProps(QudObject):
                     (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
                 return True
 
-    @property
+    @cached_property
     def healing(self) -> str | None:
         """How much a food item heals when used.
 
         Example: "1d16+24" for Witchwood Bark"""
         return self.part_Food_Healing
 
-    @property
+    @cached_property
     def heat(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
         return self.resistance('Heat')
 
-    @property
+    @cached_property
     def hidden(self) -> int | None:
         """If hidden, what difficulty is required to find them.
 
         Example: 15 for Yonderbrush"""
         return int_or_none(self.part_Hidden_Difficulty)
 
-    @property
+    @cached_property
     def hp(self) -> str | None:
         """The hitpoints of a creature or object.
 
@@ -1409,14 +1410,14 @@ class QudObjectProps(QudObject):
             elif self.stat_Hitpoints_Value is not None:
                 return self.stat_Hitpoints_Value
 
-    @property
+    @cached_property
     def hunger(self) -> str | None:
         """How much hunger it satiates.
 
         Example: "Snack" for Vanta Petals"""
         return self.part_Food_Satiation
 
-    @property
+    @cached_property
     def hurtbydefoliant(self) -> int | None:
         """If the thing is hurt by defoliant.
         0/None = no damage
@@ -1428,7 +1429,7 @@ class QudObjectProps(QudObject):
             else:
                 return 2
 
-    @property
+    @cached_property
     def hurtbyfungicide(self) -> int | None:
         """If the thing is hurt by fungicide.
         0/None = no damage
@@ -1440,19 +1441,19 @@ class QudObjectProps(QudObject):
             else:
                 return 2
 
-    @property
+    @cached_property
     def id(self) -> str:
         """The name of the object in ObjectBlueprints.xml. Should always exist."""
         return self.name
 
-    @property
+    @cached_property
     def illoneat(self) -> bool | None:
         """If eating this makes you sick."""
         if not self.inherits_from('Corpse'):
             if self.part_Food_IllOnEat == 'true':
                 return True
 
-    @property
+    @cached_property
     def imprintchargecost(self) -> int | None:
         """How much charge is used to imprint a programmable recoiler."""
         if self.part_ProgrammableRecoiler is not None:
@@ -1461,7 +1462,7 @@ class QudObjectProps(QudObject):
                 return int_or_none(charge)
             return 10000  # default IProgrammableRecoiler charge use
 
-    @property
+    @cached_property
     def inhaled(self) -> str | None:
         """For gases, whether this gas is respiration-based."""
         if self.part_Gas is not None:
@@ -1470,29 +1471,29 @@ class QudObjectProps(QudObject):
                 return 'yes'  # these are hard-coded
             return 'no'
 
-    @property
+    @cached_property
     def inheritingfrom(self) -> str | None:
         """The ID of the parent object in the Qud object hierarchy.
 
         Only the root object ("Object") should return None for this."""
         return self.parent.name
 
-    @property
+    @cached_property
     def intelligence(self) -> str | None:
         """The intelligence the mutation affects, or the intelligence of the creature."""
         return self.attribute_helper('Intelligence')
 
-    @property
+    @cached_property
     def intelligencemult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic intelligence, if specified."""
         return self.attribute_boost_factor('Intelligence')
 
-    @property
+    @cached_property
     def intelligenceextrinsic(self) -> int | None:
         """Extra INT for a creature from extrinsic factors, such as mutations or equipment."""
         return None  # nothing currently supported here
 
-    @property
+    @cached_property
     def inventory(self) -> List[Tuple[str, str, str, str]]:
         """The inventory of a character.
 
@@ -1509,25 +1510,25 @@ class QudObjectProps(QudObject):
                 ret.append((name, count, equipped, chance))
             return ret
 
-    @property
+    @cached_property
     def iscurrency(self) -> bool | None:
         """If the item is considered currency (price remains fixed while trading)."""
         if self.intproperty_Currency_Value == '1':
             return True
 
-    @property
+    @cached_property
     def isfungus(self) -> bool | None:
         """If the food item contains fungus."""
         if self.tag_Mushroom is not None:
             return True
 
-    @property
+    @cached_property
     def ismeat(self) -> bool | None:
         """If the food item contains meat."""
         if self.tag_Meat is not None:
             return True
 
-    @property
+    @cached_property
     def ismissile(self) -> bool | None:
         """If this item is a missile weapon"""
         if self.inherits_from('MissileWeapon'):
@@ -1535,32 +1536,32 @@ class QudObjectProps(QudObject):
         if self.is_specified('part_MissileWeapon'):
             return True
 
-    @property
+    @cached_property
     def isthrown(self) -> bool | None:
         """If this item is a thrown weapon"""
         if self.part_ThrownWeapon is not None:
             return True
 
-    @property
+    @cached_property
     def isoccluding(self) -> bool | None:
         if self.part_Render_Occluding is not None:
             if self.part_Render_Occluding == 'true' or self.part_Render_Occluding == 'True':
                 return True
 
-    @property
+    @cached_property
     def isplant(self) -> bool | None:
         """If the food item contains plants."""
         if self.tag_Plant is not None:
             return True
 
-    @property
+    @cached_property
     def isswarmer(self) -> bool | None:
         """Whether a creature is a Swarmer."""
         if self.inherits_from('Creature'):
             if self.part_Swarmer is not None:
                 return True
 
-    @property
+    @cached_property
     def leakswhenbroken(self) -> str | None:
         """If this object leaks liquid when broken, the dice string for % amount per turn leaked."""
         if self.part_LeakWhenBroken is not None:
@@ -1568,13 +1569,13 @@ class QudObjectProps(QudObject):
             amt = '10-20' if amt is None else amt  # 10-20% is default
             return amt
 
-    @property
+    @cached_property
     def lightprojectile(self) -> bool | None:
         """If the gun fires light projectiles (heat immune creatures will not take damage)."""
         if self.tag_Light is not None:
             return True
 
-    @property
+    @cached_property
     def lightradius(self) -> int | None:
         """Radius of light the object gives off."""
         val = int_or_none(self.part_LightSource_Radius)
@@ -1582,24 +1583,24 @@ class QudObjectProps(QudObject):
             val = int_or_none(self.part_ActiveLightSource_Radius)
         return val
 
-    @property
+    @cached_property
     def liquidgenrate(self) -> int | None:
         """For liquid generators. how many turns it takes for 1 dram to generate."""
         if self.part_LiquidProducer:
             amount_range = self.part_LiquidProducer_VariableRate
             return amount_range if amount_range is not None else self.part_LiquidProducer_Rate
 
-    @property
+    @cached_property
     def liquidgentype(self) -> str | None:
         """For liquid generators, the type of liquid generated."""
         return self.part_LiquidProducer_Liquid
 
-    @property
+    @cached_property
     def liquidburst(self) -> str | None:
         """If it explodes into liquid, what kind?"""
         return self.part_LiquidBurst_Liquid
 
-    @property
+    @cached_property
     def lv(self) -> str | None:
         """The object's level.
 
@@ -1610,7 +1611,7 @@ class QudObjectProps(QudObject):
             level = self.stat_Level_Value
         return level
 
-    @property
+    @cached_property
     def ma(self) -> int | None:
         """The object's mental armor. For creatures, this is an averaged value.
         For items, this can be a bonus to MA as specified in the Armor part."""
@@ -1631,7 +1632,7 @@ class QudObjectProps(QudObject):
         else:  # items (char_type == 0)
             return int_or_none(self.attribute_helper('MA'))
 
-    @property
+    @cached_property
     def marange(self) -> str | None:
         """The creature's full range of potential MA values"""
         if self.hasmentalshield:
@@ -1653,22 +1654,22 @@ class QudObjectProps(QudObject):
             # would output this instead as -3+1d2
             return f'{ma + minmod - 1}+1d{maxmod - minmod + 1}'
 
-    @property
+    @cached_property
     def maxammo(self) -> int | None:
         """How much ammo a gun can have loaded at once."""
         return int_or_none(self.part_MagazineAmmoLoader_MaxAmmo)
 
-    @property
+    @cached_property
     def maxcharge(self) -> int | None:
         """How much charge it can hold (usually reserved for cells)."""
         return int_or_none(self.part_EnergyCell_MaxCharge)
 
-    @property
+    @cached_property
     def maxvol(self) -> int | None:
         """The maximum liquid volume."""
         return int_or_none(self.part_LiquidVolume_MaxVolume)
 
-    @property
+    @cached_property
     def maxpv(self) -> int | None:
         """The max strength bonus + our base PV."""
         pv = self.pv
@@ -1678,14 +1679,14 @@ class QudObjectProps(QudObject):
                     pv += int(self.part_MeleeWeapon_MaxStrengthBonus)
         return pv
 
-    @property
+    @cached_property
     def metal(self) -> bool | None:
         """Whether the object is made out of metal."""
         if self.part_Metal is not None or \
                 (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
             return True
 
-    @property
+    @cached_property
     def modcount(self) -> int | None:
         """The number of mods on the item, if applicable.
 
@@ -1706,7 +1707,7 @@ class QudObjectProps(QudObject):
                 val += 1
         return val if val > 0 else None
 
-    @property
+    @cached_property
     def mods(self) -> List[Tuple[str, int]] | None:
         """Mods that are attached to the current item.
 
@@ -1729,7 +1730,7 @@ class QudObjectProps(QudObject):
                     mods.append((key, 1))
         return mods if len(mods) > 0 else None
 
-    @property
+    @cached_property
     def movespeed(self) -> int | None:
         """The movespeed of a creature."""
         if self.inherits_from('Creature'):
@@ -1739,7 +1740,7 @@ class QudObjectProps(QudObject):
                 ms = 200 - ms
                 return ms
 
-    @property
+    @cached_property
     def movespeedbonus(self) -> int | None:
         """The movespeed bonus of an item."""
         if self.inherits_from('Item'):
@@ -1747,13 +1748,13 @@ class QudObjectProps(QudObject):
             if bonus is not None:
                 return -int(bonus)
 
-    @property
+    @cached_property
     def mutatedplant(self) -> bool | None:
         """Whether this object is a MutatedPlant"""
         if self.inherits_from('MutatedPlant'):
             return True
 
-    @property
+    @cached_property
     def mutations(self) -> List[Tuple[str, int]] | None:
         """The mutations the creature has along with their level.
 
@@ -1773,20 +1774,20 @@ class QudObjectProps(QudObject):
         if len(mutations) > 0:
             return mutations
 
-    @property
+    @cached_property
     def noprone(self) -> bool | None:
         """Returns true if has part NoKnockdown."""
         if self.part_NoKnockdown is not None:
             return True
 
-    @property
+    @cached_property
     def omniphaseprojectile(self) -> bool | None:
         projectile = self.projectile_object()
         if projectile.is_specified('part_OmniphaseProjectile') or \
                 projectile.is_specified('tag_Omniphase'):
             return True
 
-    @property
+    @cached_property
     def oneat(self) -> List[str] | None:
         """Effects granted when the object is eaten.
 
@@ -1804,19 +1805,19 @@ class QudObjectProps(QudObject):
                 effects.append(effect)
         return effects if len(effects) > 0 else None
 
-    @property
+    @cached_property
     def penetratingammo(self) -> bool | None:
         """If the missile weapon's projectiles pierce through targets."""
         if self.projectile_object('part_Projectile_PenetrateCreatures') is not None:
             return True
 
-    @property
+    @cached_property
     def pettable(self) -> bool | None:
         """If the creature is pettable."""
         if self.part_Pettable is not None:
             return True
 
-    @property
+    @cached_property
     def phase(self) -> str | None:
         """What phase the object/creature is in, if not in phase."""
         if self.part_HologramMaterial or self.tag_Omniphase:
@@ -1831,7 +1832,7 @@ class QudObjectProps(QudObject):
                     if f"{data['Phase']}" == 'True':
                         return "out of phase"
 
-    @property
+    @cached_property
     def poisononhit(self) -> str | None:
         if self.part_PoisonOnHit:
             pct = self.part_PoisonOnHit_Chance
@@ -1845,7 +1846,7 @@ class QudObjectProps(QudObject):
             return f'{pct}% to poison on hit, toughness save {save}.' + \
                    f' {dmg} damage for {duration} turns.'
 
-    @property
+    @cached_property
     def powerloadsensitive(self) -> bool | None:
         """Returns yes if the object is power load sensitive. This means that the object can support
         the overloaded item mod."""
@@ -1858,17 +1859,17 @@ class QudObjectProps(QudObject):
                                        ACTIVE_PARTS[partname]['IsPowerLoadSensitive']):
                         return True
 
-    @property
+    @cached_property
     def preservedinto(self) -> str | None:
         """When preserved, what a preservable item produces."""
         return self.part_PreservableItem_Result
 
-    @property
+    @cached_property
     def preservedquantity(self) -> int | None:
         """When preserved, how many preserves a preservable item produces."""
         return int_or_none(self.part_PreservableItem_Number)
 
-    @property
+    @cached_property
     def primarydamageelement(self) -> str | None:
         """If a weapon's primary damage is elemental, this returns the type of element.
         This is distinct from elementaldamage/elementaltype - those properties are used when a
@@ -1876,13 +1877,13 @@ class QudObjectProps(QudObject):
         if self.part_ElectricalDischargeLoader is not None:
             return 'Electric'
 
-    @property
+    @cached_property
     def pronouns(self) -> str | None:
         """Return the pronounset of a creature, if [they] have any."""
         if self.tag_PronounSet_Value is not None and self.inherits_from('Creature'):
             return self.tag_PronounSet_Value
 
-    @property
+    @cached_property
     def pv(self) -> int | None:
         """The base PV, which is by default 4 if not set. Optional.
         The game adds 4 to internal PV values for display purposes, so we also do that here."""
@@ -1904,7 +1905,7 @@ class QudObjectProps(QudObject):
         if pv is not None:
             return pv
 
-    @property
+    @cached_property
     def pvpowered(self) -> bool | None:
         """Whether the object's PV changes when it is powered."""
         is_vibro = self.vibro and self.vibro is not None
@@ -1918,7 +1919,7 @@ class QudObjectProps(QudObject):
             # FIXME: this seems like it won't actually works [use projectile_object() instead?]
             return True
 
-    @property
+    @cached_property
     def quickness(self) -> int | None:
         """Return quickness of a creature"""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
@@ -1936,7 +1937,7 @@ class QudObjectProps(QudObject):
         if self.part_Armor:
             return int_or_none(self.part_Armor_SpeedBonus)
 
-    @property
+    @cached_property
     def realitydistortionbased(self) -> bool | None:
         projectile = self.projectile_object()
         if projectile is not None:
@@ -1961,18 +1962,18 @@ class QudObjectProps(QudObject):
         if self.part_GreaterVoider is not None:
             return True
 
-    @property
+    @cached_property
     def reflect(self) -> int | None:
         """If it reflects, what percentage of damage is reflected."""
         return int_or_none(self.part_ModGlassArmor_Tier)
 
-    @property
+    @cached_property
     def refractive(self) -> bool | None:
         """True if this object or creature refracts light."""
         if self.part_RefractLight is not None or self.part_ModRefractive is not None:
             return True
 
-    @property
+    @cached_property
     def renderstr(self) -> str | None:
         """The character used to render this object in ASCII mode."""
         render = None
@@ -1985,7 +1986,7 @@ class QudObjectProps(QudObject):
             render = self.part_Render_RenderString
         return render
 
-    @property
+    @cached_property
     def reputationbonus(self) -> List[Tuple[str, int]] | None:
         """Reputation bonuses granted by the object.
 
@@ -2010,7 +2011,7 @@ class QudObjectProps(QudObject):
                 reps.append((faction, value))
             return reps
 
-    @property
+    @cached_property
     def role(self) -> str | None:
         """What role a creature or object has assigned.
 
@@ -2019,12 +2020,12 @@ class QudObjectProps(QudObject):
         """
         return self.property_Role_Value
 
-    @property
+    @cached_property
     def savemodifier(self) -> str | None:
         """Returns save modifier type"""
         return self.part_SaveModifier_Vs
 
-    @property
+    @cached_property
     def savemodifieramt(self) -> str | None:
         """returns amount of the save modifer."""
         if self.part_SaveModifier_Vs is not None:
@@ -2032,7 +2033,7 @@ class QudObjectProps(QudObject):
             if val is not None:
                 return str(val) if val < 0 else f'+{val}'
 
-    @property
+    @cached_property
     def seeping(self) -> str | None:
         if self.part_Gas is not None:
             if self.is_specified('part_Gas_Seeping'):
@@ -2043,28 +2044,28 @@ class QudObjectProps(QudObject):
                     return 'yes'
             return 'no'
 
-    @property
+    @cached_property
     def shotcooldown(self) -> str | None:
         """Cooldown before weapon can be fired again, typically a dice string."""
         return self.part_CooldownAmmoLoader_Cooldown
 
-    @property
+    @cached_property
     def shots(self) -> int | None:
         """How many shots are fired in one round."""
         return int_or_none(self.part_MissileWeapon_ShotsPerAction)
 
-    @property
+    @cached_property
     def shrinelike(self) -> bool | None:
         """Whether this object has the 'Shrine' part, which affects behavior such as descration."""
         return True if self.part_Shrine is not None else None
 
-    @property
+    @cached_property
     def skills(self) -> str | None:
         """The skills that certain creatures have."""
         if self.skill is not None:
             return self.skill
 
-    @property
+    @cached_property
     def solid(self) -> bool | None:
         if self.is_specified('part_Physics_Solid'):
             if self.part_Physics_Solid == 'true' or self.part_Physics_Solid == 'True':
@@ -2078,22 +2079,22 @@ class QudObjectProps(QudObject):
                     return None
             return False
 
-    @property
+    @cached_property
     def spectacles(self) -> bool | None:
         """If the item corrects vision."""
         return True if self.part_Spectacles is not None else None
 
-    @property
+    @cached_property
     def strength(self) -> str | None:
         """The strength the mutation affects, or the strength of the creature."""
         return self.attribute_helper('Strength')
 
-    @property
+    @cached_property
     def strengthmult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic strength, if specified."""
         return self.attribute_boost_factor('Strength')
 
-    @property
+    @cached_property
     def strengthextrinsic(self) -> int | None:
         """Extra strength for a creature from extrinsic factors, such as mutations or equipment."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
@@ -2107,19 +2108,19 @@ class QudObjectProps(QudObject):
                 if val != 0:
                     return val
 
-    @property
+    @cached_property
     def supportedmods(self) -> str | None:
         """The categories of mods that are supported by this item"""
         val = self.tag_Mods_Value
         if val is not None and val != 'None':
             return val
 
-    @property
+    @cached_property
     def swarmbonus(self) -> int | None:
         """The additional bonus that Swarmers receive."""
         return int_or_none(self.part_Swarmer_ExtraBonus)
 
-    @property
+    @cached_property
     def temponenter(self) -> str | None:
         """Temperature change caused to objects when weapon/projectile passes through cell.
 
@@ -2127,7 +2128,7 @@ class QudObjectProps(QudObject):
         var = self.projectile_object('part_TemperatureOnEntering_Amount')  # projectiles
         return var or self.part_TemperatureOnEntering_Amount  # melee weapons, etc.
 
-    @property
+    @cached_property
     def temponhit(self) -> str | None:
         """Temperature change caused by weapon/projectile hit.
 
@@ -2135,7 +2136,7 @@ class QudObjectProps(QudObject):
         var = self.projectile_object('part_TemperatureOnHit_Amount')
         return var or self.part_TemperatureOnHit_Amount
 
-    @property
+    @cached_property
     def temponhitmax(self) -> int | None:
         """Temperature change effect does not occur if target has already reached MaxTemp."""
         temp = self.projectile_object('part_TemperatureOnHit_MaxTemp')
@@ -2145,12 +2146,12 @@ class QudObjectProps(QudObject):
         if temp is not None:
             return int(temp)
 
-    @property
+    @cached_property
     def thirst(self) -> int | None:
         """How much thirst it slakes."""
         return int_or_none(self.part_Food_Thirst)
 
-    @property
+    @cached_property
     def tier(self) -> int | None:
         """Returns tier. Returns the Specified tier if it isn't inherited. Else it will return
         the highest value bit (if tinkerable) or its FLOOR(Level/5), if neither of these exist,
@@ -2171,7 +2172,7 @@ class QudObjectProps(QudObject):
                 return level // 5
         return int_or_none(self.tag_Tier_Value)
 
-    @property
+    @cached_property
     def tilecolors(self) -> str | None:
         """The primary color and detail color used by this object's main image"""
         tile = self.tile
@@ -2180,7 +2181,7 @@ class QudObjectProps(QudObject):
             val += tile.detailcolor_letter if tile.detailcolor_letter is not None else ''
             return val
 
-    @property
+    @cached_property
     def title(self) -> str | None:
         """The display name of the item."""
         val = self.name
@@ -2204,7 +2205,7 @@ class QudObjectProps(QudObject):
             val = f'{name_prefix} {val}'
         return val
 
-    @property
+    @cached_property
     def tohit(self) -> int | None:
         """The bonus or penalty to hit."""
         if self.inherits_from('Armor'):
@@ -2212,17 +2213,17 @@ class QudObjectProps(QudObject):
         if self.is_melee_weapon():
             return int_or_none(self.part_MeleeWeapon_HitBonus)
 
-    @property
+    @cached_property
     def toughness(self) -> str | None:
         """The toughness the mutation affects, or the toughness of the creature."""
         return self.attribute_helper('Toughness')
 
-    @property
+    @cached_property
     def toughnessmult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic toughness, if specified."""
         return self.attribute_boost_factor('Toughness')
 
-    @property
+    @cached_property
     def toughnessextrinsic(self) -> int | None:
         """Extra toughness for a creature from extrinsic factors, such as mutations or equipment."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
@@ -2231,7 +2232,7 @@ class QudObjectProps(QudObject):
                     if mutation == 'HeightenedToughness':
                         return (int(info['Level']) - 1) // 2 + 2
 
-    @property
+    @cached_property
     def twohanded(self) -> bool | None:
         """Whether this is a two-handed item."""
         if self.inherits_from('MeleeWeapon') or self.inherits_from('MissileWeapon'):
@@ -2241,14 +2242,14 @@ class QudObjectProps(QudObject):
                 return True
             return False
 
-    @property
+    @cached_property
     def unidentifiedimage(self) -> str | None:
         """The filename of the object's 'unidentified' tile variant."""
         meta = self.unidentified_metadata()
         if meta is not None:
             return meta.filename
 
-    @property
+    @cached_property
     def unidentifiedname(self) -> str | None:
         """The name of the object when unidentified, such as 'weird artifact'."""
         complexity = self.complexity
@@ -2260,7 +2261,7 @@ class QudObjectProps(QudObject):
                 if unknown_name != '*med':
                     return unknown_name
 
-    @property
+    @cached_property
     def unidentifiedaltname(self) -> str | None:
         """The name of the object when partially identified, such as 'backpack'."""
         complexity = self.complexity
@@ -2272,14 +2273,14 @@ class QudObjectProps(QudObject):
                 if alt_name != '*med':
                     return alt_name
 
-    @property
+    @cached_property
     def unpowereddamage(self) -> str | None:
         """For weapons that use charge, the damage dealt when unpowered.
 
         Given as a dice string."""
         return self.part_Gaslight_UnchargedDamage
 
-    @property
+    @cached_property
     def usesslots(self) -> List[str] | None:
         """Return the body slots taken up by equipping this item.
 
@@ -2290,7 +2291,7 @@ class QudObjectProps(QudObject):
         if self.tag_UsesSlots_Value is not None:
             return self.tag_UsesSlots_Value.split(',')
 
-    @property
+    @cached_property
     def vibro(self) -> bool | None:
         """Whether this is a vibro weapon."""
         # if self.is_specified('part_ThrownWeapon'):
@@ -2305,19 +2306,19 @@ class QudObjectProps(QudObject):
             if self.part_VibroWeapon:
                 return True
 
-    @property
+    @cached_property
     def waterritualable(self) -> bool | None:
         """Whether the creature is waterritualable."""
         if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
             return True
 
-    @property
+    @cached_property
     def waterritualskill(self) -> str | None:
         """What skill that individual teaches, if they have any."""
         if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
             return self.xtag_WaterRitual_SellSkill
 
-    @property
+    @cached_property
     def weaponskill(self) -> str | None:
         """The skill tree required for use."""
         val = None
@@ -2335,7 +2336,7 @@ class QudObjectProps(QudObject):
             val = 'Shield'
         return val
 
-    @property
+    @cached_property
     def weight(self) -> int | None:
         """The weight of the object."""
         if self.inherits_from('InertObject') or self.inherits_from('CosmeticObject') or \
@@ -2345,22 +2346,22 @@ class QudObjectProps(QudObject):
             return None
         return int_or_none(self.part_Physics_Weight)
 
-    @property
+    @cached_property
     def willpower(self) -> str | None:
         """The willpower the mutation affects, or the willpower of the creature."""
         return self.attribute_helper('Willpower')
 
-    @property
+    @cached_property
     def willpowermult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic willpower, if specified."""
         return self.attribute_boost_factor('Willpower')
 
-    @property
+    @cached_property
     def willpowerextrinsic(self) -> int | None:
         """Extra willpower for a creature from extrinsic factors, such as mutations or equipment."""
         return None  # nothing currently supported here
 
-    @property
+    @cached_property
     def wornon(self) -> str | None:
         """The body slot that an item gets equipped to.
 
@@ -2374,7 +2375,7 @@ class QudObjectProps(QudObject):
             wornon = 'Feet'  # manual fix
         return wornon
 
-    @property
+    @cached_property
     def xpvalue(self) -> int | None:
         level = self.lv
         try:
@@ -2409,7 +2410,7 @@ class QudObjectProps(QudObject):
                 return None
         return xp
 
-    @property
+    @cached_property
     def xptier(self) -> int | None:
         level = self.lv
         try:
