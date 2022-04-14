@@ -1426,25 +1426,45 @@ BUTCHERABLE_POPTABLES = {
     'Albino ape corpse': {
         'Albino Ape Heart': {
             'Number': 1,
-            'Weight': 10
+            'Weight': 20
         },
         'Ape Fur Cloak': {
             'Number': 1,
-            'Weight': 20
+            'Weight': 13
+        },
+        'Ape Fur Hat': {
+            'Number': 1,
+            'Weight': 13
+        },
+        'Ape Fur Gloves': {
+            'Number': 1,
+            'Weight': 13
         },
         'Albino Ape Pelt': {
             'Number': 1,
-            'Weight': 70
+            'Weight': 40
         }
     },
     'Ogre ape corpse': {
         'Ogre Ape Heart': {
             'Number': 1,
-            'Weight': 30
+            'Weight': 20
+        },
+        'Ogre Fur Cloak': {
+            'Number': 1,
+            'Weight': 13
+        },
+        'Ogre Fur Hat': {
+            'Number': 1,
+            'Weight': 13
+        },
+        'Ogre Fur Gloves': {
+            'Number': 1,
+            'Weight': 13
         },
         'Ogre Ape Pelt': {
             'Number': 1,
-            'Weight': 70
+            'Weight': 40
         }
     },
     'Salthopper Corpse': {
