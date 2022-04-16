@@ -54,7 +54,7 @@ class QudObjectProps(QudObject):
                 val = str(sValue(getattr(self, f'stat_{attr}_sValue'), level=level))
             elif getattr(self, f'stat_{attr}_Value'):
                 val = getattr(self, f'stat_{attr}_Value')
-        elif self.inherits_from('Armor'):
+        elif self.part_Armor is not None:
             val = getattr(self, f'part_Armor_{attr}')
             if val == '0':
                 return None
