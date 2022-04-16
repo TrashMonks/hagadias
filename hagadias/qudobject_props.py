@@ -828,6 +828,12 @@ class QudObjectProps(QudObject):
                 # handling, because we want to show its bonus in the description only for Armor
                 if self.part_Armor_MA is not None:
                     desc_extra.append('{{rules|+' + self.part_Armor_MA + ' MA}}')
+                if self.part_Armor_ToHit is not None:
+                    tohit = int(self.part_Armor_ToHit)
+                    if tohit > 0:
+                        desc_extra.append('{{rules|+' + tohit + ' To-Hit}}')
+                    else:
+                        desc_extra.append(f'{{{{R|{tohit} To-Hit}}}}')
             # melee weapon rules
             if self.is_melee_weapon() and self.tag_ShowMeleeWeaponStats is not None \
                     and not self.inherits_from('Projectile'):
