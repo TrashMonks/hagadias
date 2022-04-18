@@ -1620,12 +1620,12 @@ class QudObjectProps(QudObject):
     @cached_property
     def ma(self) -> int | None:
         """The object's mental armor. For creatures, this is an averaged value.
-        For items, this can be a bonus to MA as specified in the Armor part."""
-        if self.hasmentalshield:
-            # things like Robots, Water, Stairs, etc. are not subject to mental effects.
-            return None
-        elif (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
-            return 0
+        For items, this can be a bonus to MA as specified in the Armor part.
+
+        We should still return MA for creatures with a mental shield, such as Robots, because those
+        creatures' MA value is used in certain scenarios, such as to defend against Rebuke Robot."""
+        if (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
+            return 0  # Should this be "None"? Not sure why we return 0 for all objects/items...
         elif char_type == ACTIVE_CHAR:
             # MA starts at base 4
             ma = 4
@@ -1641,10 +1641,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def marange(self) -> str | None:
         """The creature's full range of potential MA values"""
-        if self.hasmentalshield:
-            # things like Robots, Water, Stairs, etc. are not subject to mental effects.
-            return None
-        elif (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
+        if (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
             return None
         elif char_type == ACTIVE_CHAR:
             ma = 4
