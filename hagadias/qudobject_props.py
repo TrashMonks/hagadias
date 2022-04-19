@@ -789,8 +789,8 @@ class QudObjectProps(QudObject):
             for attr in attrs:
                 resist = getattr(self, f'{attr}')
                 if resist:
-                    if self.name == 'Stopsvaalinn' and attr == 'ego':
-                        continue  # Stopsvaalinn's ego bonus is already displayed in rule text
+                    if self.name in ['Stopsvaalinn', 'Ruin of House Isner'] and attr == 'ego':
+                        continue  # These items' ego bonus is already displayed in their rule text
                     if self.name == 'Cyclopean Prism':  # special handling for amaranthine prism
                         if attr == 'ego':
                             resist = '+1'
@@ -1207,7 +1207,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def ego(self) -> str | None:
         """The creature's ego stat or the ego bonus supplied by a piece of equipment."""
-        if self.name == 'Stopsvaalinn':
+        if self.name in ['Stopsvaalinn', 'Ruin of House Isner']:
             return "1"
         val = self.attribute_helper('Ego')
         if val is None and self.is_melee_weapon():
