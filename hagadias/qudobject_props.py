@@ -2284,6 +2284,12 @@ class QudObjectProps(QudObject):
         return self.part_Gaslight_UnchargedDamage
 
     @cached_property
+    def unreplicable(self) -> bool | None:
+        """True if this object can NOT be replicated by items such as metamorphic polygel."""
+        if self.part_Unreplicable is not None or self.part_Polygel is not None:
+            return True
+
+    @cached_property
     def usesslots(self) -> List[str] | None:
         """Return the body slots taken up by equipping this item.
 
