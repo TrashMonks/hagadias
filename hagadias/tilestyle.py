@@ -188,7 +188,7 @@ class TileStyle:
 
 
 class StyleSultanMuralWall(TileStyle):
-    """Styles for SultanMuralWall6 (the player's murals etched by Herododicus)."""
+    """Styles for SultanMuralWall<1-6> (wall 6 is the player's murals etched by Herododicus)."""
 
     MURAL_LABELS = ['appeases baetyl', 'becomes loved', 'blank', 'body experience bad',
                     'body experience good', 'body experience neutral', 'commits folly',
@@ -228,6 +228,31 @@ class StyleSultanMuralWall(TileStyle):
 
     def style_limit_override(self) -> Optional[int]:
         return len(StyleSultanMuralWall.MURAL_PATHS) * 3
+
+
+class StyleSultanMuralMedian(TileStyle):
+    """Styles for sultan mural medians."""
+
+    MURAL_MEDIAN_COLOR = ['C', 'm', 'M', 'r', 'c', 'K']
+    MURAL_MEDIAN_DETAIL = ['K', 'y', 'r', 'c', 'Y', 'y']
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=90,
+                         _modifies=RenderProps.ALL, _allows=RenderProps.NONE)
+
+    def _modification_count(self) -> int:
+        if self.object.name == 'BaseMuralCenter':
+            return 6
+        return 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        self.painter.color = StyleSultanMuralMedian.MURAL_MEDIAN_COLOR[index]
+        self.painter.tilecolor = StyleSultanMuralMedian.MURAL_MEDIAN_COLOR[index]
+        self.painter.detail = StyleSultanMuralMedian.MURAL_MEDIAN_DETAIL[index]
+        self.painter.trans = 'k'
+        self.painter.file = f'Walls/sw_mural_centerpiece_period_{index + 1}.bmp'
+        return StyleMetadata(meta_type=f'period {index + 1} sultanate',
+                             f_postfix=f'period {index + 1}')
 
 
 class StyleRandomColors(TileStyle):
@@ -938,6 +963,7 @@ class StyleManager:
                                      StyleRandomTonic,
                                      StyleSofa,
                                      StyleSultanShrine,
+                                     StyleSultanMuralMedian,
                                      StyleSultanMuralWall,
                                      StyleTombstone,
                                      StyleVillageMonument]
