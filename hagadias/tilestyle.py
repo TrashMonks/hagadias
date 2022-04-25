@@ -255,6 +255,34 @@ class StyleSultanMuralMedian(TileStyle):
                              f_postfix=f'period {index + 1}')
 
 
+class StyleSultanMuralEndcap(TileStyle):
+    """Styles for sultan mural endcaps."""
+
+    MURAL_ENDCAP_COLOR = ['C', 'm', 'M', 'r', 'c', 'K']
+    MURAL_ENDCAP_DETAIL = ['K', 'y', 'r', 'c', 'Y', 'y']
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=90,
+                         _modifies=RenderProps.ALL, _allows=RenderProps.NONE)
+
+    def _modification_count(self) -> int:
+        if self.object.name == 'BaseMuralLeftend':
+            return 12
+        return 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        color_idx = index // 2
+        period = index // 2 + 1
+        self.painter.color = StyleSultanMuralEndcap.MURAL_ENDCAP_COLOR[color_idx]
+        self.painter.tilecolor = StyleSultanMuralEndcap.MURAL_ENDCAP_COLOR[color_idx]
+        self.painter.detail = StyleSultanMuralEndcap.MURAL_ENDCAP_DETAIL[color_idx]
+        self.painter.trans = 'k'
+        orientation = 'left' if (index % 2 == 0) else 'right'
+        self.painter.file = f'Walls/sw_mural_{orientation}end_period_{period}.bmp'
+        return StyleMetadata(meta_type=f'period {period} sultanate ({orientation})',
+                             f_postfix=f'period {period} {orientation}end')
+
+
 class StyleRandomColors(TileStyle):
     """Styles for the RandomColors part."""
 
@@ -963,6 +991,7 @@ class StyleManager:
                                      StyleRandomTonic,
                                      StyleSofa,
                                      StyleSultanShrine,
+                                     StyleSultanMuralEndcap,
                                      StyleSultanMuralMedian,
                                      StyleSultanMuralWall,
                                      StyleTombstone,
