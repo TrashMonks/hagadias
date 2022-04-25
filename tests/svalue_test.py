@@ -1,4 +1,4 @@
-"""pytest functions to test functions in svalue.py"""
+"""pytest file to test functions in svalue.py"""
 
 from hagadias.svalue import sValue
 

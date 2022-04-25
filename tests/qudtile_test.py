@@ -1,4 +1,4 @@
-"""Tests for the QudTile class.
+"""Tests for the QudTile class in qudtile.py.
 
 The qindex fixture is supplied by tests/conftest.py."""
 

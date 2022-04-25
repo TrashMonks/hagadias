@@ -1,4 +1,4 @@
-"""Pytest file for functions in helpers.py"""
+"""Pytest file for functions in dicebag.py"""
 
 from hagadias.dicebag import DiceBag
 from pytest import raises

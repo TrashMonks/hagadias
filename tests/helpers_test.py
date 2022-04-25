@@ -1,3 +1,5 @@
+"""Pytest file for functions in helpers.py"""
+
 from hagadias.helpers import parse_qud_colors, iter_qud_colors, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors
 
