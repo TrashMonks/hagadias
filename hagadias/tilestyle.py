@@ -187,6 +187,49 @@ class TileStyle:
         return None
 
 
+class StyleSultanMuralWall(TileStyle):
+    """Styles for SultanMuralWall6 (the player's murals etched by Herododicus)."""
+
+    MURAL_LABELS = ['appeases baetyl', 'becomes loved', 'blank', 'body experience bad',
+                    'body experience good', 'body experience neutral', 'commits folly',
+                    'creates something', 'crowned sultan', 'dies', 'does bureaucracy',
+                    'does something destructive', 'does something humble', 'does something rad',
+                    'endures hardship', 'finds object', 'has inspiring experience', 'is born',
+                    'learns secret', 'meets with counselors', 'resists', 'ruined variant 1',
+                    'ruined variant 2', 'ruined variant 3', 'ruined variant 4', 'ruined variant 5',
+                    'ruined variant 6', 'slays', 'treats', 'trysts', 'visits location',
+                    'weird thing happens', 'wields item in battle']
+    MURAL_PATHS = ['appeasesbaetyl', 'becomesloved', 'blank', 'bodyexperiencebad',
+                   'bodyexperiencegood', 'bodyexperienceneutral', 'commitsfolly',
+                   'createssomething', 'crownedsultan', 'dies', 'doesbureaucracy',
+                   'doessomethingdestructive', 'doessomethinghumble', 'doessomethingrad',
+                   'endureshardship', 'findsobject', 'hasinspiringexperience', 'isborn',
+                   'learnssecret', 'meetswithcounselors', 'resists', 'ruined1', 'ruined2',
+                   'ruined3', 'ruined4', 'ruined5', 'ruined6', 'slays', 'treats', 'trysts',
+                   'visitslocation', 'weirdthinghappens', 'wieldsiteminbattle']
+    MURAL_POSITIONS = ['l', 'c', 'r']
+
+    def __init__(self, _painter):
+        super().__init__(_painter, _priority=90,
+                         _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE)
+
+    def _modification_count(self) -> int:
+        if self.object.part_SultanMural is not None:
+            return len(StyleSultanMuralWall.MURAL_PATHS) * 3
+        return 0
+
+    def _apply_modification(self, index: int) -> StyleMetadata:
+        mural_type = StyleSultanMuralWall.MURAL_PATHS[index // 3]
+        mural_label = StyleSultanMuralWall.MURAL_LABELS[index // 3]
+        mural_pos = StyleSultanMuralWall.MURAL_POSITIONS[index % 3]
+        self.painter.file = f'Walls/sw_mural_{mural_type}_{mural_pos}.bmp'
+        return StyleMetadata(meta_type=f'{mural_label} {mural_pos.upper()}',
+                             f_postfix=f'{mural_type}_{mural_pos}')
+
+    def style_limit_override(self) -> Optional[int]:
+        return len(StyleSultanMuralWall.MURAL_PATHS) * 3
+
+
 class StyleRandomColors(TileStyle):
     """Styles for the RandomColors part."""
 
@@ -895,6 +938,7 @@ class StyleManager:
                                      StyleRandomTonic,
                                      StyleSofa,
                                      StyleSultanShrine,
+                                     StyleSultanMuralWall,
                                      StyleTombstone,
                                      StyleVillageMonument]
     """A list of all TileStyle classes as type objects. The order of this list does not matter."""

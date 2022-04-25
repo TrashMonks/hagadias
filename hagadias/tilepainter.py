@@ -8,6 +8,7 @@ from hagadias.qudtile import QudTile, StandInTiles
 from hagadias.tilestyle import StyleManager
 
 HOLO_PARTS = ['part_HologramMaterial', 'part_HologramWallMaterial', 'part_HologramMaterialPrimary']
+PAINTWALL_EXCEPTIONS = ['part_SultanMural']  # parts that need custom painting; ignore PaintWall tag
 
 
 class TilePainter:
@@ -46,8 +47,11 @@ class TilePainter:
                 self.paintpath = self.parse_paint_path(obj.tag_PaintedFence_Value)
                 self._paint_fence()
             elif obj.tag_PaintedWall and obj.tag_PaintedWall_Value != "*delete":
-                self.paintpath = self.parse_paint_path(obj.tag_PaintedWall_Value)
-                self._paint_wall()
+                if any(getattr(self.obj, part, None) is not None for part in PAINTWALL_EXCEPTIONS):
+                    pass
+                else:
+                    self.paintpath = self.parse_paint_path(obj.tag_PaintedWall_Value)
+                    self._paint_wall()
             elif obj.part_Walltrap is not None:
                 self._paint_walltrap()
 
@@ -151,6 +155,8 @@ class TilePainter:
             self.color = self.tilecolor = extract_foreground_char(self.color, 'y')
             self.trans = 'transparent'
             self.file = 'Terrain/sw_sultanstatue_1.bmp'
+        elif self.obj.part_SultanMural is not None:
+            self.file = 'Walls/sw_mural_blank_c.bmp'
         elif self.obj.part_PistonPressElement is not None:
             self.file = 'Items/sw_crusher_s_press.bmp'
         elif self.obj.name == 'PondDown':  # 'small crack' in Joppa
