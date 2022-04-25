@@ -176,6 +176,16 @@ class TileStyle:
         """
         raise NotImplementedError()
 
+    def style_limit_override(self) -> Optional[int]:
+        """Retrieves the style limit override, or None if the style does not define one."""
+        return self._style_limit_override()
+
+    def _style_limit_override(self) -> Optional[int]:
+        """Optional method - can be implemented to override style limit for particular object(s).
+        If multiple styles implement this, only the highest-priority style's value will be used.
+        """
+        return None
+
 
 class StyleRandomColors(TileStyle):
     """Styles for the RandomColors part."""
@@ -907,6 +917,13 @@ class StyleManager:
             self._flatten_styles()
             self._make_combinations()
 
+        self._style_limit: Optional[int] = None
+        for style in self._applicable_styles:
+            if self._style_limit is None:
+                self._style_limit = style.style_limit_override()
+        if self._style_limit is None:
+            self._style_limit = StyleManager.STYLE_LIMIT
+
     def _sort_styles(self):
         """Sorts the applicable styles by priority (high to low)."""
         self._applicable_styles.sort(key=lambda style_instance: style_instance.priority,
@@ -949,7 +966,7 @@ class StyleManager:
         count = 1
         for style in self._applicable_styles:
             count *= style.modification_count()
-        return count if count <= StyleManager.STYLE_LIMIT else StyleManager.STYLE_LIMIT
+        return count if count <= self._style_limit else self._style_limit
 
     def apply_style(self, global_index: int) -> StyleMetadata:
         """Applies all applicable styles for this TilePainter, for the unique style permuation
