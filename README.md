@@ -14,15 +14,19 @@ fully colored tiles, and character data. It needs to be passed a path to a local
 installation of the game in order to do anything.
 
 ## Installation
+hagadias requires Python 3.10.
+
 To install the package from this GitHub repository, run  
 `pip install git+https://github.com/trashmonks/hagadias@main#egg=hagadias`  
 or if you're using pipenv,  
 `pipenv install -e git+https://github.com/trashmonks/hagadias.git@main#egg=hagadias`
 
 ## Tile support
-Tile support currently requires a download of the latest Caves of Qud tile modding toolkit, extracted into the `hagadias` directory. We're working on making this easier to do. For the latest link, refer to [the Tile Support topic in qud-wiki](https://github.com/TrashMonks/qud-wiki#tile-support)
+Tile support requires the texture files from Caves of Qud to be unpacked into a "Textures" directory
+under the working directory. You can use the provided [Brinedump](https://github.com/TrashMonks/brinedump)
+mod to export these textures from within the game.
 
-## Usage example
+## Usage examples
 ```
 >>> from hagadias.gameroot import GameRoot
 >>> GAMEPATH = r'C:\Steam\steamapps\common\Caves of Qud'  # Windows
