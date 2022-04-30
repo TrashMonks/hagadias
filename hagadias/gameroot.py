@@ -78,7 +78,8 @@ class GameRoot:
         return self.character_codes
 
     def get_object_tree(self, cls=QudObjectProps):
-        """Create a tree of the Caves of Qud hierarchy of objects from ObjectBlueprints.xml and
+        """Create a tree of the Caves of Qud hierarchy of objects from XML files in the
+        ObjectBlueprints directory and
         return a tuple containing:
          - the root object ('Object'),
          - a dictionary mapping the string name of each Qud object to the Python object
@@ -91,45 +92,47 @@ class GameRoot:
         """
         if self.qud_object_root is not None:
             return self.qud_object_root, self.qindex
-        path = self._xmlroot / 'ObjectBlueprints.xml'
-        with path.open('r', encoding='utf-8') as f:
-            contents = f.read()
-        # Do some repair of invalid XML specifically for ObjectBlueprints.xml:
-        # First, replace some invalid control characters intended for CP437 with their Unicode equiv
-        start = time.time()
-        logging.info('Repairing invalid XML characters... ')
-        contents = repair_invalid_chars(contents)
-        logging.info(f"done in {time.time() - start:.2f} seconds")
-        # Second, replace line breaks inside attributes with proper XML line breaks
-        start = time.time()
-        logging.info("Repairing invalid XML line breaks... ")
-        contents = repair_invalid_linebreaks(contents)
-        logging.info(f"done in {time.time() - start:.2f} seconds")
-        contents_b = contents.encode('utf-8')  # start/stop markers are in bytes, not characters
-        raw = ET.fromstring(contents, parser=LineNumberingParser())
-        logging.info("Building Qud object hierarchy and adding tiles...")
-        # Build the Qud object hierarchy from the XML data
-        last_stop = 0
-        # Objects must receive the qindex and add themselves, rather than doing it here, because
-        # they need access to their parent by name lookup during creation for inheritance
-        # calculations.
+        path = self._xmlroot / 'ObjectBlueprints'
         qindex = {}  # fast lookup of name->QudObject
+        for blueprint_file in path.glob('*.xml'):
+            logging.info(f'Loading {blueprint_file.stem} object blueprints:')
+            with blueprint_file.open('r', encoding='utf-8') as f:
+                contents = f.read()
 
-        # first pass - load xml data into dictionary structure
-        for element in raw:
-            # parsing 'ends' at the close tag, so add 9 bytes to include '</object>'
-            start, stop = element._start_byte_index, element._end_byte_index + 9
-            source = contents_b[start:stop].decode('utf-8')
-            # capture comments, etc. before start tag for later saving
-            full_source = contents_b[last_stop:stop].decode('utf-8')
-            last_stop = stop
-            if element.tag != 'object':
-                continue
-            obj = cls(element, source, full_source, qindex)
-        tail = contents_b[last_stop:].decode('utf-8')
-        obj.source = source + tail  # add tail of file to the XML source of last object loaded
+            # Do some repair of invalid XML specifically for ObjectBlueprints files: First,
+            # replace some invalid control characters intended for CP437 with their Unicode equiv
+            start = time.time()
+            logging.info('Repairing invalid XML characters... ')
+            contents = repair_invalid_chars(contents)
+            logging.info(f"done in {time.time() - start:.2f} seconds")
+            # Second, replace line breaks inside attributes with proper XML line breaks
+            start = time.time()
+            logging.info("Repairing invalid XML line breaks... ")
+            contents = repair_invalid_linebreaks(contents)
+            logging.info(f"done in {time.time() - start:.2f} seconds")
+            contents_b = contents.encode('utf-8')  # start/stop markers are in bytes, not characters
+            raw = ET.fromstring(contents, parser=LineNumberingParser())
+            last_stop = 0
+            # Objects must receive the qindex and add themselves, rather than doing it here, because
+            # they need access to their parent by name lookup during creation for inheritance
+            # calculations.
+
+            # first pass - load xml data into dictionary structure
+            for element in raw:
+                # parsing 'ends' at the close tag, so add 9 bytes to include '</object>'
+                start, stop = element._start_byte_index, element._end_byte_index + 9
+                source = contents_b[start:stop].decode('utf-8')
+                # capture comments, etc. before start tag for later saving
+                full_source = contents_b[last_stop:stop].decode('utf-8')
+                last_stop = stop
+                if element.tag != 'object':
+                    continue
+                obj = cls(element, source, full_source, qindex)
+            tail = contents_b[last_stop:].decode('utf-8')
+            obj.source = source + tail  # add tail of file to the XML source of last object loaded
 
         # second pass - resolve object inheritance
+        logging.info("Resolving Qud object hierarchy and adding tiles...")
         for object_id, qud_object in qindex.items():
             qud_object.resolve_inheritance()
 
