@@ -20,12 +20,14 @@ image_cache = {}
 
 def fix_filename(filename: str) -> str:
     """Return repaired versions of certain broken filenames."""
-    # repair bad access paths
-    if filename.lower().startswith('assets_content_textures'):
-        filename = filename[24:]
-        filename = filename.replace('_', '/', 1)
-    # repair lowercase first letter for case-sensitive operating systems (Linux)
-    filename = filename[0].upper() + filename[1:]
+    # validate string has length before subsequent indexing operations
+    if len(filename) > 0:
+        # repair bad access paths
+        if filename.lower().startswith('assets_content_textures'):
+            filename = filename[24:]
+            filename = filename.replace('_', '/', 1)
+        # repair lowercase first letter for case-sensitive operating systems (Linux)
+        filename = filename[0].upper() + filename[1:]
     return filename
 
 
