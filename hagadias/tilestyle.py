@@ -982,7 +982,7 @@ class StyleManager:
                                      StyleHangable,
                                      StyleHarvestable,
                                      StyleHologram,
-                                     StyleLiquidVolume,
+                                     # StyleLiquidVolume,
                                      StyleMachineWallTubing,
                                      StyleOrnatePottedPlant,
                                      StylePistonPress,
