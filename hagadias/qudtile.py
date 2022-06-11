@@ -190,7 +190,7 @@ class QudTile:
 
     def get_big_image(self):
         """Draw the big (10x, 160x240) tile for the wiki or discord."""
-        bigimage = self.image.resize((160, 240), resample=Image.NEAREST)
+        bigimage = self.image.resize((160, 240), resample=Image.Dither.NONE)
         if self.prefab_applicator is not None:
             self.prefab_applicator(bigimage)
         return bigimage
