@@ -12,7 +12,7 @@ from hagadias.constants import QUD_COLORS
 TILE_COLOR = (0, 0, 0, 255)
 DETAIL_COLOR = (255, 255, 255, 255)
 
-tiles_dir = Path('Textures')
+tiles_dir = Path('Textures').resolve(strict=True)
 blank_image = Image.new('RGBA', (16, 24), color=(0, 0, 0, 0))
 # index keys are like "creatures/caste_flipped_22.bmp" as in XML
 image_cache = {}
@@ -20,14 +20,12 @@ image_cache = {}
 
 def fix_filename(filename: str) -> str:
     """Return repaired versions of certain broken filenames."""
-    # validate string has length before subsequent indexing operations
-    if len(filename) > 0:
-        # repair bad access paths
-        if filename.lower().startswith('assets_content_textures'):
-            filename = filename[24:]
-            filename = filename.replace('_', '/', 1)
-        # repair lowercase first letter for case-sensitive operating systems (Linux)
-        filename = filename[0].upper() + filename[1:]
+    # repair bad access paths
+    if filename.lower().startswith('assets_content_textures'):
+        filename = filename[24:]
+        filename = filename.replace('_', '/', 1)
+    # repair lowercase first letter for case-sensitive operating systems (Linux)
+    filename = filename[0].upper() + filename[1:]
     return filename
 
 
@@ -37,16 +35,29 @@ def check_filename(filename: str):
         raise PermissionError
 
 
-def check_filepath(filepath: Path):
+def check_filepath(filepath: Path) -> Path:
     """Inspect paths for potential bad input from a network user."""
     # eliminate symlinks and '..' components and raise FileNotFoundError if the file does not exist:
-    filepath.resolve(strict=True)  # FileNotFoundError is raised here
+    try:
+        resolved = filepath.resolve(strict=True)  # FileNotFoundError is raised here
+    except FileNotFoundError:
+        # Might be a case insensitive issue due to being on a POSIX-like machine; search parent directory
+        parent_dir = filepath.parent.resolve(strict=True)
+        tile_name = filepath.name.lower()
+        matched = [path.resolve(strict=True) for path in parent_dir.iterdir() if path.name.lower() == tile_name]
+
+        if len(matched) == 1:
+            resolved = matched[0]
+        else:
+            raise FileNotFoundError
+
     target_in_tiles_dir = False
-    for parent in filepath.parents:
+    for parent in resolved.parents:
         if parent == tiles_dir:
             target_in_tiles_dir = True
     if not target_in_tiles_dir:
-        raise PermissionError(f'File not in tiles directory: {filepath}')
+        raise PermissionError(f'File not in tiles directory: {resolved}')
+    return resolved
 
 
 class QudTile:
@@ -126,7 +137,7 @@ class QudTile:
                 # is included in the textual filename
                 fullpath = tiles_dir.joinpath(PureWindowsPath(self.filename))
                 try:
-                    check_filepath(fullpath)  # resolve path, and sanity check untrusted user input
+                    fullpath = check_filepath(fullpath)  # resolve path, and sanity check untrusted user input
                     self.image = Image.open(fullpath)
                     image_cache[self.filename] = self.image.copy()
                     self._color_image()
