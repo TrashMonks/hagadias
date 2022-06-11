@@ -41,10 +41,12 @@ def check_filepath(filepath: Path) -> Path:
     try:
         resolved = filepath.resolve(strict=True)  # FileNotFoundError is raised here
     except FileNotFoundError:
-        # Might be a case insensitive issue due to being on a POSIX-like machine; search parent directory
+        # Might be a case insensitive issue due to being on a POSIX-like machine
         parent_dir = filepath.parent.resolve(strict=True)
         tile_name = filepath.name.lower()
-        matched = [path.resolve(strict=True) for path in parent_dir.iterdir() if path.name.lower() == tile_name]
+        matched = [path.resolve(strict=True)
+                   for path in parent_dir.iterdir()
+                   if path.name.lower() == tile_name]
 
         if len(matched) == 1:
             resolved = matched[0]
@@ -137,7 +139,8 @@ class QudTile:
                 # is included in the textual filename
                 fullpath = tiles_dir.joinpath(PureWindowsPath(self.filename))
                 try:
-                    fullpath = check_filepath(fullpath)  # resolve path, and sanity check untrusted user input
+                    # resolve path, and sanity check untrusted user input
+                    fullpath = check_filepath(fullpath)
                     self.image = Image.open(fullpath)
                     image_cache[self.filename] = self.image.copy()
                     self._color_image()
