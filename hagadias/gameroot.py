@@ -8,28 +8,7 @@ from hagadias.character_codes import read_gamedata
 from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, \
     repair_invalid_chars
 from hagadias.qudobject_props import QudObjectProps
-from hagadias.xml import ElementTree as ET
-
-
-class LineNumberingParser(ET.XMLParser):
-    """An alternate parser for ElementTree that captures information about the source from the
-    underlying expat parser."""
-
-    def _start(self, *args, **kwargs):
-        # Here we assume the default XML parser which is expat
-        # and copy its element position attributes into output Elements
-        element = super(self.__class__, self)._start(*args, **kwargs)
-        element._start_line_number = self.parser.CurrentLineNumber
-        element._start_column_number = self.parser.CurrentColumnNumber
-        element._start_byte_index = self.parser.CurrentByteIndex
-        return element
-
-    def _end(self, *args, **kwargs):
-        element = super(self.__class__, self)._end(*args, **kwargs)
-        element._end_line_number = self.parser.CurrentLineNumber
-        element._end_column_number = self.parser.CurrentColumnNumber
-        element._end_byte_index = self.parser.CurrentByteIndex
-        return element
+from lxml import etree as et
 
 
 class GameRoot:
@@ -110,26 +89,16 @@ class GameRoot:
             logging.info("Repairing invalid XML line breaks... ")
             contents = repair_invalid_linebreaks(contents)
             logging.info(f"done in {time.time() - start:.2f} seconds")
-            contents_b = contents.encode('utf-8')  # start/stop markers are in bytes, not characters
-            raw = ET.fromstring(contents, parser=LineNumberingParser())
-            last_stop = 0
+            raw = et.fromstring(contents)
             # Objects must receive the qindex and add themselves, rather than doing it here, because
             # they need access to their parent by name lookup during creation for inheritance
             # calculations.
 
             # first pass - load xml data into dictionary structure
             for element in raw:
-                # parsing 'ends' at the close tag, so add 9 bytes to include '</object>'
-                start, stop = element._start_byte_index, element._end_byte_index + 9
-                source = contents_b[start:stop].decode('utf-8')
-                # capture comments, etc. before start tag for later saving
-                full_source = contents_b[last_stop:stop].decode('utf-8')
-                last_stop = stop
                 if element.tag != 'object':
                     continue
-                obj = cls(element, source, full_source, qindex)
-            tail = contents_b[last_stop:].decode('utf-8')
-            obj.source = source + tail  # add tail of file to the XML source of last object loaded
+                cls(element, qindex)
 
         # second pass - resolve object inheritance
         logging.info("Resolving Qud object hierarchy and adding tiles...")
@@ -153,7 +122,7 @@ class GameRoot:
         if self.anatomies is not None:
             return self.anatomies
         path = self._xmlroot / 'Bodies.xml'
-        tree = ET.parse(path)
+        tree = et.parse(path)
         # Walk the body part type variants first, to map out the part synonyms
         variants = {}
         tag_variants = tree.find('bodyparttypevariants')
@@ -192,7 +161,7 @@ class GameRoot:
         """
         colors = {'solidcolors': {}, 'shaders': {}}
         path = self._xmlroot / 'Colors.xml'
-        tree = ET.parse(path)
+        tree = et.parse(path)
         for solidcolor in tree.find('solidcolors'):
             name = solidcolor.attrib['Name']
             colors['solidcolors'][name] = solidcolor.attrib['Color']
@@ -208,7 +177,7 @@ class GameRoot:
         Returns a nested dictionary mirroring the XML file structure."""
         genders = {}
         path = self._xmlroot / 'Genders.xml'
-        tree = ET.parse(path)
+        tree = et.parse(path)
         for gender in tree.findall('gender'):
             genders[gender.attrib['Name']] = {}
             for attrib, val in gender.attrib.items():
@@ -222,7 +191,7 @@ class GameRoot:
         Returns a nested dictionary mirroring the XML file structure."""
         pronouns = {}
         path = self._xmlroot / 'PronounSets.xml'
-        tree = ET.parse(path)
+        tree = et.parse(path)
         for pronounset in tree.findall('pronounset'):
             pronounsetname = '/'.join([pronounset.attrib['Subjective'],
                                        pronounset.attrib['Objective'],
