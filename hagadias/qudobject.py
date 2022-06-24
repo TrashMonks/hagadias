@@ -50,7 +50,7 @@ class QudObject(NodeMixin):
         Parameters:
             blueprint: an XML Element to parse into dictionaries
             qindex: a dict in which to register this object after creation, keyed by object name"""
-        self.source = etree.tostring(blueprint)
+        self.source = etree.tostring(blueprint).decode('utf8')
         self.qindex = qindex
         self.name = blueprint.get('Name')
         self.blueprint = blueprint
