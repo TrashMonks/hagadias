@@ -7,12 +7,14 @@ name = "pypi"
 anytree = "*"
 pefile = "*"
 pillow = "*"
+lxml = "*"
 
 [dev-packages]
 coverage = "*"
 flake8 = "*"
 pre-commit = "*"
 pytest = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.10"

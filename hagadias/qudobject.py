@@ -9,7 +9,7 @@ from anytree import NodeMixin
 from hagadias.qudtile import QudTile
 from hagadias.tileanimator import TileAnimator, StandInTiles
 from hagadias.tilepainter import TilePainter
-from hagadias.xml import Element
+from lxml import etree
 
 
 class QudObject(NodeMixin):
@@ -44,16 +44,13 @@ class QudObject(NodeMixin):
     by the AnyTree module that provides NodeMixin.
     """
 
-    def __init__(self, blueprint: Element, source: str, full_source: str, qindex: dict):
+    def __init__(self, blueprint: etree.Element, qindex: dict):
         """Create a new QudObject instance.
 
         Parameters:
             blueprint: an XML Element to parse into dictionaries
-            source: a string with the XML source that created `blueprint`
-            full_source: a string with the full XML source (preceding comments, whitespace, etc.)
             qindex: a dict in which to register this object after creation, keyed by object name"""
-        self.source = source
-        self.full_source = full_source
+        self.source = etree.tostring(blueprint).decode('utf8')
         self.qindex = qindex
         self.name = blueprint.get('Name')
         self.blueprint = blueprint
@@ -63,7 +60,7 @@ class QudObject(NodeMixin):
         self.inherited = {}
         self.baked = False  # Indicates whether inheritance has been resolved for this object yet
         for element in blueprint:
-            element_tag = element.tag
+            element_tag = str(element.tag)
             if 'Name' not in element.attrib:
                 if element_tag != 'inventoryobject' and element_tag[:4] != 'xtag':
                     # probably something we don't need
