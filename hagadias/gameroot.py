@@ -8,6 +8,7 @@ from hagadias.character_codes import read_gamedata
 from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, \
     repair_invalid_chars
 from hagadias.qudobject_props import QudObjectProps
+from hagadias.qudpopulation import QudPopulation
 from lxml import etree as et
 
 
@@ -46,6 +47,7 @@ class GameRoot:
         self.qud_object_root = None
         self.qindex = None
         self.anatomies = None
+        self.populations = None
 
     def get_character_codes(self) -> dict:
         """Load and return a dictionary containing all the Qud character code pieces.
@@ -109,6 +111,30 @@ class GameRoot:
         self.qud_object_root = qud_object_root
         self.qindex = qindex
         return qud_object_root, qindex
+
+    def get_populations(self) -> dict[str, QudPopulation]:
+        """Returns populations.
+
+        Returns a nested dictionary mirroring the XML file structure."""
+        if self.populations is not None:
+            return self.populations
+        path = self._xmlroot / 'PopulationTables.xml'
+        populations: dict[str, QudPopulation] = {}
+        pop_tree = et.parse(path)
+        for pop_entry in pop_tree.findall('population'):
+            if pop_entry.tag != 'population':
+                pass  # shouldn't happen
+            population = QudPopulation(pop_entry)
+            if population is None:
+                print('FIXME: unable to load a population entry')
+            elif population.name is None or len(population.name) == 0:
+                print('FIXME: tried to load a population that has no Name attribute?')
+            elif population.name in populations and pop_entry.attrib.get('Load') == 'Merge':
+                print(f'FIXME: unsupported merge request for population "{population.name}"')
+            else:
+                populations[population.name] = population
+        self.populations = populations
+        return populations
 
     def get_anatomies(self) -> dict:
         """Return the available body plans.
