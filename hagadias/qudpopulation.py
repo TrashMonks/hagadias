@@ -115,7 +115,7 @@ class QudPopulationGroup(QudPopList, QudPopItem):
         """
         QudPopItem.__init__(self, pop_elem)
         QudPopList.__init__(self, pop_elem)
-        self.name: str = pop_elem.attrib.get('Name', 'unnamed')  # NOTE: for mods/merge; can be unspecified
+        self.name: str = pop_elem.attrib.get('Name', 'unnamed')  # NOTE: used for mods/merge only
         self.style: str = pop_elem.attrib.get('Style', '')  # NOTE: always 'pickeach' or 'pickone'
 
     @property
