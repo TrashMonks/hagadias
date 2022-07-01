@@ -1,5 +1,6 @@
 """Class to represent population data from PopulationTables.xml."""
 from typing import List
+from lxml import etree as et
 from lxml.etree import ElementBase
 
 
@@ -19,6 +20,10 @@ class QudPopList:
                 self._items.append(QudPopulationObject(item))
             elif item.tag == 'table':
                 self._items.append(QudPopulationTable(item))
+
+    @property
+    def children(self):
+        return self._items
 
 
 class QudPopItem:
@@ -46,6 +51,13 @@ class QudPopulation(QudPopList):
         """
         super().__init__(pop_elem)
         self.name: str = pop_elem.attrib.get('Name')
+        self._xml: str = f'  {et.tostring(pop_elem, encoding="unicode", method="xml")}'
+        # TODO: Standardize tabs / spaces, they print differently
+
+    @property
+    def xml(self) -> str:
+        """The raw XML representation of this population from PopulationTables.xml."""
+        return self._xml
 
 
 class QudPopulationObject(QudPopItem):
