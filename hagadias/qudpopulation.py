@@ -41,6 +41,14 @@ class QudPopItem:
         self.number: str = pop_elem.attrib.get('Number', '1')
         self.chance: str = pop_elem.attrib.get('Chance', '100')
 
+    @property
+    def displayname(self) -> str:
+        raise NotImplementedError()  # to be implemented by inheriting subclasses
+
+    @property
+    def type(self) -> str:
+        raise NotImplementedError()  # to be implemented by inheriting subclasses
+
 
 class QudPopulation(QudPopList):
     def __init__(self, pop_elem: ElementBase):
@@ -70,6 +78,14 @@ class QudPopulationObject(QudPopItem):
         super().__init__(pop_elem)
         self.blueprint: str = pop_elem.attrib.get('Blueprint', '')  # NOTE: can be an empty string
 
+    @property
+    def displayname(self) -> str:
+        return self.blueprint
+
+    @property
+    def type(self) -> str:
+        return 'object'
+
 
 class QudPopulationTable(QudPopItem):
     def __init__(self, pop_elem: ElementBase):
@@ -81,6 +97,14 @@ class QudPopulationTable(QudPopItem):
         super().__init__(pop_elem)
         self.name: str = pop_elem.attrib.get('Name', '')  # NOTE: can be "Nothing"
 
+    @property
+    def displayname(self) -> str:
+        return self.name
+
+    @property
+    def type(self) -> str:
+        return 'table'
+
 
 class QudPopulationGroup(QudPopList, QudPopItem):
     def __init__(self, pop_elem: ElementBase):
@@ -91,5 +115,13 @@ class QudPopulationGroup(QudPopList, QudPopItem):
         """
         QudPopItem.__init__(self, pop_elem)
         QudPopList.__init__(self, pop_elem)
-        self.name: str = pop_elem.attrib.get('Name', '')  # NOTE: used only for mods/merging
+        self.name: str = pop_elem.attrib.get('Name', 'unnamed')  # NOTE: for mods/merge; can be unspecified
         self.style: str = pop_elem.attrib.get('Style', '')  # NOTE: always 'pickeach' or 'pickone'
+
+    @property
+    def displayname(self) -> str:
+        return self.name
+
+    @property
+    def type(self) -> str:
+        return 'group'
