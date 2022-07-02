@@ -36,7 +36,6 @@ class QudPopItem:
         Args:
             pop_elem: etree object which represents the population item.
         """
-        # self.name: Optional[str] = None
         self.weight: int = int(pop_elem.attrib.get('Weight', 1))
         self.number: str = pop_elem.attrib.get('Number', '1')
         self.chance: str = pop_elem.attrib.get('Chance', '100')
