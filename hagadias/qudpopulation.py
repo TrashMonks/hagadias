@@ -1,4 +1,4 @@
-"""Class to represent population data from PopulationTables.xml."""
+"""Classes to represent population data from PopulationTables.xml."""
 from typing import List
 from lxml import etree as et
 from lxml.etree import ElementBase
@@ -67,17 +67,20 @@ class QudPopulation(QudPopList):
         return self._xml
 
     def depth(self) -> int:
-        """The nesting depth of this population. 1 represents a simple population table with
-        no nested groups. 2 or higher represents additional levels of nested groups."""
-        # Populations can have a single group beneath them that holds all items, or they can hold
-        # items directly with no encapsulating group, so our logic accounts for that here
+        """The maximum nesting depth of this population. 1 represents a simple population table with
+        no nested groups. 2 or higher represents additional levels of nested groups.
+
+        Populations can have a single group beneath them that holds all items, or they can hold
+        items directly with no encapsulating group, so our logic accounts for that here - both
+        cases are considered only a single level of depth.
+        """
         if len(self.children) == 1 and self.children[0].type == 'group':
             # noinspection PyTypeChecker
             return self._eval_depth(self.children[0])
         return self._eval_depth(self)
 
     def _eval_depth(self, pop_group: QudPopList, cur_depth: int = 1) -> int:
-        """Returns the maximum depth of the pop_group as an integer
+        """Returns the maximum depth of the pop_group as an integer.
 
         Args:
             pop_group: A QudPopList item
