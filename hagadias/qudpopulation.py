@@ -59,6 +59,7 @@ class QudPopulation(QudPopList):
         super().__init__(pop_elem)
         self.name: str = pop_elem.attrib.get('Name')
         self._xml: str = f'  {et.tostring(pop_elem, encoding="unicode", method="xml")}'
+        self._depth: int | None = None
         # TODO: Standardize tabs / spaces, they print differently
 
     @property
@@ -66,18 +67,30 @@ class QudPopulation(QudPopList):
         """The raw XML representation of this population from PopulationTables.xml."""
         return self._xml
 
+    @property
+    def style(self) -> str:
+        """Style of the population or its main defining group ('pickone' or 'pickeach')"""
+        if len(self.children) == 1 and self.children[0].type == 'group':
+            # noinspection PyUnresolvedReferences
+            return self.children[0].style
+        # the following return value based on advice from Armithaig, probably usually true?
+        # https://discordapp.com/channels/214532333900922882/482714670860468234/902779863465865216
+        return 'pickeach'
+
+    @property
     def depth(self) -> int:
         """The maximum nesting depth of this population. 1 represents a simple population table with
-        no nested groups. 2 or higher represents additional levels of nested groups.
-
-        Populations can have a single group beneath them that holds all items, or they can hold
-        items directly with no encapsulating group, so our logic accounts for that here - both
-        cases are considered only a single level of depth.
-        """
-        if len(self.children) == 1 and self.children[0].type == 'group':
-            # noinspection PyTypeChecker
-            return self._eval_depth(self.children[0])
-        return self._eval_depth(self)
+        no nested groups. 2 or higher represents additional levels of nested groups."""
+        if self._depth is None:
+            # Populations can have a single group beneath them that holds all items, or they can
+            # hold items directly with no encapsulating group, so our logic accounts for that here -
+            # both cases are considered only a single level of depth.
+            if len(self.children) == 1 and self.children[0].type == 'group':
+                # noinspection PyTypeChecker
+                self._depth = self._eval_depth(self.children[0])
+            else:
+                self._depth = self._eval_depth(self)
+        return self._depth
 
     def _eval_depth(self, pop_group: QudPopList, cur_depth: int = 1) -> int:
         """Returns the maximum depth of the pop_group as an integer.
@@ -94,6 +107,15 @@ class QudPopulation(QudPopList):
                 if child_depth > max_depth:
                     max_depth = child_depth
         return max_depth
+
+    def get_effective_children(self) -> List[QudPopItem]:
+        """Returns the main children of this population. If there is a single enclosing group that
+        represents the entire population, returns that group's children instead of the direct
+        children of the population node."""
+        if len(self.children) == 1 and self.children[0].type == 'group':
+            # noinspection PyUnresolvedReferences
+            return self.children[0].children
+        return self.children
 
 
 class QudPopulationObject(QudPopItem):
