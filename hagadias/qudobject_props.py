@@ -1029,6 +1029,9 @@ class QudObjectProps(QudObject):
                     desc_extra.append(f'It bears {says}')
                 else:
                     desc_extra.append(f'It reads, \'{says}\'.')
+        if self.part_MoltingBasilisk is not None:
+            desc_txt = 'The basilisk is nature\'s statue; its scaled skin is the color of dull' +\
+                        ' quartz and it strikes as still a pose as an artist\'s mould.'
         if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
             desc_postfix = 'There is a low, persistent hum emanating outward.' \
                 if not self.part_Roboticized_DescriptionPostfix \
