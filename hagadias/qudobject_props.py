@@ -12,6 +12,7 @@ from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
 from hagadias.helpers import cp437_to_unicode, int_or_none, \
     strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
     str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
+from hagadias.qudpopulation import QudPopulation
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
@@ -1500,21 +1501,43 @@ class QudObjectProps(QudObject):
         return None  # nothing currently supported here
 
     @cached_property
-    def inventory(self) -> List[Tuple[str, str, str, str]]:
+    def inventory(self) -> List[Tuple[str, str, str, str, str]] | None:
         """The inventory of a character.
 
-        Returns a list of tuples of strings: (name, count, equipped, chance)."""
+        Returns a list of tuples of strings: (name, count, equipped, chance, is_pop)."""
+        ret = []
         inv = self.inventoryobject
         if inv is not None:
-            ret = []
             for name in inv:
-                if name[0] in '*#@':  # Ignores stuff like '*Junk 1'
+                if name[0] in '*#':  # Ignores stuff like '*Junk 1'
                     continue
+                is_pop = 'no'
+                final_name = name
+                if name[0] == '@':
+                    is_pop = 'yes'
+                    final_name = name[1:]
                 count = inv[name].get('Number', '1')
                 equipped = 'no'  # not yet implemented
                 chance = inv[name].get('Chance', '100')
-                ret.append((name, count, equipped, chance))
-            return ret
+                ret.append((final_name, count, equipped, chance, is_pop))
+        pop_name = self.tag_InventoryPopulationTable_Value
+        if pop_name is not None:
+            pop: QudPopulation = self.gameroot.get_populations().get(pop_name)
+            if pop is not None:
+                if pop.style != 'pickeach' or pop.depth > 1:
+                    pass  # not handling this case for now because it's rarer and more complex
+                else:
+                    for pop_item in pop.get_effective_children():
+                        count = pop_item.number
+                        chance = pop_item.chance
+                        equipped = 'no'  # not yet implemented
+                        if pop_item.type == 'object':  # noinspection PyUnresolvedReferences
+                            ret.append((pop_item.blueprint, count, equipped, chance, 'no'))
+                        elif pop_item.type == 'table':  # noinspection PyUnresolvedReferences
+                            ret.append((pop_item.name, count, equipped, chance, 'yes'))
+                        elif pop_item.type == 'group':
+                            pass  # shouldn't happen bec. we only evaluate populations with depth 1
+        return ret if len(ret) > 0 else None
 
     @cached_property
     def iscurrency(self) -> bool | None:
