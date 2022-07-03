@@ -1524,8 +1524,13 @@ class QudObjectProps(QudObject):
         if pop_name is not None:
             pop: QudPopulation = self.gameroot.get_populations().get(pop_name)
             if pop is not None:
-                if pop.style != 'pickeach' or pop.depth > 1:
-                    pass  # not handling this case for now because it's rarer and more complex
+                if pop.depth > 1:
+                    # complex population - represent with parent pop name and quantity of '*'
+                    ret.append((pop_name, '*', 'no', '100', 'yes'))
+                elif pop.style != 'pickeach':
+                    # population with single 'pickone' group - for example "Artifact 6R"
+                    group = pop.children[0]
+                    ret.append((pop_name, group.number, 'no', group.chance, 'yes'))
                 else:
                     for pop_item in pop.get_effective_children():
                         count = pop_item.number
