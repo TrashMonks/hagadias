@@ -100,7 +100,7 @@ class GameRoot:
             for element in raw:
                 if element.tag != 'object':
                     continue
-                cls(element, qindex)
+                cls(element, qindex, self)
 
         # second pass - resolve object inheritance
         logging.info("Resolving Qud object hierarchy and adding tiles...")
