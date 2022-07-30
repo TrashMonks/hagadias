@@ -49,8 +49,8 @@ def test_dv(qindex):
 
 
 def test_mentalshield(qindex):
-    assert qindex['Sawhander'].ma is None
-    assert qindex['Lurking Beth'].ma == 0
+    assert qindex['Sawhander'].ma == 10
+    assert qindex['Lurking Beth'].ma is None
 
 
 def test_extrainfo(qindex):

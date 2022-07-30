@@ -1656,7 +1656,7 @@ class QudObjectProps(QudObject):
         We should still return MA for creatures with a mental shield, such as Robots, because those
         creatures' MA value is used in certain scenarios, such as to defend against Rebuke Robot."""
         if (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
-            return 0  # Should this be "None"? Not sure why we return 0 for all objects/items...
+            return None
         elif char_type == ACTIVE_CHAR:
             # MA starts at base 4
             ma = 4
