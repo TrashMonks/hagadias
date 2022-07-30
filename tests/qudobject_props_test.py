@@ -6,14 +6,14 @@ from hagadias.helpers import strip_oldstyle_qud_colors
 
 
 def test_strip_qud_color_codes():
-    assert strip_oldstyle_qud_colors('&yfloating&G &Yglowsphere') == 'floating glowsphere'
+    assert strip_oldstyle_qud_colors("&yfloating&G &Yglowsphere") == "floating glowsphere"
 
 
 # Properties
 def test_av(qindex):
-    assert qindex['Chain Mail'].av == 3
-    assert qindex['Stopsvaalinn'].av == 3
-    assert qindex['Basalt'].av == 10
+    assert qindex["Chain Mail"].av == 3
+    assert qindex["Stopsvaalinn"].av == 3
+    assert qindex["Basalt"].av == 10
 
 
 # commented out because equipbrain is not done yet
@@ -26,19 +26,19 @@ def test_av(qindex):
 
 
 def test_chargeused(qindex):
-    obj = qindex['Geomagnetic Disc']
+    obj = qindex["Geomagnetic Disc"]
     assert obj.chargeused == 400
 
 
 def test_displayname(qindex):
-    assert qindex['ElderBob'].displayname == 'Elder Irudad'
-    assert qindex['Cudgel6'].displayname == 'crysteel mace'
+    assert qindex["ElderBob"].displayname == "Elder Irudad"
+    assert qindex["Cudgel6"].displayname == "crysteel mace"
 
 
 def test_dv(qindex):
-    assert qindex['Chain Mail'].dv == -1
-    assert qindex['Stopsvaalinn'].dv == 0
-    assert qindex['Basalt'].dv == -10
+    assert qindex["Chain Mail"].dv == -1
+    assert qindex["Stopsvaalinn"].dv == 0
+    assert qindex["Basalt"].dv == -10
 
 
 # commented out because equipbrain is not done yet
@@ -49,17 +49,17 @@ def test_dv(qindex):
 
 
 def test_mentalshield(qindex):
-    assert qindex['Sawhander'].ma == 10
-    assert qindex['Lurking Beth'].ma is None
+    assert qindex["Sawhander"].ma == 10
+    assert qindex["Lurking Beth"].ma is None
 
 
 def test_extrainfo(qindex):
-    assert qindex['Ctesiphus'].pettable is True
-    assert qindex['Lurking Beth'].hidden == 18
-    assert qindex['Prayer Rod'].energycellrequired is True
+    assert qindex["Ctesiphus"].pettable is True
+    assert qindex["Lurking Beth"].hidden == 18
+    assert qindex["Prayer Rod"].energycellrequired is True
 
 
 def test_tier(qindex):
-    assert qindex['Tattoo Gun'].tier == 3
-    assert qindex['HandENuke'].tier == 8
-    assert qindex['Glowfish'].tier == 0
+    assert qindex["Tattoo Gun"].tier == 3
+    assert qindex["HandENuke"].tier == 8
+    assert qindex["Glowfish"].tier == 0

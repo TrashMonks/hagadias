@@ -17,26 +17,26 @@ class sValue:
         self.svalue = svalue
         t = level // 5 + 1
         # substitute creature tier in dice
-        svalue = svalue.replace('(t)', str(t))
-        svalue = svalue.replace('(t-1)', str(t - 1))
-        svalue = svalue.replace('(t+1)', str(t + 1))
+        svalue = svalue.replace("(t)", str(t))
+        svalue = svalue.replace("(t-1)", str(t - 1))
+        svalue = svalue.replace("(t+1)", str(t + 1))
         self.t_parsed = svalue
         self.low = 0
         self.high = 0
-        self.svalstring = self.t_parsed.replace(',', '+')
-        for part in self.t_parsed.split(','):
+        self.svalstring = self.t_parsed.replace(",", "+")
+        for part in self.t_parsed.split(","):
             modified = False
-            if '+' in part:
-                part, modifier = part.split('+')
+            if "+" in part:
+                part, modifier = part.split("+")
                 modified = True
-            elif '-' in part:
-                part, modifier = part.split('-')
+            elif "-" in part:
+                part, modifier = part.split("-")
                 modified = True
-            if 'd' not in part:
+            if "d" not in part:
                 self.low += int(part)
                 self.high += int(part)
             else:
-                num, die = part.split('d')
+                num, die = part.split("d")
                 self.low += int(num)
                 self.high += int(num) * int(die)
             if modified:

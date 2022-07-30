@@ -53,9 +53,9 @@ class QudObject(NodeMixin):
             gameroot: a reference to the GameRoot instance that spawned this object
         """
         self.gameroot = gameroot
-        self.source = etree.tostring(blueprint).decode('utf8')
+        self.source = etree.tostring(blueprint).decode("utf8")
         self.qindex = qindex
-        self.name = blueprint.get('Name')
+        self.name = blueprint.get("Name")
         self.blueprint = blueprint
         qindex[self.name] = self
         self.attributes = {}
@@ -64,24 +64,25 @@ class QudObject(NodeMixin):
         self.baked = False  # Indicates whether inheritance has been resolved for this object yet
         for element in blueprint:
             element_tag = str(element.tag)
-            if 'Name' not in element.attrib:
-                if element_tag != 'inventoryobject' and element_tag[:4] != 'xtag':
+            if "Name" not in element.attrib:
+                if element_tag != "inventoryobject" and element_tag[:4] != "xtag":
                     # probably something we don't need
                     continue
-                element_tag = element.tag if element.tag[:4] != 'xtag' else 'xtag'
+                element_tag = element.tag if element.tag[:4] != "xtag" else "xtag"
             if element_tag not in self.attributes:
                 self.attributes[element_tag] = {}
-            if 'Name' in element.attrib:
+            if "Name" in element.attrib:
                 # most tags
-                element_name = element.attrib.pop('Name')
-            elif element_tag == 'xtag':
+                element_name = element.attrib.pop("Name")
+            elif element_tag == "xtag":
                 # for xtags, use substring after 'xtag' prefix
                 element_name = element.tag[4:]
-            elif 'Blueprint' in element.attrib:
+            elif "Blueprint" in element.attrib:
                 # for tag: inventoryobject
-                element_name = element.attrib.pop('Blueprint')
-            if element_name in self.attributes[element_tag] and \
-                    isinstance(self.attributes[element_tag][element_name], dict):
+                element_name = element.attrib.pop("Blueprint")
+            if element_name in self.attributes[element_tag] and isinstance(
+                self.attributes[element_tag][element_name], dict
+            ):
                 # for rare cases like:
                 # <part Name="Brain" Hostile="false" Wanders="false" Factions="Prey-100" />
                 # followed by:
@@ -108,7 +109,7 @@ class QudObject(NodeMixin):
 
     @cached_property
     def tile_painter(self) -> TilePainter:
-        if hasattr(self, '_tile_painter'):
+        if hasattr(self, "_tile_painter"):
             return self._tile_painter
         self._tile_painter = TilePainter(self)
         return self._tile_painter
@@ -130,7 +131,7 @@ class QudObject(NodeMixin):
         images when there are more than one.
 
         Created on-demand and cached in self._alltiles and self._allmetadata after first call."""
-        if hasattr(self, '_alltiles') and hasattr(self, '_allmetadata'):
+        if hasattr(self, "_alltiles") and hasattr(self, "_allmetadata"):
             return self._alltiles, self._allmetadata
         alltiles, metadata = [], []
         if self.tile_painter.tile_count() > 0:
@@ -142,7 +143,7 @@ class QudObject(NodeMixin):
     def has_tile(self) -> bool:
         """Returns true if this object qualifies for tile rendering."""
         if self.tag_BaseObject:
-            if self.name in ['ScrapCape', 'CatacombWall']:
+            if self.name in ["ScrapCape", "CatacombWall"]:
                 return True  # special cases, not sure why they're marked as BaseObjects
             return False
         if self.part_Render_Tile or self.part_RandomTile is not None:
@@ -169,7 +170,7 @@ class QudObject(NodeMixin):
         Created on demand and then cached in self._tile_gifs after first call."""
         if not self.has_gif_tile():
             return None
-        if not hasattr(self, '_tile_gifs'):
+        if not hasattr(self, "_tile_gifs"):
             self._tile_gifs = [None] * self.number_of_tiles()
         if index >= len(self._tile_gifs):
             return None
@@ -186,7 +187,7 @@ class QudObject(NodeMixin):
             if self.number_of_tiles() > 1:
                 tiles, metadata = self.tiles_and_metadata()
                 for tile, meta in zip(tiles, metadata):
-                    if meta.type == 'unidentified':
+                    if meta.type == "unidentified":
                         return tile, meta
 
     def unidentified_tile(self) -> QudTile:
@@ -220,7 +221,7 @@ class QudObject(NodeMixin):
         """
         if self.baked:
             return
-        parent_name = self.blueprint.get('Inherits')
+        parent_name = self.blueprint.get("Inherits")
         self.parent = self.qindex[parent_name] if parent_name else None
         if self.parent is None:
             self.all_attributes = self.attributes
@@ -232,26 +233,29 @@ class QudObject(NodeMixin):
             self.parent.resolve_inheritance()
         inherited = self.parent.all_attributes
         all_attributes = deepcopy(self.attributes)
-        removes_parts = 'removepart' in all_attributes
+        removes_parts = "removepart" in all_attributes
         for tag in inherited:
             if tag not in all_attributes:
                 all_attributes[tag] = {}
             for name in inherited[tag]:
                 if name not in all_attributes[tag]:
-                    if tag == 'part' and removes_parts:
-                        if name in all_attributes['removepart']:
+                    if tag == "part" and removes_parts:
+                        if name in all_attributes["removepart"]:
                             # print(f'removed {name} part from {self.name} due to removepart tag')
                             continue  # don't inherit part if it's explicitly removed from the child
                     all_attributes[tag][name] = {}
-                elif tag == 'tag' and 'Value' in all_attributes[tag][name] and \
-                        all_attributes[tag][name]['Value'] == '*delete':
+                elif (
+                    tag == "tag"
+                    and "Value" in all_attributes[tag][name]
+                    and all_attributes[tag][name]["Value"] == "*delete"
+                ):
                     # print(f'removed "{name}" tag from {self.name} due to Value of "*delete"')
                     del all_attributes[tag][name]
                     continue
                 for attr in inherited[tag][name]:
                     if attr not in all_attributes[tag][name]:
                         # parent has this attribute but we don't
-                        if inherited[tag][name][attr] == '*noinherit':
+                        if inherited[tag][name][attr] == "*noinherit":
                             # this attribute shows that its name should not be inherited
                             # TODO: fix when the child also specifies this tag:
                             #       BaseTierShield1 is showing up as wiki eligible when it
@@ -289,7 +293,7 @@ class QudObject(NodeMixin):
         """Return True if `attr` is specified explicitly for this object,
         False if it is inherited or does not exist"""
         # TODO: doesn't work right
-        path = attr.split('_')
+        path = attr.split("_")
         try:
             seek = self.attributes[path[0]]
             if len(path) > 1:
@@ -337,11 +341,11 @@ class QudObject(NodeMixin):
           which has the Boolean value False. Check to see that they are `is not None` rather than
           using them as a Boolean (i.e. in an `if`).
         """
-        if attr.startswith('_'):  # guard against NodeMixIn housekeeping
+        if attr.startswith("_"):  # guard against NodeMixIn housekeeping
             raise AttributeError
-        if attr == 'attributes' or attr == 'all_attributes':  # guard against uninvited recursion
+        if attr == "attributes" or attr == "all_attributes":  # guard against uninvited recursion
             raise AttributeError
-        path = attr.split('_')
+        path = attr.split("_")
         try:
             seek = self.all_attributes[path[0]]  # XML tag portion
             if len(path) > 1:
@@ -354,8 +358,8 @@ class QudObject(NodeMixin):
 
     def __str__(self) -> str:
         """Return a string representation of self."""
-        return self.name + ' ' + str(self.attributes)
+        return self.name + " " + str(self.attributes)
 
     def __repr__(self) -> str:
         """Return a developer's string representation of self."""
-        return 'QudObject(' + self.name + ')'
+        return "QudObject(" + self.name + ")"

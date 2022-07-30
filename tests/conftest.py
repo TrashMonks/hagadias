@@ -8,7 +8,7 @@ from hagadias.gameroot import GameRoot
 from hagadias.qudobject import QudObject
 
 try:
-    with open('game_location_for_tests') as f:
+    with open("game_location_for_tests") as f:
         game_loc = f.read().strip()
         GAME_ROOT_LOC = Path(game_loc)
 except FileNotFoundError:

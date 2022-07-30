@@ -6,17 +6,17 @@ from hagadias.equipbrain import EquipBrain
 
 
 def test_create(qindex):
-    creature = qindex['Q Girl']  # multiple potential armors, quills
+    creature = qindex["Q Girl"]  # multiple potential armors, quills
     EquipBrain(creature, qindex)
-    creature = qindex['Lulihart']  # m-arms, m-legs
+    creature = qindex["Lulihart"]  # m-arms, m-legs
     EquipBrain(creature, qindex)
-    creature = qindex['Two-Headed Slugsnout']  # 2 head slots
+    creature = qindex["Two-Headed Slugsnout"]  # 2 head slots
     EquipBrain(creature, qindex)
-    creature = qindex['Worm of the Earth']  # burrowing claws
+    creature = qindex["Worm of the Earth"]  # burrowing claws
     EquipBrain(creature, qindex)
-    creature = qindex['Warden Ualraig']  # horns
+    creature = qindex["Warden Ualraig"]  # horns
     EquipBrain(creature, qindex)
-    creature = qindex['Scorpiock']  # stinger
+    creature = qindex["Scorpiock"]  # stinger
     EquipBrain(creature, qindex)
 
 

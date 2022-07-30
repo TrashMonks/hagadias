@@ -14,11 +14,11 @@ class QudPopList:
         """
         self._items: List[QudPopItem] = []
         for item in pop_elem:
-            if item.tag == 'group':
+            if item.tag == "group":
                 self._items.append(QudPopulationGroup(item))
-            elif item.tag == 'object':
+            elif item.tag == "object":
                 self._items.append(QudPopulationObject(item))
-            elif item.tag == 'table':
+            elif item.tag == "table":
                 self._items.append(QudPopulationTable(item))
 
     @property
@@ -36,9 +36,9 @@ class QudPopItem:
         Args:
             pop_elem: etree object which represents the population item.
         """
-        self.weight: int = int(pop_elem.attrib.get('Weight', 1))
-        self.number: str = pop_elem.attrib.get('Number', '1')
-        self.chance: str = pop_elem.attrib.get('Chance', '100')
+        self.weight: int = int(pop_elem.attrib.get("Weight", 1))
+        self.number: str = pop_elem.attrib.get("Number", "1")
+        self.chance: str = pop_elem.attrib.get("Chance", "100")
 
     @property
     def displayname(self) -> str:
@@ -57,7 +57,7 @@ class QudPopulation(QudPopList):
             pop_elem: etree object which represents the <population> node from PopulationTables.xml
         """
         super().__init__(pop_elem)
-        self.name: str = pop_elem.attrib.get('Name')
+        self.name: str = pop_elem.attrib.get("Name")
         self._xml: str = f'  {et.tostring(pop_elem, encoding="unicode", method="xml")}'
         self._depth: int | None = None
         # TODO: Standardize tabs / spaces, they print differently
@@ -70,12 +70,12 @@ class QudPopulation(QudPopList):
     @property
     def style(self) -> str:
         """Style of the population or its main defining group ('pickone' or 'pickeach')"""
-        if len(self.children) == 1 and self.children[0].type == 'group':
+        if len(self.children) == 1 and self.children[0].type == "group":
             # noinspection PyUnresolvedReferences
             return self.children[0].style
         # the following return value based on advice from Armithaig, probably usually true?
         # https://discordapp.com/channels/214532333900922882/482714670860468234/902779863465865216
-        return 'pickeach'
+        return "pickeach"
 
     @property
     def depth(self) -> int:
@@ -85,7 +85,7 @@ class QudPopulation(QudPopList):
             # Populations can have a single group beneath them that holds all items, or they can
             # hold items directly with no encapsulating group, so our logic accounts for that here -
             # both cases are considered only a single level of depth.
-            if len(self.children) == 1 and self.children[0].type == 'group':
+            if len(self.children) == 1 and self.children[0].type == "group":
                 # noinspection PyTypeChecker
                 self._depth = self._eval_depth(self.children[0])
             else:
@@ -101,7 +101,7 @@ class QudPopulation(QudPopList):
         """
         max_depth = cur_depth
         for child in pop_group.children:
-            if child.type == 'group':
+            if child.type == "group":
                 # noinspection PyTypeChecker
                 child_depth = self._eval_depth(child, cur_depth + 1)
                 if child_depth > max_depth:
@@ -112,7 +112,7 @@ class QudPopulation(QudPopList):
         """Returns the main children of this population. If there is a single enclosing group that
         represents the entire population, returns that group's children instead of the direct
         children of the population node."""
-        if len(self.children) == 1 and self.children[0].type == 'group':
+        if len(self.children) == 1 and self.children[0].type == "group":
             # noinspection PyUnresolvedReferences
             return self.children[0].children
         return self.children
@@ -126,7 +126,7 @@ class QudPopulationObject(QudPopItem):
             pop_elem: etree object which represents the <object> node from PopulationTables.xml
         """
         super().__init__(pop_elem)
-        self.blueprint: str = pop_elem.attrib.get('Blueprint', '')  # NOTE: can be an empty string
+        self.blueprint: str = pop_elem.attrib.get("Blueprint", "")  # NOTE: can be an empty string
 
     @property
     def displayname(self) -> str:
@@ -134,7 +134,7 @@ class QudPopulationObject(QudPopItem):
 
     @property
     def type(self) -> str:
-        return 'object'
+        return "object"
 
 
 class QudPopulationTable(QudPopItem):
@@ -145,7 +145,7 @@ class QudPopulationTable(QudPopItem):
             pop_elem: etree object which represents the <table> node from PopulationTables.xml
         """
         super().__init__(pop_elem)
-        self.name: str = pop_elem.attrib.get('Name', '')  # NOTE: can be "Nothing"
+        self.name: str = pop_elem.attrib.get("Name", "")  # NOTE: can be "Nothing"
 
     @property
     def displayname(self) -> str:
@@ -153,7 +153,7 @@ class QudPopulationTable(QudPopItem):
 
     @property
     def type(self) -> str:
-        return 'table'
+        return "table"
 
 
 class QudPopulationGroup(QudPopList, QudPopItem):
@@ -165,8 +165,8 @@ class QudPopulationGroup(QudPopList, QudPopItem):
         """
         QudPopItem.__init__(self, pop_elem)
         QudPopList.__init__(self, pop_elem)
-        self.name: str = pop_elem.attrib.get('Name', 'unnamed')  # NOTE: used for mods/merge only
-        self.style: str = pop_elem.attrib.get('Style', '')  # NOTE: always 'pickeach' or 'pickone'
+        self.name: str = pop_elem.attrib.get("Name", "unnamed")  # NOTE: used for mods/merge only
+        self.style: str = pop_elem.attrib.get("Style", "")  # NOTE: always 'pickeach' or 'pickone'
 
     @property
     def displayname(self) -> str:
@@ -174,4 +174,4 @@ class QudPopulationGroup(QudPopList, QudPopItem):
 
     @property
     def type(self) -> str:
-        return 'group'
+        return "group"

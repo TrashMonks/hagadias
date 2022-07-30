@@ -26,23 +26,23 @@ def test_get_object_tree(gameroot):
 
 def test_get_anatomies(gameroot):
     anatomies = gameroot.get_anatomies()
-    assert 'Humanoid' in anatomies
+    assert "Humanoid" in anatomies
     assert len(anatomies) > 50
 
 
 def test_get_colors(gameroot):
     colors = gameroot.get_colors()
-    assert 'solidcolors' in colors
-    assert 'shaders' in colors
-    assert (colors['shaders']['snakeskin']['colors'] == 'g-c-C-G')
+    assert "solidcolors" in colors
+    assert "shaders" in colors
+    assert colors["shaders"]["snakeskin"]["colors"] == "g-c-C-G"
 
 
 def test_get_genders(gameroot):
     genders = gameroot.get_genders()
-    assert 'plural' in genders
+    assert "plural" in genders
     assert len(genders) >= 3  # the biden parameter
-    assert(genders['neuter']['Subjective'] == 'it')
-    assert(genders['elverson']['FormalAddressTerm'] == 'friend')
+    assert genders["neuter"]["Subjective"] == "it"
+    assert genders["elverson"]["FormalAddressTerm"] == "friend"
 
 
 def test_gamever(gameroot):
@@ -53,4 +53,4 @@ def test_gamever(gameroot):
     assert isinstance(ver, str)
     assert len(ver) > 4
     assert ver[0].isdigit()
-    assert '.' in ver
+    assert "." in ver

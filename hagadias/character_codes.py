@@ -4,40 +4,44 @@ We're mostly interested in the two-character codes that map to specific implants
 """
 import sys
 from pathlib import Path
+
 # Force Python XML parser:
-sys.modules['_elementtree'] = None
+sys.modules["_elementtree"] = None
 from xml.etree import ElementTree as ET  # noqa E402
 
-STAT_NAMES = ('Strength', 'Agility', 'Toughness', 'Intelligence', 'Willpower', 'Ego')
+STAT_NAMES = ("Strength", "Agility", "Toughness", "Intelligence", "Willpower", "Ego")
 # these are not available from XML:
-IMPLANT_CODES = {'00': 'none',
-                 '01': 'dermal insulation',
-                 '04': 'optical bioscanner',
-                 '05': 'optical technoscanner',
-                 '06': 'night vision',
-                 '07': 'hyper-elastic ankle tendons',
-                 '08': 'parabolic muscular subroutine',
-                 '09': 'translucent skin',
-                 '11': 'stabilizer arm locks',
-                 '12': 'rapid release finger flexors',
-                 '13': 'carbide hand bones',
-                 '14': 'pentaceps',
-                 '15': 'inflatable axons',
-                 # subtypes A-D, E-H, I-L
-                 '16': ('nocturnal apex', 'cherubic visage', 'air current microsensor'),
-                 }
+IMPLANT_CODES = {
+    "00": "none",
+    "01": "dermal insulation",
+    "04": "optical bioscanner",
+    "05": "optical technoscanner",
+    "06": "night vision",
+    "07": "hyper-elastic ankle tendons",
+    "08": "parabolic muscular subroutine",
+    "09": "translucent skin",
+    "11": "stabilizer arm locks",
+    "12": "rapid release finger flexors",
+    "13": "carbide hand bones",
+    "14": "pentaceps",
+    "15": "inflatable axons",
+    # subtypes A-D, E-H, I-L
+    "16": ("nocturnal apex", "cherubic visage", "air current microsensor"),
+}
 # these are not available from XML:
-MOD_BONUSES = {'BE': [2, 0, 0, 0, 0, 0],  # Double-muscled
-               'B2': [0, 2, 0, 0, 0, 0],  # Triple-jointed
-               'B4': [0, 0, 2, 0, 0, 0],  # Two-hearted
-               'CD': [0, 0, 0, 0, 0, 1],  # Beak
-               '00': [0, 0, 1, 0, 0, 0],  # True Kin but no implant
-               }
-MUTATION_VARIANTS = {'CD': ['Beak', 'Bill', 'Rostrum', 'Frill', 'Proboscis'],
-                     'BH': ['Flaming Ray (Hands)', 'Flaming Ray (Face)', 'Flaming Ray (Feet)'],
-                     'BI': ['Freezing Ray (Hands)', 'Freezing Ray (Face)', 'Freezing Ray (Feet)'],
-                     'BL': ['Horns', 'Horn', 'Antlers', 'Casque'],
-                     }
+MOD_BONUSES = {
+    "BE": [2, 0, 0, 0, 0, 0],  # Double-muscled
+    "B2": [0, 2, 0, 0, 0, 0],  # Triple-jointed
+    "B4": [0, 0, 2, 0, 0, 0],  # Two-hearted
+    "CD": [0, 0, 0, 0, 0, 1],  # Beak
+    "00": [0, 0, 1, 0, 0, 0],  # True Kin but no implant
+}
+MUTATION_VARIANTS = {
+    "CD": ["Beak", "Bill", "Rostrum", "Frill", "Proboscis"],
+    "BH": ["Flaming Ray (Hands)", "Flaming Ray (Face)", "Flaming Ray (Feet)"],
+    "BI": ["Freezing Ray (Hands)", "Freezing Ray (Face)", "Freezing Ray (Feet)"],
+    "BL": ["Horns", "Horn", "Antlers", "Casque"],
+}
 
 
 def read_gamedata(xmlroot: Path) -> dict:
@@ -47,23 +51,23 @@ def read_gamedata(xmlroot: Path) -> dict:
         xmlroot: the game data path of the CoQ executable, containing the XML files
     """
 
-    geno = ET.parse(xmlroot / 'Genotypes.xml').getroot()
-    skills = ET.parse(xmlroot / 'Skills.xml').getroot()
-    subtypes = ET.parse(xmlroot / 'Subtypes.xml').getroot()
-    mutations = ET.parse(xmlroot / 'Mutations.xml').getroot()
+    geno = ET.parse(xmlroot / "Genotypes.xml").getroot()
+    skills = ET.parse(xmlroot / "Skills.xml").getroot()
+    subtypes = ET.parse(xmlroot / "Subtypes.xml").getroot()
+    mutations = ET.parse(xmlroot / "Mutations.xml").getroot()
 
     # Read genotypes: currently, only two (mutated human and true kin)
     genotype_codes = {}
     for genotype in geno:
-        genotype_codes[genotype.attrib['Code'].upper()] = genotype.attrib['Name']
+        genotype_codes[genotype.attrib["Code"].upper()] = genotype.attrib["Name"]
 
     # Read skill class names and real names
     # These are not returned, but used to parse the powers of subtypes, below.
     skill_names = {}
     for skill_cat in skills:
-        skill_names[skill_cat.attrib['Class']] = '(' + skill_cat.attrib['Name'] + ")"
+        skill_names[skill_cat.attrib["Class"]] = "(" + skill_cat.attrib["Name"] + ")"
         for power in skill_cat:
-            skill_names[power.attrib['Class']] = power.attrib['Name']
+            skill_names[power.attrib["Class"]] = power.attrib["Name"]
 
     class_bonuses = {}
     class_skills = {}
@@ -74,62 +78,63 @@ def read_gamedata(xmlroot: Path) -> dict:
     arcologies = subtypes[0]
     for category in arcologies:
         for caste in category:
-            name = caste.attrib['Name']
-            caste_codes[caste.attrib['Code'].upper()] = name
+            name = caste.attrib["Name"]
+            caste_codes[caste.attrib["Code"].upper()] = name
             stat_bonuses = [0, 0, 0, 0, 0, 0]
             for element in caste:
-                if element.tag == 'stat' and (element.attrib['Name'] in STAT_NAMES):
-                    bonus = int(element.attrib['Bonus'])
-                    stat_bonuses[STAT_NAMES.index(element.attrib['Name'])] = bonus
+                if element.tag == "stat" and (element.attrib["Name"] in STAT_NAMES):
+                    bonus = int(element.attrib["Bonus"])
+                    stat_bonuses[STAT_NAMES.index(element.attrib["Name"])] = bonus
             class_bonuses[name] = stat_bonuses
-            skills_raw = caste.find('skills')
+            skills_raw = caste.find("skills")
             skills = []
             for skill in skills_raw:
-                skills.append(skill_names[skill.attrib['Name']])
+                skills.append(skill_names[skill.attrib["Name"]])
             class_skills[name] = skills
-            class_tiles[name] = (caste.attrib['Tile'], caste.attrib['DetailColor'])
+            class_tiles[name] = (caste.attrib["Tile"], caste.attrib["DetailColor"])
 
     # read mutant Callings
     calling_codes = {}
     for calling in subtypes[1]:
-        name = calling.attrib['Name']
-        calling_codes[calling.attrib['Code'].upper()] = name
+        name = calling.attrib["Name"]
+        calling_codes[calling.attrib["Code"].upper()] = name
         stat_bonuses = [0, 0, 0, 0, 0, 0]
         for element in calling:
-            if element.tag == 'stat' and (element.attrib['Name'] in STAT_NAMES):
-                bonus = int(element.attrib['Bonus'])
-                stat_bonuses[STAT_NAMES.index(element.attrib['Name'])] = bonus
+            if element.tag == "stat" and (element.attrib["Name"] in STAT_NAMES):
+                bonus = int(element.attrib["Bonus"])
+                stat_bonuses[STAT_NAMES.index(element.attrib["Name"])] = bonus
         class_bonuses[name] = stat_bonuses
-        skills_raw = calling.find('skills')
+        skills_raw = calling.find("skills")
         skills = []
         for skill in skills_raw:
-            skills.append(skill_names[skill.attrib['Name']])
+            skills.append(skill_names[skill.attrib["Name"]])
         class_skills[name] = skills
-        class_tiles[name] = (calling.attrib['Tile'], calling.attrib['DetailColor'])
+        class_tiles[name] = (calling.attrib["Tile"], calling.attrib["DetailColor"])
 
     # read mutations
     mod_codes = {}
     for category in mutations:
         for mutation in category:
-            mod_codes[mutation.attrib['Code'].upper()] = mutation.attrib['Name']
+            mod_codes[mutation.attrib["Code"].upper()] = mutation.attrib["Name"]
             # mark defects with '(D)' as in game
-            if category.attrib['Name'] in ('PhysicalDefects', 'MentalDefects'):
-                mod_codes[mutation.attrib['Code'].upper()] += ' (D)'
+            if category.attrib["Name"] in ("PhysicalDefects", "MentalDefects"):
+                mod_codes[mutation.attrib["Code"].upper()] += " (D)"
     # add implants to mutations
     mod_codes.update(IMPLANT_CODES)  # not in XML
 
     # some manual fixups
-    mod_codes.pop('UU')
+    mod_codes.pop("UU")
     for i in range(1, 6):
-        mod_codes[f'U{i}'] = f'Unstable Genome ({i})'
+        mod_codes[f"U{i}"] = f"Unstable Genome ({i})"
 
-    return {'genotype_codes': genotype_codes,
-            'caste_codes': caste_codes,
-            'calling_codes': calling_codes,
-            'mod_codes': mod_codes,
-            'class_bonuses': class_bonuses,
-            'class_skills': class_skills,
-            'class_tiles': class_tiles,
-            'mod_bonuses': MOD_BONUSES,
-            'mutation_variants': MUTATION_VARIANTS,
-            }
+    return {
+        "genotype_codes": genotype_codes,
+        "caste_codes": caste_codes,
+        "calling_codes": calling_codes,
+        "mod_codes": mod_codes,
+        "class_bonuses": class_bonuses,
+        "class_skills": class_skills,
+        "class_tiles": class_tiles,
+        "mod_bonuses": MOD_BONUSES,
+        "mutation_variants": MUTATION_VARIANTS,
+    }

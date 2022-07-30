@@ -5,13 +5,33 @@ from functools import cached_property
 from typing import Tuple, List
 
 from hagadias.character_codes import STAT_NAMES
-from hagadias.constants import BIT_TRANS, ITEM_MOD_PROPS, FACTION_ID_TO_NAME, \
-    CYBERNETICS_HARDCODED_INFIXES, CYBERNETICS_HARDCODED_POSTFIXES, HARDCODED_CHARGE_USE, \
-    CHARGE_USE_REASONS, ACTIVE_PARTS, STAT_DISPLAY_NAMES, BUTCHERABLE_POPTABLES, CHERUBIM_DESC, \
-    MECHANICAL_CHERUBIM_DESC
-from hagadias.helpers import cp437_to_unicode, int_or_none, \
-    strip_oldstyle_qud_colors, strip_newstyle_qud_colors, pos_or_neg, make_list_from_words, \
-    str_or_default, int_or_default, bool_or_default, float_or_none, float_or_default
+from hagadias.constants import (
+    BIT_TRANS,
+    ITEM_MOD_PROPS,
+    FACTION_ID_TO_NAME,
+    CYBERNETICS_HARDCODED_INFIXES,
+    CYBERNETICS_HARDCODED_POSTFIXES,
+    HARDCODED_CHARGE_USE,
+    CHARGE_USE_REASONS,
+    ACTIVE_PARTS,
+    STAT_DISPLAY_NAMES,
+    BUTCHERABLE_POPTABLES,
+    CHERUBIM_DESC,
+    MECHANICAL_CHERUBIM_DESC,
+)
+from hagadias.helpers import (
+    cp437_to_unicode,
+    int_or_none,
+    strip_oldstyle_qud_colors,
+    strip_newstyle_qud_colors,
+    pos_or_neg,
+    make_list_from_words,
+    str_or_default,
+    int_or_default,
+    bool_or_default,
+    float_or_none,
+    float_or_default,
+)
 from hagadias.qudpopulation import QudPopulation
 from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
@@ -26,8 +46,15 @@ from hagadias.svalue import sValue
 ACTIVE_CHAR = 1
 INACTIVE_CHAR = 2
 # make them different from active characters. Usually immobile and have no attributes.
-BEHAVIOR_DESCRIPTION_PARTS = ['LatchesOn', 'SapChargeOnHit', 'TemperatureAdjuster', 'Toolbox',
-                              'CyberneticsBaseItem', 'FollowersGetTeleport', 'IntPropertyChanger']
+BEHAVIOR_DESCRIPTION_PARTS = [
+    "LatchesOn",
+    "SapChargeOnHit",
+    "TemperatureAdjuster",
+    "Toolbox",
+    "CyberneticsBaseItem",
+    "FollowersGetTeleport",
+    "IntPropertyChanger",
+]
 
 
 class QudObjectProps(QudObject):
@@ -46,28 +73,28 @@ class QudObjectProps(QudObject):
         """Helper for retrieving attributes (Strength, etc.)"""
         val = None
         if self.active_or_inactive_character() == ACTIVE_CHAR:
-            if getattr(self, f'stat_{attr}_sValue'):
+            if getattr(self, f"stat_{attr}_sValue"):
                 try:
                     level = int(self.lv)
                 except ValueError:
                     # levels can be very rarely given like "18-29"
-                    level = int(self.lv.split('-')[0])
-                val = str(sValue(getattr(self, f'stat_{attr}_sValue'), level=level))
-            elif getattr(self, f'stat_{attr}_Value'):
-                val = getattr(self, f'stat_{attr}_Value')
+                    level = int(self.lv.split("-")[0])
+                val = str(sValue(getattr(self, f"stat_{attr}_sValue"), level=level))
+            elif getattr(self, f"stat_{attr}_Value"):
+                val = getattr(self, f"stat_{attr}_Value")
         elif self.part_Armor is not None:
-            val = getattr(self, f'part_Armor_{attr}')
-            if val == '0':
+            val = getattr(self, f"part_Armor_{attr}")
+            if val == "0":
                 return None
         return val
 
     def attribute_boost_factor(self, attr: str) -> float | None:
         """Returns the boost factor which is applied to this stat after it's calculated."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
-            boost = int_or_none(getattr(self, f'stat_{attr}_Boost'))
+            boost = int_or_none(getattr(self, f"stat_{attr}_Boost"))
             if boost is not None:
-                if getattr(self, f'stat_{attr}_sValue'):  # Boost only applied if there's an sValue
-                    if self.role == 'Minion' and attr in STAT_NAMES:
+                if getattr(self, f"stat_{attr}_sValue"):  # Boost only applied if there's an sValue
+                    if self.role == "Minion" and attr in STAT_NAMES:
                         boost -= 1
                     if boost > 0:
                         return 0.25 * float(boost) + 1.0
@@ -82,14 +109,14 @@ class QudObjectProps(QudObject):
             boost_factor = self.attribute_boost_factor(attr)
             dice = DiceBag(val_str)
             if boost_factor is None:
-                if mode == 'min':
+                if mode == "min":
                     return int(dice.minimum())
-                return int(dice.maximum()) if mode == 'max' else int(dice.average())
+                return int(dice.maximum()) if mode == "max" else int(dice.average())
             min_val = int(math.ceil(dice.minimum() * boost_factor))
-            if mode == 'min':
+            if mode == "min":
                 return min_val
             max_val = int(math.ceil(dice.maximum() * boost_factor))
-            if mode == 'max':
+            if mode == "max":
                 return max_val
             # the game rounds up on each rolled dice value after applying a Boost. This also
             # modifies the average, so we need to calculate that average outside of the DiceBag.
@@ -98,23 +125,23 @@ class QudObjectProps(QudObject):
 
     def attribute_helper_avg(self, attr: str) -> int | None:
         """Return the average stat value for the given stat."""
-        return self.attribute_helper_min_max_or_avg(attr, 'avg')
+        return self.attribute_helper_min_max_or_avg(attr, "avg")
 
     def attribute_helper_min(self, attr: str) -> int | None:
         """Return the minimum stat value for the given stat."""
-        return self.attribute_helper_min_max_or_avg(attr, 'min')
+        return self.attribute_helper_min_max_or_avg(attr, "min")
 
     def attribute_helper_max(self, attr: str) -> int | None:
         """Return the maximum stat value for the given stat."""
-        return self.attribute_helper_min_max_or_avg(attr, 'max')
+        return self.attribute_helper_min_max_or_avg(attr, "max")
 
-    def attribute_helper_mod(self, attr: str, statmode: str = 'avg') -> int | None:
+    def attribute_helper_mod(self, attr: str, statmode: str = "avg") -> int | None:
         """Return the creature's attribute modifier for the given stat. Optionally, you may
         also specify a statmode ('min', 'max', or 'avg') to determine the modifier based on the
         creature's minimum, maximum, or average stat value. Average is used by default"""
-        if statmode == 'min':
+        if statmode == "min":
             val = self.attribute_helper_min(attr)
-        elif statmode == 'max':
+        elif statmode == "max":
             val = self.attribute_helper_max(attr)
         else:
             val = self.attribute_helper_avg(attr)
@@ -125,41 +152,43 @@ class QudObjectProps(QudObject):
     def resistance(self, element: str) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has.
         Helper function for properties."""
-        val = getattr(self, f'stat_{element}Resistance_Value')
+        val = getattr(self, f"stat_{element}Resistance_Value")
         if self.part_Armor:
             if element == "Electric":
                 element = "Elec"  # short form in armor
-            val = getattr(self, f'part_Armor_{element}')
-        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
-            if element in ['Heat', 'Cold']:
+            val = getattr(self, f"part_Armor_{element}")
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1":
+            if element in ["Heat", "Cold"]:
                 val = 25
-            elif element == 'Electric':
+            elif element == "Electric":
                 val = -50
         if self.mutation:
             for mutation, info in self.mutation.items():
-                if mutation == 'Carapace' and element in ['Heat', 'Cold']:
+                if mutation == "Carapace" and element in ["Heat", "Cold"]:
                     val = 0 if val is None else int(val)
-                    val += int(info['Level']) * 5 + 5
-                if mutation == 'SlogGlands' and element == 'Acid':
+                    val += int(info["Level"]) * 5 + 5
+                if mutation == "SlogGlands" and element == "Acid":
                     val = 100
         return int_or_none(val)
 
-    def projectile_object(self, part_attr: str = '') -> QudObjectProps | str | None:
+    def projectile_object(self, part_attr: str = "") -> QudObjectProps | str | None:
         """Retrieve the projectile object for a MissileWeapon or Arrow.
         If part_attr specified, retrieve the specific part attribute
         value from that projectile object instead.
 
         Doesn't work for bows because their projectile object varies
         depending on the type of arrow loaded into them."""
-        if self.part_MissileWeapon is not None or self.is_specified('part_AmmoArrow'):
-            parts = ['part_BioAmmoLoader_ProjectileObject',
-                     'part_AmmoArrow_ProjectileObject',
-                     'part_MagazineAmmoLoader_ProjectileObject',
-                     'part_EnergyAmmoLoader_ProjectileObject',
-                     'part_LiquidAmmoLoader_ProjectileObject']
+        if self.part_MissileWeapon is not None or self.is_specified("part_AmmoArrow"):
+            parts = [
+                "part_BioAmmoLoader_ProjectileObject",
+                "part_AmmoArrow_ProjectileObject",
+                "part_MagazineAmmoLoader_ProjectileObject",
+                "part_EnergyAmmoLoader_ProjectileObject",
+                "part_LiquidAmmoLoader_ProjectileObject",
+            ]
             for part in parts:
                 attr = getattr(self, part)
-                if attr is not None and attr != '':
+                if attr is not None and attr != "":
                     item = self.qindex[attr]
                     if part_attr:
                         return getattr(item, part_attr, None)
@@ -171,12 +200,15 @@ class QudObjectProps(QudObject):
         """The character type of this object.
         0: NONE 1: ACTIVE_CHARS 2: INACTIVE_CHARS. for ALL_CHARS, do > 0 check.
         TODO: Consider caching this value, as it is used somewhat frequently"""
-        if (self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False") and \
-                self.part_Gas is None and not self.inherits_from('MeleeWeapon') and \
-                not self.inherits_from('NaturalWeapon') and \
-                not self.is_specified('part_MeleeWeapon') and \
-                not self.inherits_from('MissileWeapon') and \
-                not self.is_specified('part_MissileWeapon'):
+        if (
+            (self.part_Physics_Takeable == "false" or self.part_Physics_Takeable == "False")
+            and self.part_Gas is None
+            and not self.inherits_from("MeleeWeapon")
+            and not self.inherits_from("NaturalWeapon")
+            and not self.is_specified("part_MeleeWeapon")
+            and not self.inherits_from("MissileWeapon")
+            and not self.is_specified("part_MissileWeapon")
+        ):
             # This falls under ALL_CHARS
             if self.part_Combat is not None and self.part_Brain is not None:
                 return 1  # ACTIVE_CHARS
@@ -186,11 +218,11 @@ class QudObjectProps(QudObject):
 
     def is_melee_weapon(self) -> bool:
         """True if this object can be considered a melee weapon."""
-        if self.is_specified('part_MeleeWeapon'):
+        if self.is_specified("part_MeleeWeapon"):
             return True
-        if self.inherits_from('MeleeWeapon'):
+        if self.inherits_from("MeleeWeapon"):
             return True
-        if self.inheritingfrom == 'BaseForkHornedHelmet':
+        if self.inheritingfrom == "BaseForkHornedHelmet":
             # special case that should also get melee weapon stat info
             return True
         return False
@@ -209,17 +241,17 @@ class QudObjectProps(QudObject):
     @cached_property
     def acid(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
-        return self.resistance('Acid')
+        return self.resistance("Acid")
 
     @cached_property
     def agility(self) -> str | None:
         """The agility the mutation affects, or the agility of the creature."""
-        return self.attribute_helper('Agility')
+        return self.attribute_helper("Agility")
 
     @cached_property
     def agilitymult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic agility, if specified."""
-        return self.attribute_boost_factor('Agility')
+        return self.attribute_boost_factor("Agility")
 
     @cached_property
     def agilityextrinsic(self) -> int | None:
@@ -227,25 +259,26 @@ class QudObjectProps(QudObject):
         if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.mutation:
                 for mutation, info in self.mutation.items():
-                    if mutation == 'HeightenedAgility':
-                        return (int(info['Level']) - 1) // 2 + 2
+                    if mutation == "HeightenedAgility":
+                        return (int(info["Level"]) - 1) // 2 + 2
 
     @cached_property
     def ammo(self) -> str | None:
         """What type of ammo is used."""
         ammo = None
         if self.part_MagazineAmmoLoader_AmmoPart:
-            ammotypes = {'AmmoSlug': 'lead slug',
-                         'AmmoShotgunShell': 'shotgun shell',
-                         'AmmoGrenade': 'grenade',
-                         'AmmoMissile': 'missile',
-                         'AmmoArrow': 'arrow',
-                         'AmmoDart': 'dart',
-                         }
+            ammotypes = {
+                "AmmoSlug": "lead slug",
+                "AmmoShotgunShell": "shotgun shell",
+                "AmmoGrenade": "grenade",
+                "AmmoMissile": "missile",
+                "AmmoArrow": "arrow",
+                "AmmoDart": "dart",
+            }
             ammo = ammotypes.get(self.part_MagazineAmmoLoader_AmmoPart)
         elif self.part_EnergyAmmoLoader_ChargeUse and int(self.part_EnergyAmmoLoader_ChargeUse) > 0:
-            if self.part_EnergyCellSocket and self.part_EnergyCellSocket_SlotType == 'EnergyCell':
-                ammo = 'energy'
+            if self.part_EnergyCellSocket and self.part_EnergyCellSocket_SlotType == "EnergyCell":
+                ammo = "energy"
             elif self.part_LiquidFueledPowerPlant:
                 ammo = self.part_LiquidFueledPowerPlant_Liquid
         elif self.part_LiquidAmmoLoader:
@@ -259,11 +292,11 @@ class QudObjectProps(QudObject):
         """Damage attributes associated with the projectile.
 
         Example: ["Exsanguination", "Disintegrate"] for ProjectileBloodGradientHandVacuumPulse"""
-        attributes = self.projectile_object('part_Projectile_Attributes')
+        attributes = self.projectile_object("part_Projectile_Attributes")
         if attributes is not None:
             return attributes.split()
         elif self.part_ElectricalDischargeLoader is not None:
-            return 'Electric Shock'.split()
+            return "Electric Shock".split()
 
     @cached_property
     def ammoperaction(self) -> int | None:
@@ -280,7 +313,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def aquatic(self) -> bool | None:
         """If the creature requires to be submerged in water."""
-        if self.inherits_from('Creature'):
+        if self.inherits_from("Creature"):
             if self.part_Brain_Aquatic is not None:
                 return True if self.part_Brain_Aquatic == "true" else False
 
@@ -297,33 +330,35 @@ class QudObjectProps(QudObject):
             try:
                 av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
             except TypeError:
-                print(f'FIXME: "{self.name}" has no AV value (probably shouldn\'t be considered'
-                      + ' an inactive character)?')
+                print(
+                    f'FIXME: "{self.name}" has no AV value (probably shouldn\'t be considered'
+                    + " an inactive character)?"
+                )
                 return None
             applied_body_av = False
             if self.mutation:
                 for mutation, info in self.mutation.items():
                     match mutation:
-                        case 'Carapace':
-                            av += int(info['Level']) // 2 + 3
+                        case "Carapace":
+                            av += int(info["Level"]) // 2 + 3
                             applied_body_av = True
-                        case 'Quills':
-                            av += int(info['Level']) // 3 + 2
+                        case "Quills":
+                            av += int(info["Level"]) // 3 + 2
                             applied_body_av = True
-                        case 'Horns':
-                            av += (int(info['Level']) - 1) // 3 + 1
-                        case 'MultiHorns':
-                            av += (int(info['Level']) + 1) // 4
-                        case 'SlogGlands':
+                        case "Horns":
+                            av += (int(info["Level"]) - 1) // 3 + 1
+                        case "MultiHorns":
+                            av += (int(info["Level"]) + 1) // 4
+                        case "SlogGlands":
                             av += 1
             if self.inventoryobject:
                 # might be wearing armor
                 for name in list(self.inventoryobject.keys()):
-                    if name[0] in '*#@':
+                    if name[0] in "*#@":
                         # special values like '*Junk 1'
                         continue
                     item = self.qindex[name]
-                    if item.av and (not applied_body_av or item.wornon != 'Body'):
+                    if item.av and (not applied_body_av or item.wornon != "Body"):
                         av += int(item.av)
         return int_or_none(av)
 
@@ -332,16 +367,18 @@ class QudObjectProps(QudObject):
         """The bits you can get from disassembling the object.
 
         Example: "0034" for the spiral borer"""
-        if self.part_TinkerItem and (self.part_TinkerItem_CanDisassemble != 'false' or
-                                     self.part_TinkerItem_CanBuild != 'false'):
+        if self.part_TinkerItem and (
+            self.part_TinkerItem_CanDisassemble != "false"
+            or self.part_TinkerItem_CanBuild != "false"
+        ):
             return self.part_TinkerItem_Bits.translate(BIT_TRANS)
 
     @cached_property
     def bleedliquid(self) -> str | None:
         """What liquid something bleeds. Only returns interesting liquids (not blood)"""
-        robotic = self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'
-        if self.is_specified('part_BleedLiquid') or robotic:
-            liquid = 'oil' if robotic else self.part_BleedLiquid.split('-')[0]
+        robotic = self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1"
+        if self.is_specified("part_BleedLiquid") or robotic:
+            liquid = "oil" if robotic else self.part_BleedLiquid.split("-")[0]
             if liquid != "blood":  # it's interesting if they don't bleed blood
                 return liquid
 
@@ -355,38 +392,39 @@ class QudObjectProps(QudObject):
         """What a corpse item can be butchered into."""
         butcher_obj = self.part_Butcherable_OnSuccess
         if butcher_obj:
-            if butcher_obj[:1] == '@':
+            if butcher_obj[:1] == "@":
                 if butcher_obj[1:] not in BUTCHERABLE_POPTABLES:
-                    print(f'FIXME: Butcherable poptable {butcher_obj} not recognized.')
+                    print(f"FIXME: Butcherable poptable {butcher_obj} not recognized.")
                 else:
                     outcomes = []
                     for butcherable, info in BUTCHERABLE_POPTABLES[butcher_obj[1:]].items():
-                        outcomes.append({**{'Object': butcherable}, **info})
+                        outcomes.append({**{"Object": butcherable}, **info})
                     return outcomes
-            return [{'Object': butcher_obj, 'Number': 1, 'Weight': 100}]
+            return [{"Object": butcher_obj, "Number": 1, "Weight": 100}]
 
     @cached_property
     def canbuild(self) -> bool | None:
         """Whether or not the player can tinker up this item."""
-        if self.part_TinkerItem_CanBuild == 'true':
+        if self.part_TinkerItem_CanBuild == "true":
             return True
-        elif self.part_TinkerItem_CanDisassemble == 'true':
+        elif self.part_TinkerItem_CanDisassemble == "true":
             return False  # it's interesting if an item can't be built but can be disassembled
 
     @cached_property
     def candisassemble(self) -> bool | None:
         """Whether or not the player can disassemble this item."""
-        if self.part_TinkerItem_CanDisassemble == 'true':
+        if self.part_TinkerItem_CanDisassemble == "true":
             return True
-        elif self.part_TinkerItem_CanBuild == 'true':
+        elif self.part_TinkerItem_CanBuild == "true":
             return False  # it's interesting if an item can't be disassembled but can be built
 
     @cached_property
     def capacitorcharge(self) -> str | None:
         """If this object has a capacitor, the starting charge range of that capacitor."""
         if self.part_Capacitor is not None:
-            return str_or_default(self.part_Capacitor_StartCharge,
-                                  str_or_default(self.part_Capacitor_Charge, '0'))
+            return str_or_default(
+                self.part_Capacitor_StartCharge, str_or_default(self.part_Capacitor_Charge, "0")
+            )
 
     @cached_property
     def capacitormax(self) -> int | None:
@@ -426,16 +464,18 @@ class QudObjectProps(QudObject):
     def chargeused(self) -> int | None:
         """How much charge is used for various item functions."""
         charge = 0
-        for part in self.all_attributes['part']:
-            if part == 'ProgrammableRecoiler':
+        for part in self.all_attributes["part"]:
+            if part == "ProgrammableRecoiler":
                 continue  # parts ignored or handled elsewhere
-            if part == 'Teleprojector':
-                return int(self.part_Teleprojector_InitialChargeUse) + \
-                    int(self.part_Teleprojector_MaintainChargeUse)
-            if part == 'ForceProjector':
-                return int_or_default(self.part_ForceProjector_ChargePerProjection, 90) + \
-                    int_or_default(self.part_ForceProjector_BaseOperatingCharge, 1)
-            chg = getattr(self, f'part_{part}_ChargeUse')
+            if part == "Teleprojector":
+                return int(self.part_Teleprojector_InitialChargeUse) + int(
+                    self.part_Teleprojector_MaintainChargeUse
+                )
+            if part == "ForceProjector":
+                return int_or_default(
+                    self.part_ForceProjector_ChargePerProjection, 90
+                ) + int_or_default(self.part_ForceProjector_BaseOperatingCharge, 1)
+            chg = getattr(self, f"part_{part}_ChargeUse")
             if chg is not None and int(chg) > 0:
                 charge += int(chg)
         if self.name in HARDCODED_CHARGE_USE:
@@ -448,63 +488,69 @@ class QudObjectProps(QudObject):
         """The features or functions that the charge is used for."""
         funcs = []
         detailedfuncs = []
-        for part in self.all_attributes['part']:
-            if part == 'ProgrammableRecoiler':
+        for part in self.all_attributes["part"]:
+            if part == "ProgrammableRecoiler":
                 continue  # parts ignored or handled elsewhere
-            if part == 'Teleprojector':
-                return f'Initiate Domination [{self.part_Teleprojector_InitialChargeUse}], ' + \
-                    f'Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]'
-            if part == 'ForceProjector':
-                return 'Basic Operation [' + \
-                    str_or_default(self.part_ForceProjector_BaseOperatingCharge, '1') + '], ' + \
-                    'Per-Tile Projection [' + \
-                    str_or_default(self.part_ForceProjector_ChargePerProjection, '90') + ']'
-            chg = getattr(self, f'part_{part}_ChargeUse')
+            if part == "Teleprojector":
+                return (
+                    f"Initiate Domination [{self.part_Teleprojector_InitialChargeUse}], "
+                    + f"Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]"
+                )
+            if part == "ForceProjector":
+                return (
+                    "Basic Operation ["
+                    + str_or_default(self.part_ForceProjector_BaseOperatingCharge, "1")
+                    + "], "
+                    + "Per-Tile Projection ["
+                    + str_or_default(self.part_ForceProjector_ChargePerProjection, "90")
+                    + "]"
+                )
+            chg = getattr(self, f"part_{part}_ChargeUse")
             if chg is not None and int(chg) > 0:
                 match part:
-                    case 'StunOnHit':
-                        func = 'Stun effect'
-                    case 'EnergyAmmoLoader' | 'Gaslight' | 'ElectricalDischargeLoader':
-                        func = 'Weapon Power'
-                    case 'VibroWeapon':
-                        func = 'Adaptive Penetration'
-                    case 'MechanicalWings':
-                        func = 'Flight'
-                    case 'RocketSkates':
-                        func = 'Power Skate'
-                    case 'GeomagneticDisc':
-                        func = 'Throw Effect'
-                    case 'Teleporter':
-                        func = 'Teleportation'
-                    case 'EquipStatBoost':
-                        func = 'Stat Boost'
-                    case 'PartsGas':
-                        func = 'Gas Dispersion'
-                    case 'ReduceCooldowns':
-                        func = 'Cooldown Reduction'
-                    case 'RealityStabilization':
-                        func = 'Reality Stabilization'
-                    case 'LatchesOn':
-                        func = 'Latch Effect'
-                    case 'Toolbox':
-                        func = 'Tinker Bonus'
-                    case 'ConversationScript':
-                        func = 'Audio Processing'
+                    case "StunOnHit":
+                        func = "Stun effect"
+                    case "EnergyAmmoLoader" | "Gaslight" | "ElectricalDischargeLoader":
+                        func = "Weapon Power"
+                    case "VibroWeapon":
+                        func = "Adaptive Penetration"
+                    case "MechanicalWings":
+                        func = "Flight"
+                    case "RocketSkates":
+                        func = "Power Skate"
+                    case "GeomagneticDisc":
+                        func = "Throw Effect"
+                    case "Teleporter":
+                        func = "Teleportation"
+                    case "EquipStatBoost":
+                        func = "Stat Boost"
+                    case "PartsGas":
+                        func = "Gas Dispersion"
+                    case "ReduceCooldowns":
+                        func = "Cooldown Reduction"
+                    case "RealityStabilization":
+                        func = "Reality Stabilization"
+                    case "LatchesOn":
+                        func = "Latch Effect"
+                    case "Toolbox":
+                        func = "Tinker Bonus"
+                    case "ConversationScript":
+                        func = "Audio Processing"
                     case _:
-                        if getattr(self, f'part_{part}_NameForStatus') is not None:
-                            func = getattr(self, f'part_{part}_NameForStatus')
-                        elif part == 'Chair':  # handle chairs without a NameForStatus
-                            func = 'Chair Effect'
+                        if getattr(self, f"part_{part}_NameForStatus") is not None:
+                            func = getattr(self, f"part_{part}_NameForStatus")
+                        elif part == "Chair":  # handle chairs without a NameForStatus
+                            func = "Chair Effect"
                         else:
                             func = part  # default to part name if no other match
                 if func is not None:
                     funcs.append(func)
-                    detailedfuncs.append(func + ' [' + chg + ']')
+                    detailedfuncs.append(func + " [" + chg + "]")
         if self.name in CHARGE_USE_REASONS:
             func = CHARGE_USE_REASONS[self.name]
             funcs.append(func)
             if self.name in HARDCODED_CHARGE_USE:
-                detailedfuncs.append(f'{func} [{HARDCODED_CHARGE_USE[self.name]}]')
+                detailedfuncs.append(f"{func} [{HARDCODED_CHARGE_USE[self.name]}]")
             else:
                 detailedfuncs.append(func)
         if len(funcs) == 0:
@@ -512,7 +558,7 @@ class QudObjectProps(QudObject):
         elif len(funcs) == 1:
             return funcs[0]  # if only one function, return the simple name
         else:
-            return ', '.join(detailedfuncs)  # if multiple, return names with charge amount appended
+            return ", ".join(detailedfuncs)  # if multiple, return names with charge amount appended
 
     @cached_property
     def chargeconsumebroadcast(self) -> int | None:
@@ -525,21 +571,21 @@ class QudObjectProps(QudObject):
     def chargeconsumeelectrical(self) -> int | None:
         """If this object consumes charge from electric grids, the max amount of charge
         it can potentially consume per turn."""
-        if self.part_ElectricalPowerTransmission_IsConsumer == 'true':
+        if self.part_ElectricalPowerTransmission_IsConsumer == "true":
             return int_or_default(self.part_ElectricalPowerTransmission_ChargeRate, 500)
 
     @cached_property
     def chargeconsumehydraulic(self) -> int | None:
         """If this object consumes charge from hydraulic grids, the max amount of charge
         it can potentially consume per turn."""
-        if self.part_HydraulicPowerTransmission_IsConsumer == 'true':
+        if self.part_HydraulicPowerTransmission_IsConsumer == "true":
             return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
 
     @cached_property
     def chargeconsumemechanical(self) -> int | None:
         """If this object consumes mechanical power, the max amount of charge
         it can potentially consume per turn."""
-        if self.part_MechanicalPowerTransmission_IsConsumer == 'true':
+        if self.part_MechanicalPowerTransmission_IsConsumer == "true":
             return int_or_default(self.part_MechanicalPowerTransmission_ChargeRate, 100)
 
     @cached_property
@@ -551,19 +597,19 @@ class QudObjectProps(QudObject):
     @cached_property
     def chargeproduceelectric(self) -> int | None:
         """If this object produces electric power, the amount of charge it produces per turn."""
-        if self.part_ElectricalPowerTransmission_IsProducer == 'true':
+        if self.part_ElectricalPowerTransmission_IsProducer == "true":
             return int_or_default(self.part_ElectricalPowerTransmission_ChargeRate, 500)
 
     @cached_property
     def chargeproducehydraulic(self) -> int | None:
         """If this object produces hydraulic power, the amount of charge it produces per turn."""
-        if self.part_HydraulicPowerTransmission_IsProducer == 'true':
+        if self.part_HydraulicPowerTransmission_IsProducer == "true":
             return int_or_default(self.part_HydraulicPowerTransmission_ChargeRate, 2000)
 
     @cached_property
     def chargeproducemechanical(self) -> int | None:
         """If this object produces mechanical power, the amount of charge it produces per turn."""
-        if self.part_MechanicalPowerTransmission_IsProducer == 'true':
+        if self.part_MechanicalPowerTransmission_IsProducer == "true":
             return int_or_default(self.part_MechanicalPowerTransmission_ChargeRate, 100)
 
     @cached_property
@@ -575,7 +621,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def cold(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
-        return self.resistance('Cold')
+        return self.resistance("Cold")
 
     @cached_property
     def colorstr(self) -> str | None:
@@ -588,7 +634,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def commerce(self) -> float | None:
         """The value of the object."""
-        if self.inherits_from('Item') or self.inherits_from('BaseThrownWeapon'):
+        if self.inherits_from("Item") or self.inherits_from("BaseThrownWeapon"):
             value = self.part_Commerce_Value
             if value is not None:
                 return float(value)
@@ -602,18 +648,18 @@ class QudObjectProps(QudObject):
             val = int(self.part_Examiner_Complexity)
         if self.part_AddMod_Mods is not None:
             modprops = ITEM_MOD_PROPS
-            for mod in self.part_AddMod_Mods.split(','):
+            for mod in self.part_AddMod_Mods.split(","):
                 if mod in modprops:
-                    if (modprops[mod]['ifcomplex'] is True) and (val <= 0):
+                    if (modprops[mod]["ifcomplex"] is True) and (val <= 0):
                         continue  # no change because the item isn't already complex
-                    val += int(modprops[mod]['complexity'])
+                    val += int(modprops[mod]["complexity"])
         for key in self.part.keys():
-            if key.startswith('Mod'):
+            if key.startswith("Mod"):
                 modprops = ITEM_MOD_PROPS
                 if key in modprops:
-                    if (modprops[key]['ifcomplex'] is True) and (val <= 0):
+                    if (modprops[key]["ifcomplex"] is True) and (val <= 0):
                         continue  # ditto
-                    val += int(modprops[key]['complexity'])
+                    val += int(modprops[key]["complexity"])
         if val > 0 or self.canbuild:
             return val
 
@@ -622,21 +668,27 @@ class QudObjectProps(QudObject):
         """The possible cooking effects of an item."""
         ingred_type = self.part_PreparedCookingIngredient_type
         if ingred_type is not None:
-            return ingred_type.split(',')
+            return ingred_type.split(",")
 
     @cached_property
     def corpse(self) -> str | None:
         """What corpse a character drops."""
-        if self.part_Corpse_CorpseBlueprint is not None and int(self.part_Corpse_CorpseChance) > 0 \
-                and (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
+        if (
+            self.part_Corpse_CorpseBlueprint is not None
+            and int(self.part_Corpse_CorpseChance) > 0
+            and (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != "1")
+        ):
             return self.part_Corpse_CorpseBlueprint
 
     @cached_property
     def corpsechance(self) -> int | None:
         """The chance of a corpse dropping, if corpsechance is >0"""
         chance = self.part_Corpse_CorpseChance
-        if chance is not None and int(chance) > 0 and \
-                (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != '1'):
+        if (
+            chance is not None
+            and int(chance) > 0
+            and (self.part_Roboticized is None or self.part_Roboticized_ChanceOneIn != "1")
+        ):
             return int(chance)
 
     @cached_property
@@ -654,20 +706,20 @@ class QudObjectProps(QudObject):
         if self.part_Gaslight:
             val = self.part_Gaslight_ChargedDamage
         if self.part_ThrownWeapon is not None:
-            if self.is_specified('part_GeomagneticDisc'):
+            if self.is_specified("part_GeomagneticDisc"):
                 val = self.part_GeomagneticDisc_Damage
             else:
                 val = self.part_ThrownWeapon_Damage
                 if val is None:
                     val = 1  # default damage for ThrownWeapon
-        projectiledamage = self.projectile_object('part_Projectile_BaseDamage')
+        projectiledamage = self.projectile_object("part_Projectile_BaseDamage")
         if projectiledamage:
             val = projectiledamage
         if self.part_ElectricalDischargeLoader is not None:
             chargefactor = int_or_default(self.part_ElectricalDischargeLoader_ChargeFactor, 15)
             chargebasis = int_or_default(self.part_ElectricalDischargeLoader_ChargeUse, 300)
             dicecount = (chargefactor * chargebasis) // 1000
-            val = f'{dicecount}d4'
+            val = f"{dicecount}d4"
         return val
 
     @cached_property
@@ -686,20 +738,24 @@ class QudObjectProps(QudObject):
 
         # Handle empty descriptions first
         if desc_txt is None or len(desc_txt) < 1:
-            if self.name[-7:] == ' Cherub':
-                is_mechanical = self.name[:11] == 'Mechanical '
+            if self.name[-7:] == " Cherub":
+                is_mechanical = self.name[:11] == "Mechanical "
                 txt = MECHANICAL_CHERUBIM_DESC if is_mechanical else CHERUBIM_DESC
-                skintype = str_or_default(self.xtag_TextFragments_Skin, 'skin')
-                creaturetype = str_or_default(self.tag_AlternateCreatureType_Value,
-                                              self.displayname.split()[1 if is_mechanical else 0])
-                features = self.xtag_TextFragments_PoeticFeatures.split(',')
+                skintype = str_or_default(self.xtag_TextFragments_Skin, "skin")
+                creaturetype = str_or_default(
+                    self.tag_AlternateCreatureType_Value,
+                    self.displayname.split()[1 if is_mechanical else 0],
+                )
+                features = self.xtag_TextFragments_PoeticFeatures.split(",")
                 if is_mechanical:
-                    features = '{}, and {}'.format(', '.join(features[:-1]),  features[-1])
+                    features = "{}, and {}".format(", ".join(features[:-1]), features[-1])
                 else:
-                    features = 'the {}'.format(', the '.join(features))
-                return txt.replace('*skin*', skintype) \
-                          .replace('*creatureType*', creaturetype) \
-                          .replace('*features*', features)
+                    features = "the {}".format(", the ".join(features))
+                return (
+                    txt.replace("*skin*", skintype)
+                    .replace("*creatureType*", creaturetype)
+                    .replace("*features*", features)
+                )
             else:
                 # Should be rare because most things without a descrip inherit 'A hideous specimen.'
                 return None
@@ -716,280 +772,324 @@ class QudObjectProps(QudObject):
             is_item = True
             # reputation
             if self.part_AddsRep is not None:
-                factions = self.part_AddsRep_Faction.split(',')
+                factions = self.part_AddsRep_Faction.split(",")
                 rep_value = self.part_AddsRep_Value
                 for faction in factions:
                     amt = rep_value
-                    if ':' in faction:
-                        vals = faction.split(':')
+                    if ":" in faction:
+                        vals = faction.split(":")
                         amt = vals[1]
                         faction = vals[0]
-                    if amt[0] not in ['+', '-']:
-                        amt = f'+{amt}'
-                    if faction == '*allvisiblefactions':
-                        txt = f'{amt} reputation with every faction'
+                    if amt[0] not in ["+", "-"]:
+                        amt = f"+{amt}"
+                    if faction == "*allvisiblefactions":
+                        txt = f"{amt} reputation with every faction"
                     else:
                         if faction in FACTION_ID_TO_NAME:
                             faction = FACTION_ID_TO_NAME[faction]
-                        txt = f'{amt} reputation with {faction}'
-                    desc_extra.append('{{rules|' + txt + '}}')
+                        txt = f"{amt} reputation with {faction}"
+                    desc_extra.append("{{rules|" + txt + "}}")
             # missile weapon rules
             if self.part_MissileWeapon is not None:
-                skill = str_or_default(self.part_MissileWeapon_Skill, 'Rifle')
-                if skill == 'Rifle':
-                    skill = 'Bows & Rifles'
-                elif skill == 'HeavyWeapons':
-                    skill = 'Heavy Weapon'
+                skill = str_or_default(self.part_MissileWeapon_Skill, "Rifle")
+                if skill == "Rifle":
+                    skill = "Bows & Rifles"
+                elif skill == "HeavyWeapons":
+                    skill = "Heavy Weapon"
                 accuracy = int_or_default(self.part_MissileWeapon_WeaponAccuracy, 0)
-                accuracy_str = 'Very Low'
+                accuracy_str = "Very Low"
                 if accuracy <= 0:
-                    accuracy_str = 'Very High'
+                    accuracy_str = "Very High"
                 elif accuracy < 5:
-                    accuracy_str = 'High'
+                    accuracy_str = "High"
                 elif accuracy < 10:
-                    accuracy_str = 'Medium'
+                    accuracy_str = "Medium"
                 elif accuracy < 25:
-                    accuracy_str = 'Low'
+                    accuracy_str = "Low"
                 ammoper = int_or_default(self.part_MissileWeapon_AmmoPerAction, 1)
                 shotsper = int_or_default(self.part_MissileWeapon_ShotsPerAction, 1)
                 showshots = bool_or_default(self.part_MissileWeapon_bShowShotsPerAction, True)
                 nowildfire = bool_or_default(self.part_MissileWeapon_NoWildfire, False)
                 penstat = self.part_MissileWeapon_ProjectilePenetrationStat
-                txt = '{{rules|'
-                txt += f'Weapon Class: {skill}'
-                txt += f'\nAccuracy: {accuracy_str}'
+                txt = "{{rules|"
+                txt += f"Weapon Class: {skill}"
+                txt += f"\nAccuracy: {accuracy_str}"
                 if ammoper > 1:
-                    txt += f'\nMultiple ammo used per shot: {ammoper}'
+                    txt += f"\nMultiple ammo used per shot: {ammoper}"
                 if showshots and shotsper > 1:
-                    txt += f'\nMultiple projectiles per shot: {shotsper}'
+                    txt += f"\nMultiple projectiles per shot: {shotsper}"
                 if nowildfire:
-                    txt += '\nSpray fire: This item can be fired while adjacent to multiple ' \
-                           + 'enemies without risk of the shot going wild.'
-                if skill == 'Heavy Weapon':
-                    txt += '\n-25 move speed'
+                    txt += (
+                        "\nSpray fire: This item can be fired while adjacent to multiple "
+                        + "enemies without risk of the shot going wild."
+                    )
+                if skill == "Heavy Weapon":
+                    txt += "\n-25 move speed"
                 if penstat:
-                    txt += '\nProjectiles fired with this weapon receive bonus penetration ' \
-                           + f'based on the wielder\'s {penstat}.'
-                txt += '}}'
+                    txt += (
+                        "\nProjectiles fired with this weapon receive bonus penetration "
+                        + f"based on the wielder's {penstat}."
+                    )
+                txt += "}}"
                 desc_extra.append(txt)
             # resists
             resists = []
             # attributes [positiveColor, negativeColor, isResistance]
-            attrs = {'heat': ['R', 'R', True],
-                     'cold': ['C', 'C', True],
-                     'electrical': ['W', 'W', True],
-                     'acid': ['G', 'G', True],
-                     'willpower': ['C', 'R', False],
-                     'ego': ['C', 'R', False],
-                     'agility': ['C', 'R', False],
-                     'toughness': ['C', 'R', False],
-                     'strength': ['C', 'R', False],
-                     'intelligence': ['C', 'R', False],
-                     'quickness': ['C', 'R', False],
-                     'movespeedbonus': ['C', 'R', False]}
+            attrs = {
+                "heat": ["R", "R", True],
+                "cold": ["C", "C", True],
+                "electrical": ["W", "W", True],
+                "acid": ["G", "G", True],
+                "willpower": ["C", "R", False],
+                "ego": ["C", "R", False],
+                "agility": ["C", "R", False],
+                "toughness": ["C", "R", False],
+                "strength": ["C", "R", False],
+                "intelligence": ["C", "R", False],
+                "quickness": ["C", "R", False],
+                "movespeedbonus": ["C", "R", False],
+            }
             for attr in attrs:
-                resist = getattr(self, f'{attr}')
+                resist = getattr(self, f"{attr}")
                 if resist:
-                    if self.name in ['Stopsvaalinn', 'Ruin of House Isner'] and attr == 'ego':
+                    if self.name in ["Stopsvaalinn", "Ruin of House Isner"] and attr == "ego":
                         continue  # These items' ego bonus is already displayed in their rule text
-                    if self.name == 'Cyclopean Prism':  # special handling for amaranthine prism
-                        if attr == 'ego':
-                            resist = '+1'
-                        elif attr == 'willpower':
-                            resist = '-1'
-                    if str(resist)[0] not in ['+', '-']:
-                        resist_str = f'{pos_or_neg(resist)}{resist}'
+                    if self.name == "Cyclopean Prism":  # special handling for amaranthine prism
+                        if attr == "ego":
+                            resist = "+1"
+                        elif attr == "willpower":
+                            resist = "-1"
+                    if str(resist)[0] not in ["+", "-"]:
+                        resist_str = f"{pos_or_neg(resist)}{resist}"
                     else:
                         resist_str = str(resist)
-                    attr_name = attr if attr != 'movespeedbonus' else 'move speed'
-                    attr_color = attrs[attr][0] if resist_str[0] != '-' else attrs[attr][1]
-                    resist_str = f"{resist_str} " + attr_name.title() + \
-                                 (" Resistance" if attrs[attr][2] is True else "")
+                    attr_name = attr if attr != "movespeedbonus" else "move speed"
+                    attr_color = attrs[attr][0] if resist_str[0] != "-" else attrs[attr][1]
+                    resist_str = (
+                        f"{resist_str} "
+                        + attr_name.title()
+                        + (" Resistance" if attrs[attr][2] is True else "")
+                    )
                     resists.append(f"{{{{{attr_color}|{resist_str}}}}}")
             if len(resists) > 0:
-                desc_extra.append('\n'.join(resists))
+                desc_extra.append("\n".join(resists))
             # EquipStatBoost attributes
             if self.part_EquipStatBoost_Boosts is not None:
-                for boostinfo in self.part_EquipStatBoost_Boosts.split(';'):
-                    stat, amt = boostinfo.split(':')
+                for boostinfo in self.part_EquipStatBoost_Boosts.split(";"):
+                    stat, amt = boostinfo.split(":")
                     stat = stat if stat not in STAT_DISPLAY_NAMES else STAT_DISPLAY_NAMES[stat]
                     amt = int_or_none(amt)
                     if amt is not None:
-                        symbol = '+' if amt > 0 else ''
-                        desc_extra.append('{{' + f'rules|{symbol}{amt} {stat}' + '}}')
+                        symbol = "+" if amt > 0 else ""
+                        desc_extra.append("{{" + f"rules|{symbol}{amt} {stat}" + "}}")
             # carrybonus
             carry_bonus = self.carrybonus
             if carry_bonus:
                 if carry_bonus > 0:
-                    carry_bonus = f'+{carry_bonus}'
-                desc_extra.append('{{rules|' + carry_bonus + '% carry capacity}}')
+                    carry_bonus = f"+{carry_bonus}"
+                desc_extra.append("{{rules|" + carry_bonus + "% carry capacity}}")
             # armor rules
             if self.part_Armor is not None:
                 # most armor bonuses are handled in attr block above, but MA needs special
                 # handling, because we want to show its bonus in the description only for Armor
                 if self.part_Armor_MA is not None:
-                    desc_extra.append('{{rules|+' + self.part_Armor_MA + ' MA}}')
+                    desc_extra.append("{{rules|+" + self.part_Armor_MA + " MA}}")
                 if self.part_Armor_ToHit is not None:
                     tohit = int(self.part_Armor_ToHit)
                     if tohit > 0:
-                        desc_extra.append('{{rules|+' + tohit + ' To-Hit}}')
+                        desc_extra.append("{{rules|+" + tohit + " To-Hit}}")
                     else:
-                        desc_extra.append(f'{{{{R|{tohit} To-Hit}}}}')
+                        desc_extra.append(f"{{{{R|{tohit} To-Hit}}}}")
             # melee weapon rules
-            if self.is_melee_weapon() and self.tag_ShowMeleeWeaponStats is not None \
-                    and not self.inherits_from('Projectile'):
+            if (
+                self.is_melee_weapon()
+                and self.tag_ShowMeleeWeaponStats is not None
+                and not self.inherits_from("Projectile")
+            ):
                 # technically these stats are also shown for projectiles in game, but it seems
                 # prudent to carve out an exception for wiki - feels misleading to show "Weapon
                 # Class: Cudgel (dazes on critical hits)" in every wiki arrow description...
-                weapon_stat = str_or_default(self.part_MeleeWeapon_Stat, 'Strength')
+                weapon_stat = str_or_default(self.part_MeleeWeapon_Stat, "Strength")
                 rule_lines = []
                 # Ego bonus (part_MeleeWeapon_Ego) is already handled in the attr section above
                 tohit = self.part_MeleeWeapon_HitBonus
                 if tohit is not None and int(tohit) > 0:
-                    rule_lines.append(f'+{tohit} To-Hit')
+                    rule_lines.append(f"+{tohit} To-Hit")
                 maxpv = self.maxpv
                 pv = self.pv
                 if maxpv is not None and pv is not None and maxpv > pv:
                     if maxpv == 999:
-                        rule_lines.append(f'{weapon_stat} Bonus Cap: no limit')
+                        rule_lines.append(f"{weapon_stat} Bonus Cap: no limit")
                     else:
-                        rule_lines.append(f'{weapon_stat} Bonus Cap: {maxpv - pv}')
-                skill = str_or_default(self.part_MeleeWeapon_Skill, 'Cudgel')
-                if skill == 'Cudgel':
-                    skill = 'Cudgel (dazes on critical hit)'
-                elif skill == 'LongBlades':
-                    skill = 'Long Blades (increased penetration on critical hit)'
-                elif skill == 'ShortBlades':
-                    skill = 'Short Blades (causes bleeding on critical hit)'
-                elif skill == 'Axe':
-                    skill = 'Axe (cleaves armor on critical hit)'
+                        rule_lines.append(f"{weapon_stat} Bonus Cap: {maxpv - pv}")
+                skill = str_or_default(self.part_MeleeWeapon_Skill, "Cudgel")
+                if skill == "Cudgel":
+                    skill = "Cudgel (dazes on critical hit)"
+                elif skill == "LongBlades":
+                    skill = "Long Blades (increased penetration on critical hit)"
+                elif skill == "ShortBlades":
+                    skill = "Short Blades (causes bleeding on critical hit)"
+                elif skill == "Axe":
+                    skill = "Axe (cleaves armor on critical hit)"
                 else:
                     skill = None
                 if skill is not None:
-                    rule_lines.append(f'Weapon Class: {skill}')
+                    rule_lines.append(f"Weapon Class: {skill}")
                 if self.part_ElementalDamage is not None:
                     dmg = self.part_ElementalDamage_Damage
-                    dmg = dmg if dmg is not None else '1d4'
+                    dmg = dmg if dmg is not None else "1d4"
                     typ = self.part_ElementalDamage_Attributes
-                    typ = typ if typ is not None else 'Heat'
+                    typ = typ if typ is not None else "Heat"
                     chc = self.part_ElementalDamage_Chance
                     chc = int(chc) if chc is not None else 100
-                    txt = f'Causes {dmg} {typ.lower()} damage on hit'
-                    txt += '.' if chc >= 100 else f' {chc}% of the time.'
+                    txt = f"Causes {dmg} {typ.lower()} damage on hit"
+                    txt += "." if chc >= 100 else f" {chc}% of the time."
                     rule_lines.append(txt)
                 if len(rule_lines) > 0:
-                    desc_extra.append('{{rules|' + '\n'.join(rule_lines) + '}}')
+                    desc_extra.append("{{rules|" + "\n".join(rule_lines) + "}}")
             # HornsProperties
             if self.part_HornsProperties is not None:
                 level = int_or_default(self.part_HornsProperties_HornLevel, 1)
-                damage = '1'
+                damage = "1"
                 if level > 3:
-                    damage += 'd2'
+                    damage += "d2"
                     if level > 6:
-                        damage += f'+{(level - 4) // 3}'
+                        damage += f"+{(level - 4) // 3}"
                 savetarget = 20 + 3 * level
-                desc_extra.append('{{rules|On penetration, this weapon causes bleeding: '
-                                  + f'{damage} damage per round, save difficulty {savetarget}'
-                                  + '}}')
+                desc_extra.append(
+                    "{{rules|On penetration, this weapon causes bleeding: "
+                    + f"{damage} damage per round, save difficulty {savetarget}"
+                    + "}}"
+                )
             # light-related effects
             if self.part_ModGlassArmor_Tier is not None:
-                desc_extra.append('{{rules|' + f'Reflects {self.part_ModGlassArmor_Tier}% damage '
-                                  + 'back at your attackers, rounded up.}}')
+                desc_extra.append(
+                    "{{rules|"
+                    + f"Reflects {self.part_ModGlassArmor_Tier}% damage "
+                    + "back at your attackers, rounded up.}}"
+                )
             if self.part_FlareCompensation is not None:
                 shouldshow = self.part_FlareCompensation_ShowInShortDescription
-                if shouldshow is None or shouldshow.lower() == 'true':
-                    desc_extra.append('{{rules|Offers protection against visual flash effects.}}')
+                if shouldshow is None or shouldshow.lower() == "true":
+                    desc_extra.append("{{rules|Offers protection against visual flash effects.}}")
             if self.part_RefractLight is not None:
                 shouldshow = self.part_RefractLight_ShowInShortDescription
-                if shouldshow is not None and shouldshow.lower() == 'true':
+                if shouldshow is not None and shouldshow.lower() == "true":
                     chance = int_or_default(self.part_RefractLight_Chance)
                     variance = self.part_RefractLight_RetroVariance
-                    txt = f'Has a {chance}% chance to refract light-based attacks, sending them '
+                    txt = f"Has a {chance}% chance to refract light-based attacks, sending them "
                     if variance is None:
-                        txt += 'in a random direction.'
+                        txt += "in a random direction."
                     else:
                         dice = DiceBag(variance)
                         dmin = dice.minimum()
                         dmax = dice.maximum()
                         if dmin == 0 and dmax == 0:
-                            txt += 'back the way they came.'
+                            txt += "back the way they came."
                         else:
-                            txt += f'back the way they came, plus or minus up to {dmax} degrees.'
-                    desc_extra.append('{{rules|' + txt + '}}')
+                            txt += f"back the way they came, plus or minus up to {dmax} degrees."
+                    desc_extra.append("{{rules|" + txt + "}}")
             # shields
             if self.part_Shield is not None:
-                desc_extra.append('{{rules|Shields only grant their AV when you ' +
-                                  'successfully block an attack.}}')
+                desc_extra.append(
+                    "{{rules|Shields only grant their AV when you "
+                    + "successfully block an attack.}}"
+                )
             # compute nodes
             if self.part_ComputeNode is not None:
-                if self.part_ComputeNode_WorksOnEquipper == 'true':
+                if self.part_ComputeNode_WorksOnEquipper == "true":
                     power = self.part_ComputeNode_Power
-                    power = '20' if power is None else power
-                    desc_extra.append('{{rules|When equipped and powered, provides ' + power +
-                                      ' units of compute power to the local lattice.}}')
+                    power = "20" if power is None else power
+                    desc_extra.append(
+                        "{{rules|When equipped and powered, provides "
+                        + power
+                        + " units of compute power to the local lattice.}}"
+                    )
             # active light source
             if self.part_ActiveLightSource is not None:
-                if self.part_ActiveLightSource_WorksOnEquipper == 'true':
-                    if self.part_ActiveLightSource_ShowInShortDescription is None or \
-                            self.part_ActiveLightSource_ShowInShortDescription == 'true':
+                if self.part_ActiveLightSource_WorksOnEquipper == "true":
+                    if (
+                        self.part_ActiveLightSource_ShowInShortDescription is None
+                        or self.part_ActiveLightSource_ShowInShortDescription == "true"
+                    ):
                         radius = self.part_ActiveLightSource_Radius
-                        radius = '5' if radius is None else radius
-                        desc_extra.append('{{rules|When equipped, provides light in radius ' +
-                                          radius + '.}}')
+                        radius = "5" if radius is None else radius
+                        desc_extra.append(
+                            "{{rules|When equipped, provides light in radius " + radius + ".}}"
+                        )
             # add item-specific rules text, if applicable
-            if self.name == 'Rocket Skates':
-                rule1 = 'Replaces Sprint with Power Skate (unlimited duration).'
-                rule2 = 'Emits plumes of fire when the wearer moves while power skating.'
-                desc_extra.append('{{rules|' + rule1 + '}}')
-                desc_extra.append('{{rules|' + rule2 + '}}')
-            elif self.name == 'Banner of the Holy Rhombus':
-                desc_extra.append('{{rules|Bestows the {{r|war trance}} effect to the' +
-                                  ' Putus Templar who can see this item.')
+            if self.name == "Rocket Skates":
+                rule1 = "Replaces Sprint with Power Skate (unlimited duration)."
+                rule2 = "Emits plumes of fire when the wearer moves while power skating."
+                desc_extra.append("{{rules|" + rule1 + "}}")
+                desc_extra.append("{{rules|" + rule2 + "}}")
+            elif self.name == "Banner of the Holy Rhombus":
+                desc_extra.append(
+                    "{{rules|Bestows the {{r|war trance}} effect to the"
+                    + " Putus Templar who can see this item."
+                )
             # add rules text for save modifier, if applicable
             if self.part_SaveModifier is not None:
-                if self.part_SaveModifier_ShowInShortDescription is None or \
-                        self.part_SaveModifier_ShowInShortDescription == 'true':
+                if (
+                    self.part_SaveModifier_ShowInShortDescription is None
+                    or self.part_SaveModifier_ShowInShortDescription == "true"
+                ):
                     amt = self.part_SaveModifier_Amount
-                    amt = '1' if amt is None else amt
-                    amt = amt if amt[:1] == '-' else f'+{amt}'
+                    amt = "1" if amt is None else amt
+                    amt = amt if amt[:1] == "-" else f"+{amt}"
                     vs = self.part_SaveModifier_Vs
-                    save_mod_str = f'{amt} on saves'
-                    if vs is not None and vs != '':
+                    save_mod_str = f"{amt} on saves"
+                    if vs is not None and vs != "":
                         save_mod_str += f' vs. {make_list_from_words(vs.split(","))}'
-                    desc_extra.append('{{rules|' + save_mod_str + '.}}')
+                    desc_extra.append("{{rules|" + save_mod_str + ".}}")
             # add rules text for point defense compute power
             if self.part_PointDefense is not None:
                 val = float_or_default(self.part_PointDefense_ComputePowerFactor, 1.0)
                 if val != 0.0:
-                    desc_extra.append('{{rules|Compute power on the local lattice '
-                                      + ('decreases' if val < 0.0 else 'increases')
-                                      + ' this item\'s effectiveness.}}')
+                    desc_extra.append(
+                        "{{rules|Compute power on the local lattice "
+                        + ("decreases" if val < 0.0 else "increases")
+                        + " this item's effectiveness.}}"
+                    )
             # add rules text for bioloading compute power
             if self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor is not None:
                 val = float_or_none(self.part_BioAmmoLoader_TurnsToGenerateComputePowerFactor)
                 if val is not None and val != 0.0:
-                    desc_extra.append('{{rules|Compute power on the local lattice '
-                                      + ('decreases' if val > 0.0 else 'increases') + ' the'
-                                      + ' time needed for this item to generate ammunition.}}')
+                    desc_extra.append(
+                        "{{rules|Compute power on the local lattice "
+                        + ("decreases" if val > 0.0 else "increases")
+                        + " the"
+                        + " time needed for this item to generate ammunition.}}"
+                    )
             # mutation rules text
             if self.part_ModImprovedConfusion is not None:
                 val = int_or_none(self.part_ModImprovedConfusion_Tier)
                 if val is not None and val > 0:
-                    desc_extra.append('{{rules|Grants you Confusion at level ' + str(val) + '. ' +
-                                      'If you already have Confusion, its level is increased by ' +
-                                      str(val) + '.}}')
+                    desc_extra.append(
+                        "{{rules|Grants you Confusion at level "
+                        + str(val)
+                        + ". "
+                        + "If you already have Confusion, its level is increased by "
+                        + str(val)
+                        + ".}}"
+                    )
             # gas tumbler
             if self.part_GasTumbler is not None:
                 dispersalmod = int_or_default(self.part_GasTumbler_DispersalMultiplier, 25) - 100
                 densitymod = int_or_default(self.part_GasTumbler_DensityMultiplier, 200) - 100
                 pos = True if densitymod >= 0 else False
-                densitystr = 'Gases you release are ' + str(densitymod if pos else -densitymod) + \
-                             ('% denser.' if pos else '% less dense.')
+                densitystr = (
+                    "Gases you release are "
+                    + str(densitymod if pos else -densitymod)
+                    + ("% denser." if pos else "% less dense.")
+                )
                 pos = True if dispersalmod >= 0 else False
-                dispersalstr = 'Gases you release disperse ' + \
-                               str(dispersalmod if pos else -dispersalmod) + \
-                               ('% faster.' if pos else '% slower.')
-                desc_extra.append('{{rules|' + f'{densitystr}\n{dispersalstr}' + '}}')
+                dispersalstr = (
+                    "Gases you release disperse "
+                    + str(dispersalmod if pos else -dispersalmod)
+                    + ("% faster." if pos else "% slower.")
+                )
+                desc_extra.append("{{rules|" + f"{densitystr}\n{dispersalstr}" + "}}")
             # thermal amp
             if self.part_ThermalAmp is not None:
                 heatdam = int_or_default(self.part_ThermalAmp_HeatDamage, 0)
@@ -997,109 +1097,133 @@ class QudObjectProps(QudObject):
                 heatmod = int_or_default(self.part_ThermalAmp_ModifyHeat, 0)
                 coldmod = int_or_default(self.part_ThermalAmp_ModifyCold, 0)
                 if heatdam != 0 or colddam != 0 or heatmod != 0 or coldmod != 0:
-                    txt = ''
+                    txt = ""
                     if heatdam != 0:
-                        txt += f'{"{{R|+" if heatdam > 0 else "{{r|-"}{heatdam}% ' + \
-                               'heat damage dealt}}\n'
+                        txt += (
+                            f'{"{{R|+" if heatdam > 0 else "{{r|-"}{heatdam}% '
+                            + "heat damage dealt}}\n"
+                        )
                     if colddam != 0:
-                        txt += f'{"{{C|+" if colddam > 0 else "{{c|-"}{colddam}% ' + \
-                               'cold damage dealt}}\n'
+                        txt += (
+                            f'{"{{C|+" if colddam > 0 else "{{c|-"}{colddam}% '
+                            + "cold damage dealt}}\n"
+                        )
                     if heatmod != 0:
-                        txt += f'{"{{R|+" if heatmod > 0 else "{{r|-"}{heatmod}% ' + \
-                               'to the intensity of your heating effects}}\n'
+                        txt += (
+                            f'{"{{R|+" if heatmod > 0 else "{{r|-"}{heatmod}% '
+                            + "to the intensity of your heating effects}}\n"
+                        )
                     if coldmod != 0:
-                        txt += f'{"{{C|+" if coldmod > 0 else "{{c|-"}{coldmod}% ' + \
-                               'to the intensity of your cooling effects}}\n'
+                        txt += (
+                            f'{"{{C|+" if coldmod > 0 else "{{c|-"}{coldmod}% '
+                            + "to the intensity of your cooling effects}}\n"
+                        )
                     desc_extra.append(txt[:-1])  # remove trailing line break
             if self.part_SlipRing is not None:
                 savebonus = int_or_default(self.part_SlipRing_SaveBonus, 15)
                 activationchance = int_or_default(self.part_SlipRing_ActivationChance, 5)
-                desc_extra.append('{{rules|' + f'+{savebonus} to saves vs. being grabbed\n' +
-                                  f'+{activationchance}% chance to slip away from natural melee' +
-                                  ' attacks}}')
-            if self.part_Cursed_RevealInDescription == 'true':
-                desc_extra.append('{{rules|' + str_or_default(self.part_Cursed_DescriptionPostfix,
-                                  'Cannot be removed once equipped.') + '}}')
+                desc_extra.append(
+                    "{{rules|"
+                    + f"+{savebonus} to saves vs. being grabbed\n"
+                    + f"+{activationchance}% chance to slip away from natural melee"
+                    + " attacks}}"
+                )
+            if self.part_Cursed_RevealInDescription == "true":
+                desc_extra.append(
+                    "{{rules|"
+                    + str_or_default(
+                        self.part_Cursed_DescriptionPostfix, "Cannot be removed once equipped."
+                    )
+                    + "}}"
+                )
         # signs
-        if self.part_Chat_ShowInShortDescription == 'true':
+        if self.part_Chat_ShowInShortDescription == "true":
             says = self.part_Chat_Says
             if says is not None and len(says) > 0:
-                if says[0] == '[':
-                    says = says.replace('[', '').replace(']', '')
-                    desc_extra.append(f'It bears {says}')
+                if says[0] == "[":
+                    says = says.replace("[", "").replace("]", "")
+                    desc_extra.append(f"It bears {says}")
                 else:
-                    desc_extra.append(f'It reads, \'{says}\'.')
+                    desc_extra.append(f"It reads, '{says}'.")
         if self.part_MoltingBasilisk is not None:
-            desc_txt = 'The basilisk is nature\'s statue; its scaled skin is the color of dull' +\
-                        ' quartz and it strikes as still a pose as an artist\'s mould.'
-        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
-            desc_postfix = 'There is a low, persistent hum emanating outward.' \
-                if not self.part_Roboticized_DescriptionPostfix \
+            desc_txt = (
+                "The basilisk is nature's statue; its scaled skin is the color of dull"
+                + " quartz and it strikes as still a pose as an artist's mould."
+            )
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1":
+            desc_postfix = (
+                "There is a low, persistent hum emanating outward."
+                if not self.part_Roboticized_DescriptionPostfix
                 else self.part_Roboticized_DescriptionPostfix
-            desc_txt += f' {desc_postfix}'
+            )
+            desc_txt += f" {desc_postfix}"
         if self.part_PartsGas is not None:
             chance = self.part_PartsGas_Chance
             if chance is not None:
-                rule = f'{chance}% chance per turn to repel gases near its'
+                rule = f"{chance}% chance per turn to repel gases near its"
             else:
-                rule = 'Repels gases near its'
+                rule = "Repels gases near its"
             if is_item:
-                rule += ' wielder or wearer.' if self.name == 'Wrist Fan' else ' user.'
+                rule += " wielder or wearer." if self.name == "Wrist Fan" else " user."
             else:
-                rule += 'elf.'
-            desc_extra.append('{{rules|' + rule + '}}')
+                rule += "elf."
+            desc_extra.append("{{rules|" + rule + "}}")
         if self.intproperty_GenotypeBasedDescription:
             desc_extra.append(f"[True kin]\n{self.property_TrueManDescription_Value}")
             desc_extra.append(f"[Mutant]\n{self.property_MutantDescription_Value}")
         # cybernetics infixes
-        cybernetic_rules = '{{rules|'
+        cybernetic_rules = "{{rules|"
         for part in CYBERNETICS_HARDCODED_INFIXES:
-            if self.is_specified(f'part_{part}'):
-                cybernetic_rules += f'{CYBERNETICS_HARDCODED_INFIXES[part]}\n\n'
+            if self.is_specified(f"part_{part}"):
+                cybernetic_rules += f"{CYBERNETICS_HARDCODED_INFIXES[part]}\n\n"
                 break
         # BehaviorDescriptions (predominantly cybernetics, but also includes some other items)
         for part in BEHAVIOR_DESCRIPTION_PARTS:
-            if self.is_specified(f'part_{part}'):
-                behavior_desc = getattr(self, f'part_{part}_BehaviorDescription')
-                if behavior_desc is not None and behavior_desc != '':
+            if self.is_specified(f"part_{part}"):
+                behavior_desc = getattr(self, f"part_{part}_BehaviorDescription")
+                if behavior_desc is not None and behavior_desc != "":
                     cybernetic_rules += behavior_desc
         # additional cybernetics postfixes
         if self.part_CyberneticsBaseItem_Slots is not None:
             body_parts = self.part_CyberneticsBaseItem_Slots
-            body_parts = body_parts.replace(',', ', ')
+            body_parts = body_parts.replace(",", ", ")
             cost = self.part_CyberneticsBaseItem_Cost
-            if len(desc_extra) > 0 or len(cybernetic_rules) > len('{{rules|'):
-                cybernetic_rules += '\n\n'
-            txt = ''
+            if len(desc_extra) > 0 or len(cybernetic_rules) > len("{{rules|"):
+                cybernetic_rules += "\n\n"
+            txt = ""
             if self.tag_CyberneticsDestroyOnRemoval is not None:
-                txt += 'Destroyed when uninstalled.\n'
-            txt += f'Target body parts: {body_parts}\n'
-            txt += f'License points: {cost}\n'
-            txt += 'Only compatible with True Kin genotypes'
+                txt += "Destroyed when uninstalled.\n"
+            txt += f"Target body parts: {body_parts}\n"
+            txt += f"License points: {cost}\n"
+            txt += "Only compatible with True Kin genotypes"
             for part in CYBERNETICS_HARDCODED_POSTFIXES:
-                if self.is_specified(f'part_{part}'):
-                    txt += f'\n{CYBERNETICS_HARDCODED_POSTFIXES[part]}'
+                if self.is_specified(f"part_{part}"):
+                    txt += f"\n{CYBERNETICS_HARDCODED_POSTFIXES[part]}"
                     break
-            cybernetic_rules += txt + '}}'
+            cybernetic_rules += txt + "}}"
         # append rules if we found any
-        if len(cybernetic_rules) > len('{{rules|'):
+        if len(cybernetic_rules) > len("{{rules|"):
             desc_extra.append(cybernetic_rules)
         if self.part_RulesDescription:
             if self.part_RulesDescription_AltForGenotype == "True Kin":
                 desc_extra.append(f"[Mutant]\n{{{{rules|{self.part_RulesDescription_Text}}}}}")
-                desc_extra.append("[True Kin]\n{{rules|" +
-                                  self.part_RulesDescription_GenotypeAlt + "}}")
+                desc_extra.append(
+                    "[True Kin]\n{{rules|" + self.part_RulesDescription_GenotypeAlt + "}}"
+                )
             else:
                 desc_extra.append(f"{{{{rules|{self.part_RulesDescription_Text}}}}}")
         if self.part_AddsTelepathyOnEquip is not None:
             desc_extra.insert(0, "{{rules|Grants you Telepathy.}}")
-        if self.part_ReduceEnergyCosts and \
-                (self.part_ReduceEnergyCosts_GenerateShortDescription is None or
-                 self.part_ReduceEnergyCosts_GenerateShortDescription == 'true'):
+        if self.part_ReduceEnergyCosts and (
+            self.part_ReduceEnergyCosts_GenerateShortDescription is None
+            or self.part_ReduceEnergyCosts_GenerateShortDescription == "true"
+        ):
             num = int(self.part_ReduceEnergyCosts_PercentageReduction)
-            pre = '' if (int(self.part_ReduceEnergyCosts_ChargeUse) == 0) else 'when powered, '
-            temp = f"{pre}provides {num}% reduction in " \
-                   f"{self.part_ReduceEnergyCosts_ScopeDescription}."
+            pre = "" if (int(self.part_ReduceEnergyCosts_ChargeUse) == 0) else "when powered, "
+            temp = (
+                f"{pre}provides {num}% reduction in "
+                f"{self.part_ReduceEnergyCosts_ScopeDescription}."
+            )
             desc_extra.append("{{rules|" + temp[0].upper() + temp[1:] + "}}")
         if self.part_Description_Mark:
             desc_extra.append(self.part_Description_Mark)
@@ -1108,8 +1232,8 @@ class QudObjectProps(QudObject):
 
         # Finalize the description:
         if len(desc_extra) > 0:
-            desc_txt += '\n\n' + '\n'.join(desc_extra)
-        desc_txt = desc_txt.replace('\r\n', '\n')  # currently, only the description for Bear
+            desc_txt += "\n\n" + "\n".join(desc_extra)
+        desc_txt = desc_txt.replace("\r\n", "\n")  # currently, only the description for Bear
 
         return desc_txt
 
@@ -1132,9 +1256,9 @@ class QudObjectProps(QudObject):
     @cached_property
     def dramsperuse(self) -> int | float | None:
         """The number of drams of liquid consumed by each shot action."""
-        if self.is_specified('part_LiquidAmmoLoader'):
+        if self.is_specified("part_LiquidAmmoLoader"):
             return 1  # LiquidAmmoLoader always uses 1 dram per action
-        elif self.is_specified('part_BioAmmoLoader'):
+        elif self.is_specified("part_BioAmmoLoader"):
             val = int_or_none(self.part_BioAmmoLoader_ConsumeAmount)
             val = 1 if val is None else val
             chance = float_or_none(self.part_BioAmmoLoader_ConsumeChance)
@@ -1158,8 +1282,9 @@ class QudObjectProps(QudObject):
             # skills, agility modifier (which may be a range determined by
             # dice rolls, and which changes DV by 1 for every 2 points of agility
             # over/under 16), and any equipment that is guaranteed to be worn
-            if self.is_specified('part_Brain_Mobile') and (self.part_Brain_Mobile == 'false' or
-                                                           self.part_Brain_Mobile == 'False'):
+            if self.is_specified("part_Brain_Mobile") and (
+                self.part_Brain_Mobile == "false" or self.part_Brain_Mobile == "False"
+            ):
                 dv = -10
             else:
                 dv = 6
@@ -1169,22 +1294,22 @@ class QudObjectProps(QudObject):
                     dv += 2
                 if self.skill_Acrobatics_Tumble:  # the 'Tumble' skill
                     dv += 1
-                dv += self.attribute_helper_mod('Agility')
+                dv += self.attribute_helper_mod("Agility")
                 applied_body_dv = False
                 # does this creature have mutations that affect DV?
                 if self.mutation:
                     for mutation, info in self.mutation.items():
-                        if mutation == 'Carapace':
+                        if mutation == "Carapace":
                             dv -= 2
                             applied_body_dv = True
                 # does this creature have armor with DV modifiers to add?
                 if self.inventoryobject:
                     for name in list(self.inventoryobject.keys()):
-                        if name[0] in '*#@':
+                        if name[0] in "*#@":
                             # special values like '*Junk 1'
                             continue
                         item = self.qindex[name]
-                        if item.dv and (not applied_body_dv or item.wornon != 'Body'):
+                        if item.dv and (not applied_body_dv or item.wornon != "Body"):
                             dv += item.dv
         return int_or_none(dv)
 
@@ -1197,10 +1322,10 @@ class QudObjectProps(QudObject):
             return None
         tables = []
         for key, val in self.tag.items():
-            if key.startswith('DynamicObjectsTable'):
-                if 'Value' in val and val['Value'] == '{{{remove}}}':
+            if key.startswith("DynamicObjectsTable"):
+                if "Value" in val and val["Value"] == "{{{remove}}}":
                     continue  # explicitly disallowed from an inherited dynamic table
-                tables.append(key.split(':')[1])
+                tables.append(key.split(":")[1])
         return list(set(tables)) if len(tables) > 0 else None
 
     @cached_property
@@ -1211,9 +1336,9 @@ class QudObjectProps(QudObject):
     @cached_property
     def ego(self) -> str | None:
         """The creature's ego stat or the ego bonus supplied by a piece of equipment."""
-        if self.name in ['Stopsvaalinn', 'Ruin of House Isner']:
+        if self.name in ["Stopsvaalinn", "Ruin of House Isner"]:
             return "1"
-        val = self.attribute_helper('Ego')
+        val = self.attribute_helper("Ego")
         if val is None and self.is_melee_weapon():
             val = self.part_MeleeWeapon_Ego
         return f"{val}+3d1" if self.name == "Wraith-Knight Templar" else val
@@ -1221,39 +1346,39 @@ class QudObjectProps(QudObject):
     @cached_property
     def egomult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic ego, if specified."""
-        return self.attribute_boost_factor('Ego')
+        return self.attribute_boost_factor("Ego")
 
     @cached_property
     def egoextrinsic(self) -> int | None:
         """Extra ego for a creature from extrinsic factors, such as mutations or equipment."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
-            if self.mutation and 'Beak' in self.mutation.keys():
+            if self.mutation and "Beak" in self.mutation.keys():
                 return 1
 
     @cached_property
     def electric(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
-        return self.resistance('Electric')
+        return self.resistance("Electric")
 
     @cached_property
     def electrical(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has.
         *egocarib 10/4/2020 - I am pretty sure this property is unused, but leaving it here
          just in case. Most things use 'electric' since that is our wiki template field name"""
-        return self.resistance('Electric')
+        return self.resistance("Electric")
 
     @cached_property
     def elementaldamage(self) -> str | None:
         """The elemental damage dealt, if any, as a range."""
-        if self.is_specified('part_ModFlaming'):
+        if self.is_specified("part_ModFlaming"):
             tierstr = self.part_ModFlaming_Tier
-            elestr = str(int(int(tierstr) * 0.8)) + '-' + str(int(int(tierstr) * 1.2))
-        elif self.is_specified('part_ModFreezing'):
+            elestr = str(int(int(tierstr) * 0.8)) + "-" + str(int(int(tierstr) * 1.2))
+        elif self.is_specified("part_ModFreezing"):
             tierstr = self.part_ModFreezing_Tier
-            elestr = str(int(int(tierstr) * 0.8)) + '-' + str(int(int(tierstr) * 1.2))
-        elif self.is_specified('part_ModElectrified'):
+            elestr = str(int(int(tierstr) * 0.8)) + "-" + str(int(int(tierstr) * 1.2))
+        elif self.is_specified("part_ModElectrified"):
             tierstr = self.part_ModElectrified_Tier
-            elestr = str(int(tierstr)) + '-' + str(int(int(tierstr) * 1.5))
+            elestr = str(int(tierstr)) + "-" + str(int(int(tierstr) * 1.5))
         else:
             elestr = self.part_ElementalDamage_Damage
         return elestr
@@ -1261,12 +1386,12 @@ class QudObjectProps(QudObject):
     @cached_property
     def elementaltype(self) -> str | None:
         """For elemental damage dealt, what the type of that damage is."""
-        if self.is_specified('part_ModFlaming'):
-            elestr = 'Fire'
-        elif self.is_specified('part_ModFreezing'):
-            elestr = 'Cold'
-        elif self.is_specified('part_ModElectrified'):
-            elestr = 'Electric'
+        if self.is_specified("part_ModFlaming"):
+            elestr = "Fire"
+        elif self.is_specified("part_ModFreezing"):
+            elestr = "Cold"
+        elif self.is_specified("part_ModElectrified"):
+            elestr = "Electric"
         else:
             elestr = self.part_ElementalDamage_Attributes
         return elestr
@@ -1277,15 +1402,15 @@ class QudObjectProps(QudObject):
         the object does not function as expected while pulsed by an EMP effect.
         Note that the game will show an "[EMP]" tag in the display name of more things than are
         actually empsensitive, including anything metal or robotic (like an iron long sword)."""
-        all_parts = getattr(self, 'part')
+        all_parts = getattr(self, "part")
         if all_parts is not None:
             emp_sensitive = None
             # object is emp sensitive if any single part on the object is emp sensitive:
             for partname, partattribs in all_parts.items():
                 if partname in ACTIVE_PARTS:
-                    if partname == 'ModHardened':
+                    if partname == "ModHardened":
                         return None  # ModHardened overrides anything else, so we return early
-                    if partattribs.get('IsEMPSensitive', ACTIVE_PARTS[partname]['IsEMPSensitive']):
+                    if partattribs.get("IsEMPSensitive", ACTIVE_PARTS[partname]["IsEMPSensitive"]):
                         emp_sensitive = True
             return emp_sensitive
 
@@ -1297,7 +1422,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def energycellrequired(self) -> bool | None:
         """Returns True if the object requires an energy cell to function."""
-        if self.is_specified('part_EnergyCellSocket'):
+        if self.is_specified("part_EnergyCellSocket"):
             return True
 
     @cached_property
@@ -1330,19 +1455,19 @@ class QudObjectProps(QudObject):
         ret = None
         if self.part_Brain_Factions:
             ret = []
-            for part in self.part_Brain_Factions.split(','):
-                if '-' in part:
+            for part in self.part_Brain_Factions.split(","):
+                if "-" in part:
                     # has format like `Joppa-100,Barathrumites-100`
-                    faction, value = part.split('-')
+                    faction, value = part.split("-")
                     ret.append((faction, int(value)))
                 else:
-                    print(f'FIXME: unexpected faction format: {part} in {self.name}')
+                    print(f"FIXME: unexpected faction format: {part} in {self.name}")
         return ret
 
     @cached_property
     def flametemperature(self) -> int | None:
         """The temperature that this object sets on fire. Only for items."""
-        if self.inherits_from('Item') and self.is_specified('part_Physics'):
+        if self.inherits_from("Item") and self.is_specified("part_Physics"):
             return int_or_none(self.part_Physics_FlameTemperature)
 
     @cached_property
@@ -1354,7 +1479,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def flyover(self) -> bool | None:
         """Whether a flying creature can pass over this object."""
-        if self.inherits_from('Wall') or self.inherits_from('Furniture'):
+        if self.inherits_from("Wall") or self.inherits_from("Furniture"):
             if self.tag_Flyover is not None:
                 return True
             else:
@@ -1363,14 +1488,15 @@ class QudObjectProps(QudObject):
     @cached_property
     def gasemitted(self) -> str | None:
         """The gas emitted by the weapon (typically missile weapon 'pumps')."""
-        return self.projectile_object('part_GasOnHit_Blueprint')
+        return self.projectile_object("part_GasOnHit_Blueprint")
 
     @cached_property
     def gender(self) -> str | None:
         """The gender of the object."""
-        if ((self.tag_Gender_Value is not None or
-             (self.tag_RandomGender_Value is not None and ',' not in self.tag_RandomGender_Value))
-                and self.active_or_inactive_character() == ACTIVE_CHAR):
+        if (
+            self.tag_Gender_Value is not None
+            or (self.tag_RandomGender_Value is not None and "," not in self.tag_RandomGender_Value)
+        ) and self.active_or_inactive_character() == ACTIVE_CHAR:
             gender = self.tag_Gender_Value
             if gender is None:
                 gender = self.tag_RandomGender_Value
@@ -1385,8 +1511,11 @@ class QudObjectProps(QudObject):
     def hasmentalshield(self) -> bool | None:
         """If a creature has a mental shield."""
         if self.active_or_inactive_character() == ACTIVE_CHAR:
-            if self.part_MentalShield is not None or "Mechanical" in self.name or \
-                    (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
+            if (
+                self.part_MentalShield is not None
+                or "Mechanical" in self.name
+                or (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1")
+            ):
                 return True
 
     @cached_property
@@ -1399,7 +1528,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def heat(self) -> int | None:
         """The elemental resistance/weakness the equipment or NPC has."""
-        return self.resistance('Heat')
+        return self.resistance("Heat")
 
     @cached_property
     def hidden(self) -> int | None:
@@ -1459,8 +1588,8 @@ class QudObjectProps(QudObject):
     @cached_property
     def illoneat(self) -> bool | None:
         """If eating this makes you sick."""
-        if not self.inherits_from('Corpse'):
-            if self.part_Food_IllOnEat == 'true':
+        if not self.inherits_from("Corpse"):
+            if self.part_Food_IllOnEat == "true":
                 return True
 
     @cached_property
@@ -1476,10 +1605,16 @@ class QudObjectProps(QudObject):
     def inhaled(self) -> str | None:
         """For gases, whether this gas is respiration-based."""
         if self.part_Gas is not None:
-            if self.name in ['ConfusionGas', 'Miasma', 'MiasmaticAsh',
-                             'PoisonGas', 'SleepGas', 'StunGas']:
-                return 'yes'  # these are hard-coded
-            return 'no'
+            if self.name in [
+                "ConfusionGas",
+                "Miasma",
+                "MiasmaticAsh",
+                "PoisonGas",
+                "SleepGas",
+                "StunGas",
+            ]:
+                return "yes"  # these are hard-coded
+            return "no"
 
     @cached_property
     def inheritingfrom(self) -> str | None:
@@ -1491,12 +1626,12 @@ class QudObjectProps(QudObject):
     @cached_property
     def intelligence(self) -> str | None:
         """The intelligence the mutation affects, or the intelligence of the creature."""
-        return self.attribute_helper('Intelligence')
+        return self.attribute_helper("Intelligence")
 
     @cached_property
     def intelligencemult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic intelligence, if specified."""
-        return self.attribute_boost_factor('Intelligence')
+        return self.attribute_boost_factor("Intelligence")
 
     @cached_property
     def intelligenceextrinsic(self) -> int | None:
@@ -1512,16 +1647,16 @@ class QudObjectProps(QudObject):
         inv = self.inventoryobject
         if inv is not None:
             for name in inv:
-                if name[0] in '*#':  # Ignores stuff like '*Junk 1'
+                if name[0] in "*#":  # Ignores stuff like '*Junk 1'
                     continue
-                is_pop = 'no'
+                is_pop = "no"
                 final_name = name
-                if name[0] == '@':
-                    is_pop = 'yes'
+                if name[0] == "@":
+                    is_pop = "yes"
                     final_name = name[1:]
-                count = inv[name].get('Number', '1')
-                equipped = 'no'  # not yet implemented
-                chance = inv[name].get('Chance', '100')
+                count = inv[name].get("Number", "1")
+                equipped = "no"  # not yet implemented
+                chance = inv[name].get("Chance", "100")
                 ret.append((final_name, count, equipped, chance, is_pop))
         pop_name = self.tag_InventoryPopulationTable_Value
         if pop_name is not None:
@@ -1529,28 +1664,28 @@ class QudObjectProps(QudObject):
             if pop is not None:
                 if pop.depth > 1:
                     # complex population - represent with parent pop name and quantity of '*'
-                    ret.append((pop_name, '*', 'no', '100', 'yes'))
-                elif pop.style != 'pickeach':
+                    ret.append((pop_name, "*", "no", "100", "yes"))
+                elif pop.style != "pickeach":
                     # population with single 'pickone' group - for example "Artifact 6R"
                     group = pop.children[0]
-                    ret.append((pop_name, group.number, 'no', group.chance, 'yes'))
+                    ret.append((pop_name, group.number, "no", group.chance, "yes"))
                 else:
                     for pop_item in pop.get_effective_children():
                         count = pop_item.number
                         chance = pop_item.chance
-                        equipped = 'no'  # not yet implemented
-                        if pop_item.type == 'object':  # noinspection PyUnresolvedReferences
-                            ret.append((pop_item.blueprint, count, equipped, chance, 'no'))
-                        elif pop_item.type == 'table':  # noinspection PyUnresolvedReferences
-                            ret.append((pop_item.name, count, equipped, chance, 'yes'))
-                        elif pop_item.type == 'group':
+                        equipped = "no"  # not yet implemented
+                        if pop_item.type == "object":  # noinspection PyUnresolvedReferences
+                            ret.append((pop_item.blueprint, count, equipped, chance, "no"))
+                        elif pop_item.type == "table":  # noinspection PyUnresolvedReferences
+                            ret.append((pop_item.name, count, equipped, chance, "yes"))
+                        elif pop_item.type == "group":
                             pass  # shouldn't happen bec. we only evaluate populations with depth 1
         return ret if len(ret) > 0 else None
 
     @cached_property
     def iscurrency(self) -> bool | None:
         """If the item is considered currency (price remains fixed while trading)."""
-        if self.intproperty_Currency_Value == '1':
+        if self.intproperty_Currency_Value == "1":
             return True
 
     @cached_property
@@ -1568,9 +1703,9 @@ class QudObjectProps(QudObject):
     @cached_property
     def ismissile(self) -> bool | None:
         """If this item is a missile weapon"""
-        if self.inherits_from('MissileWeapon'):
+        if self.inherits_from("MissileWeapon"):
             return True
-        if self.is_specified('part_MissileWeapon'):
+        if self.is_specified("part_MissileWeapon"):
             return True
 
     @cached_property
@@ -1582,7 +1717,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def isoccluding(self) -> bool | None:
         if self.part_Render_Occluding is not None:
-            if self.part_Render_Occluding == 'true' or self.part_Render_Occluding == 'True':
+            if self.part_Render_Occluding == "true" or self.part_Render_Occluding == "True":
                 return True
 
     @cached_property
@@ -1594,7 +1729,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def isswarmer(self) -> bool | None:
         """Whether a creature is a Swarmer."""
-        if self.inherits_from('Creature'):
+        if self.inherits_from("Creature"):
             if self.part_Swarmer is not None:
                 return True
 
@@ -1603,7 +1738,7 @@ class QudObjectProps(QudObject):
         """If this object leaks liquid when broken, the dice string for % amount per turn leaked."""
         if self.part_LeakWhenBroken is not None:
             amt = self.part_LeakWhenBroken_PercentPerTurn
-            amt = '10-20' if amt is None else amt  # 10-20% is default
+            amt = "10-20" if amt is None else amt  # 10-20% is default
             return amt
 
     @cached_property
@@ -1664,10 +1799,10 @@ class QudObjectProps(QudObject):
             if self.stat_MA_Value:
                 ma += int(self.stat_MA_Value)
             # add willpower modifier to MA
-            ma += self.attribute_helper_mod('Willpower')
+            ma += self.attribute_helper_mod("Willpower")
             return ma
         else:  # items (char_type == 0)
-            return int_or_none(self.attribute_helper('MA'))
+            return int_or_none(self.attribute_helper("MA"))
 
     @cached_property
     def marange(self) -> str | None:
@@ -1679,14 +1814,14 @@ class QudObjectProps(QudObject):
             if self.stat_MA_Value:
                 ma += int(self.stat_MA_Value)
             # add willpower modifier to MA
-            minmod = self.attribute_helper_mod('Willpower', 'min')
-            maxmod = self.attribute_helper_mod('Willpower', 'max')
+            minmod = self.attribute_helper_mod("Willpower", "min")
+            maxmod = self.attribute_helper_mod("Willpower", "max")
             if minmod == maxmod:
                 return str(ma + minmod)
             # returning this in a bit of a weird format so that our wiki dice parser can
             # parse it correctly (it doesn't do well with ranges like -2--1 [fire ant], so we
             # would output this instead as -3+1d2
-            return f'{ma + minmod - 1}+1d{maxmod - minmod + 1}'
+            return f"{ma + minmod - 1}+1d{maxmod - minmod + 1}"
 
     @cached_property
     def maxammo(self) -> int | None:
@@ -1716,8 +1851,9 @@ class QudObjectProps(QudObject):
     @cached_property
     def metal(self) -> bool | None:
         """Whether the object is made out of metal."""
-        if self.part_Metal is not None or \
-                (self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1'):
+        if self.part_Metal is not None or (
+            self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1"
+        ):
             return True
 
     @cached_property
@@ -1737,7 +1873,7 @@ class QudObjectProps(QudObject):
         if self.part_AddMod_Mods is not None:
             val += len(self.part_AddMod_Mods.split(","))
         for key in self.part.keys():
-            if key.startswith('Mod'):
+            if key.startswith("Mod"):
                 val += 1
         return val if val > 0 else None
 
@@ -1749,17 +1885,17 @@ class QudObjectProps(QudObject):
         """
         mods = []
         if self.part_AddMod_Mods is not None:
-            names = self.part_AddMod_Mods.split(',')
+            names = self.part_AddMod_Mods.split(",")
             if self.part_AddMod_Tiers is not None:
-                tiers = self.part_AddMod_Tiers.split(',')
+                tiers = self.part_AddMod_Tiers.split(",")
                 tiers = [int(tier) for tier in tiers]
             else:
                 tiers = [1] * len(names)
             mods.extend(zip(names, tiers))
         for key in self.part.keys():
-            if key.startswith('Mod'):
-                if 'Tier' in self.part[key]:
-                    mods.append((key, int(self.part[key]['Tier'])))
+            if key.startswith("Mod"):
+                if "Tier" in self.part[key]:
+                    mods.append((key, int(self.part[key]["Tier"])))
                 else:
                     mods.append((key, 1))
         return mods if len(mods) > 0 else None
@@ -1767,7 +1903,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def movespeed(self) -> int | None:
         """The movespeed of a creature."""
-        if self.inherits_from('Creature'):
+        if self.inherits_from("Creature"):
             ms = int_or_none(self.stat_MoveSpeed_Value)
             if ms is not None:
                 # https://bitbucket.org/bbucklew/cavesofqud-public-issue-tracker/issues/2634
@@ -1777,7 +1913,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def movespeedbonus(self) -> int | None:
         """The movespeed bonus of an item."""
-        if self.inherits_from('Item'):
+        if self.inherits_from("Item"):
             bonus = self.part_MoveCostMultiplier_Amount
             if bonus is not None:
                 return -int(bonus)
@@ -1785,7 +1921,7 @@ class QudObjectProps(QudObject):
     @cached_property
     def mutatedplant(self) -> bool | None:
         """Whether this object is a MutatedPlant"""
-        if self.inherits_from('MutatedPlant'):
+        if self.inherits_from("MutatedPlant"):
             return True
 
     @cached_property
@@ -1797,14 +1933,15 @@ class QudObjectProps(QudObject):
         mutations = []
         if self.mutation is not None:  # direct reference to <mutation> XML tag - not a property
             for mutation, data in self.mutation.items():
-                postfix = f"{data['GasObject']}" if 'GasObject' in data else ''
-                level = int(data['Level']) if 'Level' in data else 0
+                postfix = f"{data['GasObject']}" if "GasObject" in data else ""
+                level = int(data["Level"]) if "Level" in data else 0
                 mutations.append((mutation + postfix, level))
-        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1":
             # additional mutations added to roboticized things
-            if self.mutation is None or \
-                    not any(mu in ['NightVision', 'DarkVision'] for mu in self.mutation.keys()):
-                mutations.append(('DarkVision', 12))
+            if self.mutation is None or not any(
+                mu in ["NightVision", "DarkVision"] for mu in self.mutation.keys()
+            ):
+                mutations.append(("DarkVision", 12))
         if len(mutations) > 0:
             return mutations
 
@@ -1817,8 +1954,9 @@ class QudObjectProps(QudObject):
     @cached_property
     def omniphaseprojectile(self) -> bool | None:
         projectile = self.projectile_object()
-        if projectile.is_specified('part_OmniphaseProjectile') or \
-                projectile.is_specified('tag_Omniphase'):
+        if projectile.is_specified("part_OmniphaseProjectile") or projectile.is_specified(
+            "tag_Omniphase"
+        ):
             return True
 
     @cached_property
@@ -1831,18 +1969,18 @@ class QudObjectProps(QudObject):
             into ['BreatheOnEatFireBreather5']"""
         effects = []
         for key, val in self.part.items():
-            if key.endswith('OnEat'):
+            if key.endswith("OnEat"):
                 effect = key
-                if 'Class' in val:
-                    effect += val['Class']
-                    effect += val['Level']
+                if "Class" in val:
+                    effect += val["Class"]
+                    effect += val["Level"]
                 effects.append(effect)
         return effects if len(effects) > 0 else None
 
     @cached_property
     def penetratingammo(self) -> bool | None:
         """If the missile weapon's projectiles pierce through targets."""
-        if self.projectile_object('part_Projectile_PenetrateCreatures') is not None:
+        if self.projectile_object("part_Projectile_PenetrateCreatures") is not None:
             return True
 
     @cached_property
@@ -1863,7 +2001,7 @@ class QudObjectProps(QudObject):
         if self.mutation:
             for mutation, data in self.mutation.items():
                 if mutation == "Spinnerets":
-                    if f"{data['Phase']}" == 'True':
+                    if f"{data['Phase']}" == "True":
                         return "out of phase"
 
     @cached_property
@@ -1873,24 +2011,27 @@ class QudObjectProps(QudObject):
             save = self.part_PoisonOnHit_Strength
             dmg = self.part_PoisonOnHit_DamageIncrement
             duration = self.part_PoisonOnHit_Duration
-            pct = pct if pct is not None else '100'
-            save = save if save is not None else '15'
-            dmg = dmg if dmg is not None else '3d3'
-            duration = duration if duration is not None else '6-9'
-            return f'{pct}% to poison on hit, toughness save {save}.' + \
-                   f' {dmg} damage for {duration} turns.'
+            pct = pct if pct is not None else "100"
+            save = save if save is not None else "15"
+            dmg = dmg if dmg is not None else "3d3"
+            duration = duration if duration is not None else "6-9"
+            return (
+                f"{pct}% to poison on hit, toughness save {save}."
+                + f" {dmg} damage for {duration} turns."
+            )
 
     @cached_property
     def powerloadsensitive(self) -> bool | None:
         """Returns yes if the object is power load sensitive. This means that the object can support
         the overloaded item mod."""
-        all_parts = getattr(self, 'part')
+        all_parts = getattr(self, "part")
         if all_parts is not None:
             # object is powerload sensitive if any single part on the object is powerload sensitive:
             for partname, partattribs in all_parts.items():
                 if partname in ACTIVE_PARTS:
-                    if partattribs.get('IsPowerLoadSensitive',
-                                       ACTIVE_PARTS[partname]['IsPowerLoadSensitive']):
+                    if partattribs.get(
+                        "IsPowerLoadSensitive", ACTIVE_PARTS[partname]["IsPowerLoadSensitive"]
+                    ):
                         return True
 
     @cached_property
@@ -1909,12 +2050,12 @@ class QudObjectProps(QudObject):
         This is distinct from elementaldamage/elementaltype - those properties are used when a
         weapon has secondary elemental damage (in addition to its "normal" damage)."""
         if self.part_ElectricalDischargeLoader is not None:
-            return 'Electric'
+            return "Electric"
 
     @cached_property
     def pronouns(self) -> str | None:
         """Return the pronounset of a creature, if [they] have any."""
-        if self.tag_PronounSet_Value is not None and self.inherits_from('Creature'):
+        if self.tag_PronounSet_Value is not None and self.inherits_from("Creature"):
             return self.tag_PronounSet_Value
 
     @cached_property
@@ -1928,7 +2069,7 @@ class QudObjectProps(QudObject):
                 pv += int(self.part_Gaslight_ChargedPenetrationBonus)
             elif self.part_MeleeWeapon_PenBonus is not None:
                 pv += int(self.part_MeleeWeapon_PenBonus)
-        missilepv = self.projectile_object('part_Projectile_BasePenetration')
+        missilepv = self.projectile_object("part_Projectile_BasePenetration")
         if missilepv is not None:
             pv = int(missilepv) + 4
         if self.part_ThrownWeapon is not None:
@@ -1943,7 +2084,7 @@ class QudObjectProps(QudObject):
     def pvpowered(self) -> bool | None:
         """Whether the object's PV changes when it is powered."""
         is_vibro = self.vibro and self.vibro is not None
-        if is_vibro and self.is_specified('part_MissileWeapon'):
+        if is_vibro and self.is_specified("part_MissileWeapon"):
             return None
         if is_vibro and (not self.part_VibroWeapon or int(self.part_VibroWeapon_ChargeUse) > 0):
             return True
@@ -1960,13 +2101,16 @@ class QudObjectProps(QudObject):
             mutation_val = 0
             if self.mutation:
                 for mutation, info in self.mutation.items():
-                    if mutation == 'ColdBlooded':
+                    if mutation == "ColdBlooded":
                         mutation_val -= 10
-                    if mutation == 'HeightenedSpeed':
-                        mutation_val += int(info['Level']) * 2 + 13
+                    if mutation == "HeightenedSpeed":
+                        mutation_val += int(info["Level"]) * 2 + 13
             if mutation_val != 0:
-                return mutation_val + \
-                    100 if self.stat_Speed_Value is None else int(self.stat_Speed_Value)
+                return (
+                    mutation_val + 100
+                    if self.stat_Speed_Value is None
+                    else int(self.stat_Speed_Value)
+                )
             return int_or_none(self.stat_Speed_Value)
         if self.part_Armor:
             return int_or_none(self.part_Armor_SpeedBonus)
@@ -1976,16 +2120,16 @@ class QudObjectProps(QudObject):
         projectile = self.projectile_object()
         if projectile is not None:
             projectile_rd_info = projectile.part_TreatAsSolid_RealityDistortionBased
-            if projectile_rd_info is not None and projectile_rd_info == 'true':
+            if projectile_rd_info is not None and projectile_rd_info == "true":
                 return True
             projectile_vamp_rd_info = projectile.part_VampiricWeapon_RealityDistortionBased
-            if projectile_vamp_rd_info is not None and projectile_vamp_rd_info == 'true':
+            if projectile_vamp_rd_info is not None and projectile_vamp_rd_info == "true":
                 return True
         if self.part_MechanicalWings_IsRealityDistortionBased is not None:
-            if self.part_MechanicalWings_IsRealityDistortionBased == 'true':
+            if self.part_MechanicalWings_IsRealityDistortionBased == "true":
                 return True
         if self.part_DeploymentGrenade_UsabilityEvent is not None:
-            if self.part_DeploymentGrenade_UsabilityEvent == 'CheckRealityDistortionUsability':
+            if self.part_DeploymentGrenade_UsabilityEvent == "CheckRealityDistortionUsability":
                 return True
         if self.part_Displacer is not None:
             return True
@@ -2015,7 +2159,7 @@ class QudObjectProps(QudObject):
             # some RenderStrings are given as CP437 character codes in base 10
             render = cp437_to_unicode(int(self.part_Render_RenderString))
         elif self.part_Gas is not None:
-            render = '▓'
+            render = "▓"
         elif self.part_Render_RenderString is not None:
             render = self.part_Render_RenderString
         return render
@@ -2032,10 +2176,10 @@ class QudObjectProps(QudObject):
         # <part Name="AddsRep" Faction="Fungi:200,Consortium:-200" />
         if self.part_AddsRep:
             reps = []
-            for part in self.part_AddsRep_Faction.split(','):
-                if ':' in part:
+            for part in self.part_AddsRep_Faction.split(","):
+                if ":" in part:
                     # has format like `Fungi:200,Consortium:-200`
-                    faction, value = part.split(':')
+                    faction, value = part.split(":")
                 else:
                     # has format like `Antelopes,Goatfolk` and Value `100`
                     # or is a single faction, like `Apes` and Value `-100`
@@ -2065,18 +2209,18 @@ class QudObjectProps(QudObject):
         if self.part_SaveModifier_Vs is not None:
             val = int_or_none(self.part_SaveModifier_Amount)
             if val is not None:
-                return str(val) if val < 0 else f'+{val}'
+                return str(val) if val < 0 else f"+{val}"
 
     @cached_property
     def seeping(self) -> str | None:
         if self.part_Gas is not None:
-            if self.is_specified('part_Gas_Seeping'):
-                if self.part_Gas_Seeping == 'true':
-                    return 'yes'
-            if self.is_specified('tag_GasGenerationAddSeeping'):
-                if self.tag_GasGenerationAddSeeping_Value == 'true':
-                    return 'yes'
-            return 'no'
+            if self.is_specified("part_Gas_Seeping"):
+                if self.part_Gas_Seeping == "true":
+                    return "yes"
+            if self.is_specified("tag_GasGenerationAddSeeping"):
+                if self.tag_GasGenerationAddSeeping_Value == "true":
+                    return "yes"
+            return "no"
 
     @cached_property
     def shotcooldown(self) -> str | None:
@@ -2101,15 +2245,15 @@ class QudObjectProps(QudObject):
 
     @cached_property
     def solid(self) -> bool | None:
-        if self.is_specified('part_Physics_Solid'):
-            if self.part_Physics_Solid == 'true' or self.part_Physics_Solid == 'True':
+        if self.is_specified("part_Physics_Solid"):
+            if self.part_Physics_Solid == "true" or self.part_Physics_Solid == "True":
                 return True
             # add some if-exclusions for things that shouldn't say 'can be walked over/through':
-            if self.inheritingfrom == 'Door':  # security doors
+            if self.inheritingfrom == "Door":  # security doors
                 return None
             if self.part_ThrownWeapon is not None:
                 # thrown weapons for some reason often specify Solid="false"
-                if 'Boulder' not in self.name:
+                if "Boulder" not in self.name:
                     return None
             return False
 
@@ -2121,12 +2265,12 @@ class QudObjectProps(QudObject):
     @cached_property
     def strength(self) -> str | None:
         """The strength the mutation affects, or the strength of the creature."""
-        return self.attribute_helper('Strength')
+        return self.attribute_helper("Strength")
 
     @cached_property
     def strengthmult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic strength, if specified."""
-        return self.attribute_boost_factor('Strength')
+        return self.attribute_boost_factor("Strength")
 
     @cached_property
     def strengthextrinsic(self) -> int | None:
@@ -2135,9 +2279,9 @@ class QudObjectProps(QudObject):
             if self.mutation:
                 val = 0
                 for mutation, info in self.mutation.items():
-                    if mutation == 'HeightenedStrength':
-                        val += (int(info['Level']) - 1) // 2 + 2
-                    if mutation == 'SlogGlands':
+                    if mutation == "HeightenedStrength":
+                        val += (int(info["Level"]) - 1) // 2 + 2
+                    if mutation == "SlogGlands":
                         val += 6
                 if val != 0:
                     return val
@@ -2146,7 +2290,7 @@ class QudObjectProps(QudObject):
     def supportedmods(self) -> str | None:
         """The categories of mods that are supported by this item"""
         val = self.tag_Mods_Value
-        if val is not None and val != 'None':
+        if val is not None and val != "None":
             return val
 
     @cached_property
@@ -2159,7 +2303,7 @@ class QudObjectProps(QudObject):
         """Temperature change caused to objects when weapon/projectile passes through cell.
 
         Can be a dice string."""
-        var = self.projectile_object('part_TemperatureOnEntering_Amount')  # projectiles
+        var = self.projectile_object("part_TemperatureOnEntering_Amount")  # projectiles
         return var or self.part_TemperatureOnEntering_Amount  # melee weapons, etc.
 
     @cached_property
@@ -2167,13 +2311,13 @@ class QudObjectProps(QudObject):
         """Temperature change caused by weapon/projectile hit.
 
         Can be a dice string."""
-        var = self.projectile_object('part_TemperatureOnHit_Amount')
+        var = self.projectile_object("part_TemperatureOnHit_Amount")
         return var or self.part_TemperatureOnHit_Amount
 
     @cached_property
     def temponhitmax(self) -> int | None:
         """Temperature change effect does not occur if target has already reached MaxTemp."""
-        temp = self.projectile_object('part_TemperatureOnHit_MaxTemp')
+        temp = self.projectile_object("part_TemperatureOnHit_MaxTemp")
         if temp is not None:
             return int(temp)
         temp = self.part_TemperatureOnHit_MaxTemp
@@ -2190,8 +2334,8 @@ class QudObjectProps(QudObject):
         """Returns tier. Returns the Specified tier if it isn't inherited. Else it will return
         the highest value bit (if tinkerable) or its FLOOR(Level/5), if neither of these exist,
         it will return the inherited tier value."""
-        if not self.is_specified('tag_Tier_Value'):
-            if self.is_specified('part_TinkerItem_Bits'):
+        if not self.is_specified("tag_Tier_Value"):
+            if self.is_specified("part_TinkerItem_Bits"):
                 val = self.part_TinkerItem_Bits[-1]
                 if val.isdigit():
                     return int(val)
@@ -2202,7 +2346,7 @@ class QudObjectProps(QudObject):
                     level = int(self.lv)
                 except ValueError:
                     # levels can be very rarely given like "18-29"
-                    level = int(self.lv.split('-')[0])
+                    level = int(self.lv.split("-")[0])
                 return level // 5
         return int_or_none(self.tag_Tier_Value)
 
@@ -2212,37 +2356,39 @@ class QudObjectProps(QudObject):
         tile = self.tile
         if tile is not None and tile.tilecolor_letter is not None:
             val = tile.tilecolor_letter
-            val += tile.detailcolor_letter if tile.detailcolor_letter is not None else ''
+            val += tile.detailcolor_letter if tile.detailcolor_letter is not None else ""
             return val
 
     @cached_property
     def title(self) -> str | None:
         """The display name of the item."""
         val = self.name
-        predefs = {'Wraith-Knight Templar': '&MWraith-Knight Templar of the Binary Honorum',
-                   'TreeSkillsoft': '&YSkillsoft plus',
-                   'SingleSkillsoft1': '&YSkillsoft [&Wlow sp&Y]',
-                   'SingleSkillsoft2': '&YSkillsoft [&Wmedium sp&Y]',
-                   'SingleSkillsoft3': '&YSkillsoft [&Whigh sp&Y]',
-                   'Schemasoft2': '&YSchemasoft [&Wlow-tier&Y]',
-                   'Schemasoft3': '&YSchemasoft [&Wmid-tier&Y]',
-                   'Schemasoft4': '&YSchemasoft [&Whigh-tier&Y]'}
+        predefs = {
+            "Wraith-Knight Templar": "&MWraith-Knight Templar of the Binary Honorum",
+            "TreeSkillsoft": "&YSkillsoft plus",
+            "SingleSkillsoft1": "&YSkillsoft [&Wlow sp&Y]",
+            "SingleSkillsoft2": "&YSkillsoft [&Wmedium sp&Y]",
+            "SingleSkillsoft3": "&YSkillsoft [&Whigh sp&Y]",
+            "Schemasoft2": "&YSchemasoft [&Wlow-tier&Y]",
+            "Schemasoft3": "&YSchemasoft [&Wmid-tier&Y]",
+            "Schemasoft4": "&YSchemasoft [&Whigh-tier&Y]",
+        }
         if self.name in predefs:
             val = predefs[self.name]
         elif self.builder_GoatfolkHero1_ForceName:
             val = self.builder_GoatfolkHero1_ForceName  # for Mamon
         elif self.part_Render_DisplayName:
             val = self.part_Render_DisplayName
-        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == '1':
+        if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1":
             name_prefix = self.part_Roboticized_NamePrefix
-            name_prefix = '{{c|mechanical}}' if not name_prefix else name_prefix
-            val = f'{name_prefix} {val}'
+            name_prefix = "{{c|mechanical}}" if not name_prefix else name_prefix
+            val = f"{name_prefix} {val}"
         return val
 
     @cached_property
     def tohit(self) -> int | None:
         """The bonus or penalty to hit."""
-        if self.inherits_from('Armor'):
+        if self.inherits_from("Armor"):
             return int_or_none(self.part_Armor_ToHit)
         if self.is_melee_weapon():
             return int_or_none(self.part_MeleeWeapon_HitBonus)
@@ -2250,12 +2396,12 @@ class QudObjectProps(QudObject):
     @cached_property
     def toughness(self) -> str | None:
         """The toughness the mutation affects, or the toughness of the creature."""
-        return self.attribute_helper('Toughness')
+        return self.attribute_helper("Toughness")
 
     @cached_property
     def toughnessmult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic toughness, if specified."""
-        return self.attribute_boost_factor('Toughness')
+        return self.attribute_boost_factor("Toughness")
 
     @cached_property
     def toughnessextrinsic(self) -> int | None:
@@ -2263,14 +2409,14 @@ class QudObjectProps(QudObject):
         if self.active_or_inactive_character() == ACTIVE_CHAR:
             if self.mutation:
                 for mutation, info in self.mutation.items():
-                    if mutation == 'HeightenedToughness':
-                        return (int(info['Level']) - 1) // 2 + 2
+                    if mutation == "HeightenedToughness":
+                        return (int(info["Level"]) - 1) // 2 + 2
 
     @cached_property
     def twohanded(self) -> bool | None:
         """Whether this is a two-handed item."""
-        if self.inherits_from('MeleeWeapon') or self.inherits_from('MissileWeapon'):
-            if self.tag_UsesSlots and self.tag_UsesSlots != 'Hand':
+        if self.inherits_from("MeleeWeapon") or self.inherits_from("MissileWeapon"):
+            if self.tag_UsesSlots and self.tag_UsesSlots != "Hand":
                 return None  # exclude things like Slugsnout Snout
             if self.part_Physics_bUsesTwoSlots or self.part_Physics_UsesTwoSlots:
                 return True
@@ -2291,8 +2437,8 @@ class QudObjectProps(QudObject):
             understanding = self.part_Examiner_Understanding
             if understanding is None or int(understanding) < complexity:
                 unknown_name = self.part_Examiner_UnknownDisplayName
-                unknown_name = 'weird artifact' if unknown_name is None else unknown_name
-                if unknown_name != '*med':
+                unknown_name = "weird artifact" if unknown_name is None else unknown_name
+                if unknown_name != "*med":
                     return unknown_name
 
     @cached_property
@@ -2303,8 +2449,8 @@ class QudObjectProps(QudObject):
             understanding = self.part_Examiner_Understanding
             if understanding is None or int(understanding) < complexity:
                 alt_name = self.part_Examiner_AlternateDisplayName
-                alt_name = 'device' if alt_name is None else alt_name
-                if alt_name != '*med':
+                alt_name = "device" if alt_name is None else alt_name
+                if alt_name != "*med":
                     return alt_name
 
     @cached_property
@@ -2329,33 +2475,33 @@ class QudObjectProps(QudObject):
         Example: Portable Beehive returns ["Back", "Floating Nearby"].
         """
         if self.tag_UsesSlots_Value is not None:
-            return self.tag_UsesSlots_Value.split(',')
+            return self.tag_UsesSlots_Value.split(",")
 
     @cached_property
     def vibro(self) -> bool | None:
         """Whether this is a vibro weapon."""
         # if self.is_specified('part_ThrownWeapon'):
-        if self.is_specified('part_GeomagneticDisc'):
+        if self.is_specified("part_GeomagneticDisc"):
             return True
-        elif self.is_specified('part_MissileWeapon'):
-            attributes = self.projectile_object('part_Projectile_Attributes')
+        elif self.is_specified("part_MissileWeapon"):
+            attributes = self.projectile_object("part_Projectile_Attributes")
             if attributes is not None:
-                if 'Vorpal' in attributes.split(' '):
+                if "Vorpal" in attributes.split(" "):
                     return True
-        elif self.inherits_from('MeleeWeapon') or self.inherits_from('NaturalWeapon'):
+        elif self.inherits_from("MeleeWeapon") or self.inherits_from("NaturalWeapon"):
             if self.part_VibroWeapon:
                 return True
 
     @cached_property
     def waterritualable(self) -> bool | None:
         """Whether the creature is waterritualable."""
-        if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
+        if self.is_specified("xtag_WaterRitual") or self.part_GivesRep is not None:
             return True
 
     @cached_property
     def waterritualskill(self) -> str | None:
         """What skill that individual teaches, if they have any."""
-        if self.is_specified('xtag_WaterRitual') or self.part_GivesRep is not None:
+        if self.is_specified("xtag_WaterRitual") or self.part_GivesRep is not None:
             return self.xtag_WaterRitual_SellSkill
 
     @cached_property
@@ -2364,37 +2510,40 @@ class QudObjectProps(QudObject):
         val = None
         if self.is_melee_weapon():
             val = self.part_MeleeWeapon_Skill
-        if self.inherits_from('MissileWeapon'):
+        if self.inherits_from("MissileWeapon"):
             if self.part_MissileWeapon_Skill is not None:
                 val = self.part_MissileWeapon_Skill
         if self.part_Gaslight:
             val = self.part_Gaslight_ChargedSkill
         # disqualify various things from showing the 'cudgel' skill:
-        if self.inherits_from('Projectile'):
+        if self.inherits_from("Projectile"):
             val = None
-        if self.inherits_from('Shield'):
-            val = 'Shield'
+        if self.inherits_from("Shield"):
+            val = "Shield"
         return val
 
     @cached_property
     def weight(self) -> int | None:
         """The weight of the object."""
-        if self.inherits_from('InertObject') or self.inherits_from('CosmeticObject') or \
-                (self.part_Physics_IsReal is not None and self.part_Physics_IsReal == 'false') or \
-                self.tag_IgnoresGravity is not None or \
-                self.tag_ExcavatoryTerrainFeature is not None:
+        if (
+            self.inherits_from("InertObject")
+            or self.inherits_from("CosmeticObject")
+            or (self.part_Physics_IsReal is not None and self.part_Physics_IsReal == "false")
+            or self.tag_IgnoresGravity is not None
+            or self.tag_ExcavatoryTerrainFeature is not None
+        ):
             return None
         return int_or_none(self.part_Physics_Weight)
 
     @cached_property
     def willpower(self) -> str | None:
         """The willpower the mutation affects, or the willpower of the creature."""
-        return self.attribute_helper('Willpower')
+        return self.attribute_helper("Willpower")
 
     @cached_property
     def willpowermult(self) -> float | None:
         """The stat Bonus multiplier for intrinsic willpower, if specified."""
-        return self.attribute_boost_factor('Willpower')
+        return self.attribute_boost_factor("Willpower")
 
     @cached_property
     def willpowerextrinsic(self) -> int | None:
@@ -2411,8 +2560,8 @@ class QudObjectProps(QudObject):
             wornon = self.part_Shield_WornOn
         if self.part_Armor_WornOn:
             wornon = self.part_Armor_WornOn
-        if self.name == 'Hooks':
-            wornon = 'Feet'  # manual fix
+        if self.name == "Hooks":
+            wornon = "Feet"  # manual fix
         return wornon
 
     @cached_property
@@ -2426,21 +2575,21 @@ class QudObjectProps(QudObject):
             level = None
         if level is None:
             return None
-        xp_value = getattr(self, 'stat_XPValue_sValue')
+        xp_value = getattr(self, "stat_XPValue_sValue")
         if not xp_value:
-            xp_value = getattr(self, 'stat_XPValue_Value')
+            xp_value = getattr(self, "stat_XPValue_Value")
         if not xp_value:
             return None
         xp = xp_value
-        if xp == '*XP':
+        if xp == "*XP":
             role = self.role
-            role = 'Minion' if role is None else role
+            role = "Minion" if role is None else role
             match role:
-                case 'Minion':
+                case "Minion":
                     xp = level * 10
-                case 'Leader':
+                case "Leader":
                     xp = level * 50
-                case 'Hero':
+                case "Hero":
                     xp = level * 100
                 case _:
                     xp = level * 25

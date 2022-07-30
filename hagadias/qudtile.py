@@ -12,8 +12,8 @@ from hagadias.constants import QUD_COLORS
 TILE_COLOR = (0, 0, 0, 255)
 DETAIL_COLOR = (255, 255, 255, 255)
 
-tiles_dir = Path('Textures').resolve(strict=True)
-blank_image = Image.new('RGBA', (16, 24), color=(0, 0, 0, 0))
+tiles_dir = Path("Textures").resolve(strict=True)
+blank_image = Image.new("RGBA", (16, 24), color=(0, 0, 0, 0))
 # index keys are like "creatures/caste_flipped_22.bmp" as in XML
 image_cache = {}
 
@@ -21,9 +21,9 @@ image_cache = {}
 def fix_filename(filename: str) -> str:
     """Return repaired versions of certain broken filenames."""
     # repair bad access paths
-    if filename.lower().startswith('assets_content_textures'):
+    if filename.lower().startswith("assets_content_textures"):
         filename = filename[24:]
-        filename = filename.replace('_', '/', 1)
+        filename = filename.replace("_", "/", 1)
     # repair lowercase first letter for case-sensitive operating systems (Linux)
     filename = filename[0].upper() + filename[1:]
     return filename
@@ -31,7 +31,7 @@ def fix_filename(filename: str) -> str:
 
 def check_filename(filename: str):
     """Inspect filenames for potential bad input from a network user."""
-    if filename.startswith('/') or filename.startswith('\\') or '..' in filename:
+    if filename.startswith("/") or filename.startswith("\\") or ".." in filename:
         raise PermissionError
 
 
@@ -44,9 +44,11 @@ def check_filepath(filepath: Path) -> Path:
         # Might be a case insensitive issue due to being on a POSIX-like machine
         parent_dir = filepath.parent.resolve(strict=True)
         tile_name = filepath.name.lower()
-        matched = [path.resolve(strict=True)
-                   for path in parent_dir.iterdir()
-                   if path.name.lower() == tile_name]
+        matched = [
+            path.resolve(strict=True)
+            for path in parent_dir.iterdir()
+            if path.name.lower() == tile_name
+        ]
 
         if len(matched) == 1:
             resolved = matched[0]
@@ -58,7 +60,7 @@ def check_filepath(filepath: Path) -> Path:
         if parent == tiles_dir:
             target_in_tiles_dir = True
     if not target_in_tiles_dir:
-        raise PermissionError(f'File not in tiles directory: {resolved}')
+        raise PermissionError(f"File not in tiles directory: {resolved}")
     return resolved
 
 
@@ -68,8 +70,17 @@ class QudTile:
     # Note: See info dump on tile rendering at
     # https://discordapp.com/channels/214532333900922882/482714670860468234/762827742424465411
 
-    def __init__(self, filename, colorstring, raw_tilecolor, raw_detailcolor, qudname,
-                 raw_transparent="transparent", image_provider=None, prefab_applicator=None):
+    def __init__(
+        self,
+        filename,
+        colorstring,
+        raw_tilecolor,
+        raw_detailcolor,
+        qudname,
+        raw_transparent="transparent",
+        image_provider=None,
+        prefab_applicator=None,
+    ):
         """Loads and colors a tile, creating the corresponding PIL Image object.
 
         Args:
@@ -98,30 +109,30 @@ class QudTile:
 
         if (raw_tilecolor is None or raw_tilecolor == "") and colorstring is not None:
             raw_tilecolor = colorstring  # fall back to text mode color
-            if '^' in colorstring:
-                raw_tilecolor = colorstring.split('^')[0]
-                raw_transparent = colorstring.split('^')[1]
+            if "^" in colorstring:
+                raw_tilecolor = colorstring.split("^")[0]
+                raw_transparent = colorstring.split("^")[1]
 
         if not raw_tilecolor:
-            self.tilecolor = QUD_COLORS['y']  # render in white
-            self.tilecolor_letter = 'y'
+            self.tilecolor = QUD_COLORS["y"]  # render in white
+            self.tilecolor_letter = "y"
             self.transparentcolor = QUD_COLORS[raw_transparent]
         else:
-            if '^' in raw_tilecolor:
-                raw_transparent = raw_tilecolor.split('^')[1]
-                raw_tilecolor = raw_tilecolor.split('^')[0]
-            raw_tilecolor = raw_tilecolor.strip('&')
+            if "^" in raw_tilecolor:
+                raw_transparent = raw_tilecolor.split("^")[1]
+                raw_tilecolor = raw_tilecolor.split("^")[0]
+            raw_tilecolor = raw_tilecolor.strip("&")
             self.tilecolor = QUD_COLORS[raw_tilecolor]
             self.tilecolor_letter = raw_tilecolor
             self.transparentcolor = QUD_COLORS[raw_transparent]
-        self.transparentcolor_letter = raw_transparent if raw_transparent != 'transparent' else None
+        self.transparentcolor_letter = raw_transparent if raw_transparent != "transparent" else None
         if not raw_detailcolor:
-            if raw_detailcolor == '':
+            if raw_detailcolor == "":
                 pass  # logging.warning(f'Object "{self.qudname}" has empty DetailColor')
-            self.detailcolor = QUD_COLORS['transparent']
+            self.detailcolor = QUD_COLORS["transparent"]
             self.detailcolor_letter = None
         else:
-            raw_detailcolor = raw_detailcolor.strip('&')
+            raw_detailcolor = raw_detailcolor.strip("&")
             self.detailcolor = QUD_COLORS[raw_detailcolor]
             self.detailcolor_letter = raw_detailcolor
         if image_provider is not None:
@@ -145,8 +156,10 @@ class QudTile:
                     image_cache[self.filename] = self.image.copy()
                     self._color_image()
                 except FileNotFoundError:
-                    logging.warning(f'Couldn\'t render tile for {self.qudname}: ' +
-                                    f'{self.filename} not found at {fullpath}')
+                    logging.warning(
+                        f"Couldn't render tile for {self.qudname}: "
+                        + f"{self.filename} not found at {fullpath}"
+                    )
                     self.hasproblems = True
                     self.image = blank_image
 
@@ -158,7 +171,7 @@ class QudTile:
         return cls(None, None, None, None, qudname, image_provider=image_provider)
 
     def _color_image(self):
-        skip_trans = True if self.transparentcolor == QUD_COLORS['transparent'] else False
+        skip_trans = True if self.transparentcolor == QUD_COLORS["transparent"] else False
         alphas = self.image.getdata(3)  # A (alpha channel only)
         pixels = self.image.getdata()  # RGBA (all four channels as a tuple)
         width = self.image.width
@@ -193,7 +206,7 @@ class QudTile:
         Some applications may require .seek(0) on this before use (discord.py does,
         mwclient does not.)"""
         png_b = io.BytesIO()
-        self.image.save(png_b, format='png')
+        self.image.save(png_b, format="png")
         return png_b
 
     def get_bytes(self):
@@ -216,7 +229,7 @@ class QudTile:
         Some applications may require .seek(0) on this before use (discord.py does,
         mwclient does not.)"""
         png_b = io.BytesIO()
-        self.get_big_image().save(png_b, format='png')
+        self.get_big_image().save(png_b, format="png")
         return png_b
 
     def get_big_bytes(self):
@@ -264,7 +277,8 @@ class StandInTiles:
     Methods in this class can either return an uncolored tile image constructed from only black and
     transparent pixels, suitable to be colored by QudTile, or can return a pre-colored image.
     """
-    FONT_SOURCECODEPRO = ImageFont.truetype('helpers/SourceCodePro-Semibold.ttf', 260)
+
+    FONT_SOURCECODEPRO = ImageFont.truetype("helpers/SourceCodePro-Semibold.ttf", 260)
 
     _hologram_material_glyph1: Image = None
     _hologram_material_glyph2: Image = None
@@ -284,9 +298,9 @@ class StandInTiles:
 
         We could consider loading this from config eventually, but I doubt there will be many things
         that use it."""
-        if getattr(qud_object, 'part_Gas') is not None:
+        if getattr(qud_object, "part_Gas") is not None:
             return TileProvider(StandInTiles.gas_glyph1)
-        elif getattr(qud_object, 'part_SpaceTimeVortex') is not None:
+        elif getattr(qud_object, "part_SpaceTimeVortex") is not None:
             return TileProvider(StandInTiles.spacetime_vortex_glyph1)
         return None
 
@@ -304,10 +318,11 @@ class StandInTiles:
                    which will be present in any font-based character tile created by this method.
         """
         # draw large and then shrink with bicubic sampling to better imitate the in-game look
-        image = Image.new('RGBA', (160, 240), color=QUD_COLORS['transparent' if trans else 'k'])
+        image = Image.new("RGBA", (160, 240), color=QUD_COLORS["transparent" if trans else "k"])
         draw = ImageDraw.Draw(image)
-        draw.text((0, -60), displaychar, font=StandInTiles.FONT_SOURCECODEPRO,
-                  fill=QUD_COLORS[color])
+        draw.text(
+            (0, -60), displaychar, font=StandInTiles.FONT_SOURCECODEPRO, fill=QUD_COLORS[color]
+        )
         return image.resize((16, 24))
 
     @staticmethod
@@ -315,7 +330,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  §  character, which is used by SpaceTimeVortex
         animations. Also returns 'False' to indicate no further coloration is needed."""
         if StandInTiles._spacetime_vortex_glyph1 is None:
-            StandInTiles._spacetime_vortex_glyph1 = StandInTiles.make_font_glyph('§', 'W', True)
+            StandInTiles._spacetime_vortex_glyph1 = StandInTiles.make_font_glyph("§", "W", True)
         return StandInTiles._spacetime_vortex_glyph1, False
 
     @staticmethod
@@ -323,7 +338,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  |  character, which is used by
         HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors."""
         if StandInTiles._hologram_material_glyph1 is None:
-            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
             draw.rectangle([7, 1, 8, image.height - 1], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph1 = image
@@ -334,7 +349,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  _  character, which is used by
         HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors."""
         if StandInTiles._hologram_material_glyph2 is None:
-            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
             draw.rectangle([1, 21, image.width - 1, 22], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph2 = image
@@ -345,7 +360,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  -  character, which is used by
         HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors."""
         if StandInTiles._hologram_material_glyph3 is None:
-            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
             draw.rectangle([2, 11, 13, 12], outline=TILE_COLOR)
             StandInTiles._hologram_material_glyph3 = image
@@ -356,7 +371,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  ░  character, which is used by Gas
         animations. Also returns 'True' to indicate QudTile should apply colors."""
         if StandInTiles._gas_glyph1 is None:
-            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
             for y in range(0, image.height, 6):
                 for x in range(4, image.width, 6):
@@ -375,7 +390,7 @@ class StandInTiles:
         """Creates a PIL Image representation of the  ▒  character, which is used by Gas
         animations. Also returns 'True' to indicate QudTile should apply colors."""
         if StandInTiles._gas_glyph2 is None:
-            image = Image.new('RGBA', (16, 24), color=QUD_COLORS['transparent'])
+            image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
             for y in range(0, image.height, 4):
                 for x in range(0, image.width, 4):
@@ -391,17 +406,17 @@ class StandInTiles:
         """Creates a PIL Image representation of the  ▓  character, which is used by Gas
         animations. Also returns 'True' to indicate QudTile should apply colors."""
         if StandInTiles._gas_glyph3 is None:
-            image = Image.new('RGBA', (16, 24), color=TILE_COLOR)
+            image = Image.new("RGBA", (16, 24), color=TILE_COLOR)
             draw = ImageDraw.Draw(image)
             for y in range(0, image.height, 8):
                 for x in range(6, image.width, 8):
-                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS['transparent'])
+                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS["transparent"])
             for y in range(2, image.height, 4):
                 for x in range(0, image.width, 4):
-                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS['transparent'])
+                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS["transparent"])
             for y in range(4, image.height, 8):
                 for x in range(2, image.width, 8):
-                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS['transparent'])
+                    draw.rectangle([x, y, x + 1, y + 1], outline=QUD_COLORS["transparent"])
             StandInTiles._gas_glyph3 = image
         return StandInTiles._gas_glyph3, True
 
@@ -410,6 +425,6 @@ class StandInTiles:
         """Creates a PIL Image representation of the  █  character, which is used by Gas
         animations. Also returns 'True' to indicate QudTile should apply colors."""
         if StandInTiles._gas_glyph4 is None:
-            image = Image.new('RGBA', (16, 24), color=TILE_COLOR)
+            image = Image.new("RGBA", (16, 24), color=TILE_COLOR)
             StandInTiles._gas_glyph4 = image
         return StandInTiles._gas_glyph4, True
