@@ -7,7 +7,7 @@ trigger:
 - main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'python3.10'
 
 steps:
 - task: UsePythonVersion@0
@@ -15,11 +15,11 @@ steps:
     versionSpec: '3.10'
 
 - script: |
-    python -m pip install --upgrade pip
-    python -m pip install pipenv
-    pipenv install --dev
+    python3.10 -m pip install --user poetry
+    python3.10 -m poetry install --dev
   displayName: 'Install project dependencies'
 
 - script: |
-    pipenv run lint
+    python3.10 -m flake8
+    python3.10 -m black --check --line-length 100 .
   displayName: 'Lint the project'

@@ -20,7 +20,7 @@ python3.10 -m pip install --user poetry
 python3.10 -m poetry install --dev
 ```
 On Windows:
-```bat
+```
 py -3.10 -m pip install --user poetry
 py -3.10 -m poetry install --dev
 ```
@@ -61,5 +61,7 @@ poetry run python -m pytest
 
 # Pull requests
 
-Pull requests are welcome. Please run `black --line-length 100`, `flake8` and `pytest` to ensure that your code will
-pass the automatic tests first.
+Pull requests are welcome. Please do some checks on your code first:
+- Run the included tests with the instructions from the "Running tests" section above. These cannot be run 
+automatically on GitHub because they need a copy of the game.
+- Run `black --line-length 100 .` and `flake8` to ensure that your code will pass the automatic tests first.
