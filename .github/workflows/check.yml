@@ -18,8 +18,8 @@ jobs:
       - name: Install dependencies using poetry
         run: |
           pip install poetry
-          python -m poetry install
+          poetry install
       - name: Lint code with flake8
-        run: python -m flake8
+        run: poetry run flake8
       - name: Lint code with black
-        run: python -m black --check --line-length 100 .
+        run: poetry run black --check --line-length 100 .
