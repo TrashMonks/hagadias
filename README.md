@@ -1,19 +1,24 @@
 [![Build Status](https://dev.azure.com/syntaxaire/hagadias-ci/_apis/build/status/TrashMonks.hagadias?branchName=master)](https://dev.azure.com/syntaxaire/hagadias-ci/_build/latest?definitionId=1&branchName=master)
+
 # hagadias
-Python package to extract game data from the [Caves of Qud](http://www.cavesofqud.com/) roguelike.  
+
+Python package to extract game data from the [Caves of Qud](http://www.cavesofqud.com/) roguelike.
 
 This library forms the base for several projects:
- - the Caves of Qud wiki bot that builds and updates the [official Caves of Qud wiki](https://wiki.cavesofqud.com/)
- - the Discord bot that operates on the [Caves of Qud discord server](https://discordapp.com/invite/cavesofqud) (invite link)
- - an as yet unannounced project :)
+
+- the Caves of Qud wiki bot that builds and updates the [official Caves of Qud wiki](https://wiki.cavesofqud.com/)
+- the Discord bot that operates on the [Caves of Qud discord server](https://discordapp.com/invite/cavesofqud) (invite
+  link)
+- an as yet unannounced project :)
 
 ## What does it do?
+
 hagadias allows a user to read game data in the raw format used by the
-[Caves of Qud](http://www.cavesofqud.com/) roguelike RPG, including the object tree,
-fully colored tiles, and character data. It needs to be passed a path to a local
-installation of the game in order to do anything.
+[Caves of Qud](http://www.cavesofqud.com/) roguelike RPG, including the object tree, fully colored tiles, and character
+data. It needs to be passed a path to a local installation of the game in order to do anything.
 
 ## Installation
+
 hagadias requires Python 3.10.
 
 To install the package from this GitHub repository, run  
@@ -22,11 +27,13 @@ or if you're using pipenv,
 `pipenv install -e git+https://github.com/trashmonks/hagadias.git@main#egg=hagadias`
 
 ## Tile support
-Tile support requires the texture files from Caves of Qud to be unpacked into a "Textures" directory
-under the working directory. You can use the provided [Brinedump](https://github.com/TrashMonks/brinedump)
+
+Tile support requires the texture files from Caves of Qud to be unpacked into a "Textures" directory under the working
+directory. You can use the provided [Brinedump](https://github.com/TrashMonks/brinedump)
 mod to export these textures from within the game.
 
 ## Usage examples
+
 ```
 >>> from hagadias.gameroot import GameRoot
 >>> GAMEPATH = r'C:\Steam\steamapps\common\Caves of Qud'  # Windows
@@ -103,4 +110,16 @@ Building Qud object hierarchy and adding tiles...
 ```
 
 ## Contributing
+
 See `CONTRIBUTING.md`.
+
+## Contributors
+
+The following people have contributed code to this project:
+
+- egocarib
+- Wreckstation
+- librarianmage
+- HeladoDeBrownie
+- elvres
+- robbyblum
