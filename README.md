@@ -21,10 +21,12 @@ data. It needs to be passed a path to a local installation of the game in order 
 
 hagadias requires Python 3.10.
 
-To install the package from this GitHub repository, run  
+To install the package from this GitHub repository without a package manager, run  
 `pip install git+https://github.com/trashmonks/hagadias@main#egg=hagadias`  
-or if you're using pipenv,  
+If you're using pipenv to manage dependencies,  
 `pipenv install -e git+https://github.com/trashmonks/hagadias.git@main#egg=hagadias`
+If you're using Poetry to manage dependencies,
+`poetry add git+https://github.com/trashmonks/hagadias#main`
 
 ## Tile support
 

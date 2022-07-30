@@ -14,9 +14,15 @@ This project uses the Code of Conduct available in the file `CODE_OF_CONDUCT.md`
 To develop on this project, have Python 3.10 installed on your system, then `git clone`
 the repo to your hard drive and set up a virtual environment from the repo directory:
 
+On Linux:
 ```bash
-python -m pip install --user poetry
-poetry install --dev
+python3.10 -m pip install --user poetry
+python3.10 -m poetry install --dev
+```
+On Windows:
+```bat
+py -3.10 -m pip install --user poetry
+py -3.10 -m poetry install --dev
 ```
 
 ## Using a local hagadias in a virtual environment
