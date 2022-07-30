@@ -1,0 +1,12 @@
+name: Check dependencies and lint
+on: [push]
+jobs:
+  Install-Deps-Lint-Code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+      - run: python3.10 -m pip install --user poetry
+      - run: python3.10 -m poetry install --dev
+      - name: Lint code
+      - run: python3.10 -m flake8
+      - run: python3.10 -m black --check --line-length 100 .
