@@ -2,13 +2,11 @@
 Load Caves of Qud game data from gamefiles.
 We're mostly interested in the two-character codes that map to specific implants and mutations.
 """
-import sys
 from pathlib import Path
 
-# Force Python XML parser:
-sys.modules["_elementtree"] = None
-from xml.etree import ElementTree as ET  # noqa E402
+from lxml import etree as et
 
+no_comments_parser = et.XMLParser(remove_comments=True)
 STAT_NAMES = ("Strength", "Agility", "Toughness", "Intelligence", "Willpower", "Ego")
 # these are not available from XML:
 IMPLANT_CODES = {
@@ -51,10 +49,10 @@ def read_gamedata(xmlroot: Path) -> dict:
         xmlroot: the game data path of the CoQ executable, containing the XML files
     """
 
-    geno = ET.parse(xmlroot / "Genotypes.xml").getroot()
-    skills = ET.parse(xmlroot / "Skills.xml").getroot()
-    subtypes = ET.parse(xmlroot / "Subtypes.xml").getroot()
-    mutations = ET.parse(xmlroot / "Mutations.xml").getroot()
+    geno = et.parse(xmlroot / "Genotypes.xml", parser=no_comments_parser).getroot()
+    skills = et.parse(xmlroot / "Skills.xml", parser=no_comments_parser).getroot()
+    subtypes = et.parse(xmlroot / "Subtypes.xml", parser=no_comments_parser).getroot()
+    mutations = et.parse(xmlroot / "Mutations.xml", parser=no_comments_parser).getroot()
 
     # Read genotypes: currently, only two (mutated human and true kin)
     genotype_codes = {}
