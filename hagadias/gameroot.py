@@ -1,5 +1,4 @@
 """Functionality for loading the Qud game data from various game files."""
-
 import logging
 import time
 from pathlib import Path
@@ -9,6 +8,8 @@ from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, 
 from hagadias.qudobject_props import QudObjectProps
 from hagadias.qudpopulation import QudPopulation
 from lxml import etree as et
+
+log = logging.getLogger(__name__)
 
 
 class GameRoot:
@@ -76,21 +77,21 @@ class GameRoot:
         path = self._xmlroot / "ObjectBlueprints"
         qindex = {}  # fast lookup of name->QudObject
         for blueprint_file in path.glob("*.xml"):
-            logging.info(f"Loading {blueprint_file.stem} object blueprints:")
+            log.info(f"Loading {blueprint_file.stem} object blueprints:")
             with blueprint_file.open("r", encoding="utf-8") as f:
                 contents = f.read()
 
             # Do some repair of invalid XML specifically for ObjectBlueprints files: First,
             # replace some invalid control characters intended for CP437 with their Unicode equiv
             start = time.time()
-            logging.info("Repairing invalid XML characters... ")
+            log.debug("Repairing invalid XML characters... ")
             contents = repair_invalid_chars(contents)
-            logging.info(f"done in {time.time() - start:.2f} seconds")
+            log.debug(f"done in {time.time() - start:.2f} seconds")
             # Second, replace line breaks inside attributes with proper XML line breaks
             start = time.time()
-            logging.info("Repairing invalid XML line breaks... ")
+            log.debug("Repairing invalid XML line breaks... ")
             contents = repair_invalid_linebreaks(contents)
-            logging.info(f"done in {time.time() - start:.2f} seconds")
+            log.debug(f"done in {time.time() - start:.2f} seconds")
             raw = et.fromstring(contents)
             # Objects must receive the qindex and add themselves, rather than doing it here, because
             # they need access to their parent by name lookup during creation for inheritance
@@ -103,7 +104,7 @@ class GameRoot:
                 cls(element, qindex, self)
 
         # second pass - resolve object inheritance
-        logging.info("Resolving Qud object hierarchy and adding tiles...")
+        log.debug("Resolving Qud object hierarchy and adding tiles...")
         for object_id, qud_object in qindex.items():
             qud_object.resolve_inheritance()
 

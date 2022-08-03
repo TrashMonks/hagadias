@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 from functools import cached_property
 from typing import Tuple, List
@@ -37,6 +38,7 @@ from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
 from hagadias.svalue import sValue
 
+log = logging.getLogger(__name__)
 # STATIC GROUPS
 # Many combat properties can come from anything that inherits from either of these.
 # Use For: self.active_or_inactive_character() == ACTIVE_CHAR
@@ -330,9 +332,9 @@ class QudObjectProps(QudObject):
             try:
                 av = int(self.stat_AV_Value)  # first, creature's intrinsic AV
             except TypeError:
-                print(
-                    f'FIXME: "{self.name}" has no AV value (probably shouldn\'t be considered'
-                    + " an inactive character)?"
+                log.error(
+                    "%s has no AV value (probably shouldn't be considered an inactive character?)",
+                    self.name,
                 )
                 return None
             applied_body_av = False
@@ -394,7 +396,7 @@ class QudObjectProps(QudObject):
         if butcher_obj:
             if butcher_obj[:1] == "@":
                 if butcher_obj[1:] not in BUTCHERABLE_POPTABLES:
-                    print(f"FIXME: Butcherable poptable {butcher_obj} not recognized.")
+                    log.error("Butcherable poptable %s not recognized.", butcher_obj)
                 else:
                     outcomes = []
                     for butcherable, info in BUTCHERABLE_POPTABLES[butcher_obj[1:]].items():
@@ -404,7 +406,7 @@ class QudObjectProps(QudObject):
 
     @cached_property
     def canbuild(self) -> bool | None:
-        """Whether or not the player can tinker up this item."""
+        """Whether the player can tinker up this item."""
         if self.part_TinkerItem_CanBuild == "true":
             return True
         elif self.part_TinkerItem_CanDisassemble == "true":
@@ -412,7 +414,7 @@ class QudObjectProps(QudObject):
 
     @cached_property
     def candisassemble(self) -> bool | None:
-        """Whether or not the player can disassemble this item."""
+        """Whether the player can disassemble this item."""
         if self.part_TinkerItem_CanDisassemble == "true":
             return True
         elif self.part_TinkerItem_CanBuild == "true":
@@ -497,14 +499,9 @@ class QudObjectProps(QudObject):
                     + f"Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]"
                 )
             if part == "ForceProjector":
-                return (
-                    "Basic Operation ["
-                    + str_or_default(self.part_ForceProjector_BaseOperatingCharge, "1")
-                    + "], "
-                    + "Per-Tile Projection ["
-                    + str_or_default(self.part_ForceProjector_ChargePerProjection, "90")
-                    + "]"
-                )
+                basic = str_or_default(self.part_ForceProjector_BaseOperatingCharge, "1")
+                projection = str_or_default(self.part_ForceProjector_ChargePerProjection, "90")
+                return f"Basic Operation [{basic}], Per-Tile Projection [{projection}]"
             chg = getattr(self, f"part_{part}_ChargeUse")
             if chg is not None and int(chg) > 0:
                 match part:
@@ -1461,12 +1458,12 @@ class QudObjectProps(QudObject):
                     faction, value = part.split("-")
                     ret.append((faction, int(value)))
                 else:
-                    print(f"FIXME: unexpected faction format: {part} in {self.name}")
+                    log.error("Unexpected faction format: %s in %s", part, self.name)
         return ret
 
     @cached_property
     def flametemperature(self) -> int | None:
-        """The temperature that this object sets on fire. Only for items."""
+        """The temperature at which this object ignites. Only for items."""
         if self.inherits_from("Item") and self.is_specified("part_Physics"):
             return int_or_none(self.part_Physics_FlameTemperature)
 

@@ -3,11 +3,14 @@
 # Cherubim description templates
 CHERUBIM_DESC = "Gallium veins press against the underside of =pronouns.possessive= crystalline *skin* and gleam warmly. =pronouns.Possessive= body is perfect, and the whole of it is wet with amniotic slick; could =pronouns.subjective= have just now peeled =pronouns.reflexive= off an oil canvas? =verb:Were:afterpronoun= =pronouns.subjective= cast into the material realm by a dreaming, dripping brain? Whatever the embryo, =pronouns.subjective= =verb:are:afterpronoun= now the archetypal *creatureType*; it's all there in impeccable simulacrum: *features*. Perfection is realized."  # noqa E501
 MECHANICAL_CHERUBIM_DESC = "Dials tick and vacuum tubes mantle under synthetic *skin* and inside plastic joints. *features* are wrought from a vast and furcate machinery into the ideal form of the *creatureType*. By the artistry of =pronouns.possessive= construction, =pronouns.subjective= closely =verb:resemble:afterpronoun= =pronouns.possessive= referent, but an exposed cog here and an exhaust valve there betray the truth of =pronouns.possessive= nature. =pronouns.Possessive= movements are short and mimetic; =pronouns.subjective= =verb:inhabit:afterpronoun= the valley between the mountains of life and imagination."  # noqa E501
-
 # BIT_TRANS: convert between the bit codes found in XML and the ones shown ingame.
-bit_table = {"G": "B", "R": "A", "C": "D", "B": "C"}
+bit_table = {
+    "G": "B",
+    "R": "A",
+    "C": "D",
+    "B": "C",
+}
 BIT_TRANS = "".maketrans(bit_table)
-
 # ITEM_MOD_PROPS: difficulty and complexity changes when a mod is applied to an item
 # ifcomplex means the change only applies if the item already has complexity > 0
 # these values live in code, usually in ApplyModification() method of the Mod's .cs file
@@ -89,7 +92,6 @@ ITEM_MOD_PROPS = {
     "ModSturdy": {"complexity": 0, "difficulty": 0, "ifcomplex": False, "prefix": "sturdy "},
     "ModWired": {"complexity": 0, "difficulty": 1, "ifcomplex": True, "prefix": "&cwired &y"},
 }
-
 # This could be loaded from Factions.xml eventually, but for simplicity I'm putting it here for now.
 FACTION_ID_TO_NAME = {
     "Antelopes": "antelopes",
@@ -155,28 +157,27 @@ FACTION_ID_TO_NAME = {
     "Winged Mammals": "winged mammals",
     "Worms": "worms",
 }
-
 CYBERNETICS_HARDCODED_INFIXES = {
     "CyberneticsMedassistModule": "{{c|Current loadout:}}{{y| no injectors}}"
 }
-
+COMPUTE = "Compute power on the local lattice"
+INCREASES = "increases this item's effectiveness"
 CYBERNETICS_HARDCODED_POSTFIXES = {
-    "CyberneticsAnomalyFumigator": "Compute power on the local lattice increases this item's effectiveness.",
-    "CyberneticsCommunicationsInterlock": "Compute power on the local lattice increases this item's effectiveness.",
+    "CyberneticsAnomalyFumigator": f"{COMPUTE} {INCREASES}.",
+    "CyberneticsCommunicationsInterlock": f"{COMPUTE} {INCREASES}.",
     "CyberneticsCustomVisage": "+300 reputation with <chosen faction>",
-    "CyberneticsHighFidelityMatterRecompositer": "Compute power on the local lattice reduces this item's cooldown.",
-    "CyberneticsInflatableAxons": "Compute power on the local lattice increases this item's effectiveness.",
-    "CyberneticsMatterRecompositer": "Compute power on the local lattice reduces this item's cooldown.",
-    "CyberneticsNocturnalApex": "Compute power on the local lattice increases this item's effectiveness.",
-    "CyberneticsOnboardRecoilerTeleporter": "Compute power on the local lattice reduces this item's cooldown.",
-    "CyberneticsCathedraBlackOpal": "Compute power on the local lattice increases this item's effectiveness.",
-    "CyberneticsCathedraRuby": "Compute power on the local lattice increases this item's effectiveness.",
-    "CyberneticsCathedraSapphire": "Compute power on the local lattice increases this item's effectiveness.",
-    "CyberneticsCathedraWhiteOpal": "Compute power on the local lattice increases this item's effectiveness.",
-    "CyberneticsPenetratingRadar": "Compute power on the local lattice increases this item's range.",
-    "CyberneticsStasisProjector": "Compute power on the local lattice increases this item's effectiveness.",
+    "CyberneticsHighFidelityMatterRecompositer": f"{COMPUTE} reduces this item's cooldown.",
+    "CyberneticsInflatableAxons": f"{COMPUTE} {INCREASES}.",
+    "CyberneticsMatterRecompositer": f"{COMPUTE} reduces this item's cooldown.",
+    "CyberneticsNocturnalApex": f"{COMPUTE} {INCREASES}.",
+    "CyberneticsOnboardRecoilerTeleporter": f"{COMPUTE} reduces this item's cooldown.",
+    "CyberneticsCathedraBlackOpal": f"{COMPUTE} {INCREASES}.",
+    "CyberneticsCathedraRuby": f"{COMPUTE} {INCREASES}.",
+    "CyberneticsCathedraSapphire": f"{COMPUTE} {INCREASES}.",
+    "CyberneticsCathedraWhiteOpal": f"{COMPUTE} {INCREASES}.",
+    "CyberneticsPenetratingRadar": f"{COMPUTE} increases this item's range.",
+    "CyberneticsStasisProjector": f"{COMPUTE} {INCREASES}.",
 }
-
 HARDCODED_CHARGE_USE = {
     "Displacer Bracelet": 1,
     "Force Bracelet": 500,
@@ -197,7 +198,6 @@ CHARGE_USE_REASONS = {
     "Stopsvaalinn": "ForceEmitter",
     "Food Processor": "Food Processing",
 }
-
 QUD_COLORS = {
     "r": (166, 74, 46),  # dark red
     "R": (215, 66, 0),  # bright red
@@ -219,9 +219,7 @@ QUD_COLORS = {
     "O": (233, 159, 16),
     "transparent": (15, 64, 63, 0),
 }
-
 QUD_VIRIDIAN = (15, 64, 63, 255)
-
 LIQUID_COLORS = {
     "acid": "&G^g",
     "algae": "&g^C",
@@ -250,7 +248,6 @@ LIQUID_COLORS = {
     "wax": "&y^Y",
     "wine": "&m^r",
 }
-
 STAT_DISPLAY_NAMES = {
     "AcidResistance": "acid resistance",
     "ColdResistance": "cold resistance",
@@ -260,7 +257,6 @@ STAT_DISPLAY_NAMES = {
     "MoveSpeed": "move speed",
     "Speed": "quickness",
 }
-
 # The following includes all parts descending from IActivePart, which defines the IsEMPSensitive and
 # PowerLoadSensitive fields. This holds the hard-coded defaults. These can be overridden in the XML.
 # This list is accurate as of patch 202.84. There are also a few special cases not descending from
@@ -551,7 +547,6 @@ ACTIVE_PARTS = {
     "WalltrapGas": {"IsEMPSensitive": True, "IsPowerLoadSensitive": False},
     "WalltrapShock": {"IsEMPSensitive": True, "IsPowerLoadSensitive": False},
 }
-
 # The 'Butcherable' part can contain a population tables reference if it begins with an '@' symbol.
 # One day, we could potentially replace this if we start loading data from PopulationTables.xml.
 BUTCHERABLE_POPTABLES = {
