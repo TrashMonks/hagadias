@@ -2,6 +2,7 @@ import logging
 import random
 from io import BytesIO
 from typing import List, Callable
+
 from PIL import Image, ImageSequence
 
 from hagadias.helpers import (

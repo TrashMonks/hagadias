@@ -5,11 +5,11 @@ from functools import cached_property
 from typing import Tuple, List
 
 from anytree import NodeMixin
+from lxml import etree
 
 from hagadias.qudtile import QudTile
 from hagadias.tileanimator import TileAnimator, StandInTiles
 from hagadias.tilepainter import TilePainter
-from lxml import etree
 
 
 class QudObject(NodeMixin):

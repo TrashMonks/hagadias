@@ -6,10 +6,10 @@
 # using PIL.Image.save(). This code works around the issue and allows us to properly generate
 # transparent GIFs.
 
-from typing import Tuple, List
 from collections import defaultdict
-from random import randrange
 from itertools import chain
+from random import randrange
+from typing import Tuple, List
 
 from PIL.Image import Image
 

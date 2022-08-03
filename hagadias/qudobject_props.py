@@ -20,6 +20,7 @@ from hagadias.constants import (
     CHERUBIM_DESC,
     MECHANICAL_CHERUBIM_DESC,
 )
+from hagadias.dicebag import DiceBag
 from hagadias.helpers import (
     cp437_to_unicode,
     int_or_none,
@@ -33,9 +34,8 @@ from hagadias.helpers import (
     float_or_none,
     float_or_default,
 )
-from hagadias.qudpopulation import QudPopulation
-from hagadias.dicebag import DiceBag
 from hagadias.qudobject import QudObject
+from hagadias.qudpopulation import QudPopulation
 from hagadias.svalue import sValue
 
 log = logging.getLogger(__name__)

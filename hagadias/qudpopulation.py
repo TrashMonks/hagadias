@@ -1,5 +1,6 @@
 """Classes to represent population data from PopulationTables.xml."""
 from typing import List
+
 from lxml import etree as et
 from lxml.etree import ElementBase
 

@@ -3,11 +3,12 @@ import logging
 import time
 from pathlib import Path
 
+from lxml import etree as et
+
 from hagadias.character_codes import read_gamedata
 from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, repair_invalid_chars
 from hagadias.qudobject_props import QudObjectProps
 from hagadias.qudpopulation import QudPopulation
-from lxml import etree as et
 
 log = logging.getLogger(__name__)
 
