@@ -78,7 +78,7 @@ class GameRoot:
         path = self._xmlroot / "ObjectBlueprints"
         qindex = {}  # fast lookup of name->QudObject
         for blueprint_file in path.glob("*.xml"):
-            log.info(f"Loading {blueprint_file.stem} object blueprints:")
+            log.info("Loading %s object blueprints:", blueprint_file.stem)
             with blueprint_file.open("r", encoding="utf-8") as f:
                 contents = f.read()
 
@@ -87,12 +87,12 @@ class GameRoot:
             start = time.time()
             log.debug("Repairing invalid XML characters... ")
             contents = repair_invalid_chars(contents)
-            log.debug(f"done in {time.time() - start:.2f} seconds")
+            log.debug("done in %.2f seconds", time.time() - start)
             # Second, replace line breaks inside attributes with proper XML line breaks
             start = time.time()
             log.debug("Repairing invalid XML line breaks... ")
             contents = repair_invalid_linebreaks(contents)
-            log.debug(f"done in {time.time() - start:.2f} seconds")
+            log.debug("done in %.2f seconds", time.time() - start)
             raw = et.fromstring(contents)
             # Objects must receive the qindex and add themselves, rather than doing it here, because
             # they need access to their parent by name lookup during creation for inheritance

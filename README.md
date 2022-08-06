@@ -9,7 +9,6 @@ This library forms the base for several projects:
 - the Caves of Qud wiki bot that builds and updates the [official Caves of Qud wiki](https://wiki.cavesofqud.com/)
 - the Discord bot that operates on the [Caves of Qud discord server](https://discordapp.com/invite/cavesofqud) (invite
   link)
-- an as yet unannounced project :)
 
 ## What does it do?
 
@@ -31,8 +30,9 @@ If you're using Poetry to manage dependencies,
 ## Tile support
 
 Tile support requires the texture files from Caves of Qud to be unpacked into a "Textures" directory under the working
-directory. You can use the provided [Brinedump](https://github.com/TrashMonks/brinedump)
-mod to export these textures from within the game.
+directory of your project that is importing hagadias. You can use the
+[Brinedump](https://github.com/TrashMonks/brinedump)
+game mod to export these textures from within the game.
 
 ## Usage examples
 
@@ -40,7 +40,7 @@ mod to export these textures from within the game.
 >>> from hagadias.gameroot import GameRoot
 >>> GAMEPATH = r'C:\Steam\steamapps\common\Caves of Qud'  # Windows
 # GAMEPATH = r'~/.local/share/Steam/steamapps/common/Caves of Qud'  # Linux
-# GAMEPATH = r'~/Library/Application Support/Steam/steamapps/common/Caves of Qud'  # Mac OS
+# GAMEPATH = r'~/Library/Application Support/Steam/steamapps/common/Caves of Qud'  # macOS
 >>> root = GameRoot(GAMEPATH)
 
 >>> gamever = root.gamever
@@ -58,9 +58,6 @@ mod to export these textures from within the game.
 # 'mod_bonuses': a dictionary mapping certain mutations to stat bonuses (e.g. 'BE': [2, 0, 0, 0, 0, 0] for the 2-point Strength bonus from Double-muscled)
 
 >>> qud_object_root, qindex = root.get_object_tree()
-Repairing invalid XML characters... done in 0.01 seconds
-Repairing invalid XML line breaks... done in 1.47 seconds
-Building Qud object hierarchy and adding tiles...
 
 # The above gives you two items:
 # - a `qud_object_root` object of type `QudObjectProps` that is the root of the CoQ object hierarchy, allowing you to traverse the entire object tree and retrieve information about the items, characters, tiles, etc.
@@ -96,7 +93,7 @@ Building Qud object hierarchy and adding tiles...
 
 # and so on.
 
-# Tile support requires you to download the modding tile toolkit, as in the readme section above. But with it, you can do:
+# Tile support requires you to download the modding tile toolkit, described in the section above. But with it, you can do:
 
 >>> youngivory = qindex['Young Ivory']
 
@@ -117,7 +114,7 @@ See `CONTRIBUTING.md`.
 
 ## Contributors
 
-The following people have contributed code to this project:
+Thank you to the following people who have contributed code to this project:
 
 - egocarib
 - Wreckstation

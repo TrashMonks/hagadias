@@ -1223,8 +1223,11 @@ class StyleManager:
                 remaining = remaining & style.allows
                 i += 1
             else:
-                # logging.warning(f'StyleManager discarded {type(self._applicable_styles[i])}' +
-                #                 f' while flattening styles for object "{self._painter.obj}"')
+                # log.warning(
+                #     'StyleManager discarded %s while flattening styles for object "%s"',
+                #     type(self._applicable_styles[i]),
+                #     self._painter.obj,
+                # )
                 # remove style because it's not within remaining allowed style scope
                 del self._applicable_styles[i]
 

@@ -15,6 +15,8 @@ from hagadias.qudtile import QudTile, StandInTiles, TileProvider
 from hagadias.tileanimator_creategif import save_transparent_gif
 from hagadias.tilepainter import TilePainter
 
+log = logging.getLogger(__name__)
+
 POWER_TRANSMISSION_PARTS = [
     "ElectricalPowerTransmission",
     "GenericPowerTransmission",
@@ -771,9 +773,9 @@ class TileAnimator:
                     tile_path_start = getattr(obj, f"tag_{part['TileBaseFromTag']}_Value")
                     break
         if tile_path_start is None or part is None:
-            logging.error(
-                f"Unexpectedly failed to generate .gif for "
-                f'"{obj.name}" - missing Tile rendering tag?'
+            log.error(
+                "Unexpectedly failed to generate .gif for %s - missing Tile rendering tag?",
+                obj.name,
             )
             return
         directory = t.filename.split(tile_path_start)[0]

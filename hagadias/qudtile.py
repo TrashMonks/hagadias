@@ -17,6 +17,8 @@ blank_image = Image.new("RGBA", (16, 24), color=(0, 0, 0, 0))
 # index keys are like "creatures/caste_flipped_22.bmp" as in XML
 image_cache = {}
 
+log = logging.getLogger(__name__)
+
 
 def fix_filename(filename: str) -> str:
     """Return repaired versions of certain broken filenames."""
@@ -128,7 +130,7 @@ class QudTile:
         self.transparentcolor_letter = raw_transparent if raw_transparent != "transparent" else None
         if not raw_detailcolor:
             if raw_detailcolor == "":
-                pass  # logging.warning(f'Object "{self.qudname}" has empty DetailColor')
+                pass  # log.warning(f'Object "{self.qudname}" has empty DetailColor')
             self.detailcolor = QUD_COLORS["transparent"]
             self.detailcolor_letter = None
         else:
@@ -156,9 +158,11 @@ class QudTile:
                     image_cache[self.filename] = self.image.copy()
                     self._color_image()
                 except FileNotFoundError:
-                    logging.warning(
-                        f"Couldn't render tile for {self.qudname}: "
-                        + f"{self.filename} not found at {fullpath}"
+                    log.warning(
+                        "Couldn't render tile for %s: %s not found at %s",
+                        self.qudname,
+                        self.filename,
+                        fullpath,
                     )
                     self.hasproblems = True
                     self.image = blank_image
