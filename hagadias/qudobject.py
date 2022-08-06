@@ -273,7 +273,12 @@ class QudObject(NodeMixin):
         self.baked = True
 
     def ui_inheritance_path(self) -> str:
-        """Return a textual representation of this object's inheritance path."""
+        """Return a textual representation of this object's inheritance path.
+
+        Useful for higher level utilities.
+        Example output:
+        "Object➜PhysicalObject➜Creature➜Humanoid➜BaseHumanoid➜Snapjaw➜Snapjaw Scavenger"
+        """
         text = self.name
         ancestor = self.parent
         while ancestor is not None:
