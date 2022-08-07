@@ -17,12 +17,12 @@ the repo to your hard drive and set up a virtual environment from the repo direc
 On Linux:
 ```bash
 python3.10 -m pip install --user poetry
-python3.10 -m poetry install --dev
+python3.10 -m poetry install
 ```
 On Windows:
 ```
 py -3.10 -m pip install --user poetry
-py -3.10 -m poetry install --dev
+py -3.10 -m poetry install
 ```
 
 ## Using a local hagadias in a virtual environment
