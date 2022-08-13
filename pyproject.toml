@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hagadias"
-version = "1.1.0"
+version = "1.1.1"
 description = "Extract game data from the Caves of Qud roguelike"
 authors = [
     "syntaxaire <syntaxaire@gmail.com>",
