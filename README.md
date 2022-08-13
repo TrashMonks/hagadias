@@ -32,30 +32,24 @@ directory of your project that is importing hagadias. You can use the
 [Brinedump](https://github.com/TrashMonks/brinedump)
 game mod to export these textures from within the game.
 
-## Usage examples
-
+## Example usage
+### Startup
+```python
+import hagadias
+from pprint import pprint
+GAMEPATH = 'C:\\Steam\\steamapps\\common\\Caves of Qud'  # Windows
+# GAMEPATH = '~/.local/share/Steam/steamapps/common/Caves of Qud'  # Linux
+# GAMEPATH = '~/Library/Application Support/Steam/steamapps/common/Caves of Qud'  # macOS
+root = hagadias.gameroot.GameRoot(GAMEPATH)
+print(root.gamever)  # output version of the game
 ```
->>> from hagadias.gameroot import GameRoot
->>> GAMEPATH = r'C:\Steam\steamapps\common\Caves of Qud'  # Windows
-# GAMEPATH = r'~/.local/share/Steam/steamapps/common/Caves of Qud'  # Linux
-# GAMEPATH = r'~/Library/Application Support/Steam/steamapps/common/Caves of Qud'  # macOS
->>> root = GameRoot(GAMEPATH)
+```
+2.0.203.56
+```
 
->>> gamever = root.gamever
-# A string specifying the release version of Caves of Qud, like '2.0.193.0'.
-
->>> gamecodes = root.get_character_codes()
-# A dictionary containing everything needed to calculate complete character sheets from character build codes.
-# `gamecodes` contains the following items:
-# 'genotype_codes': a dictionary mapping characters to genotypes (e.g. 'A': 'True Kin')
-# 'caste_codes': a dictionary mapping characters to castes (e.g. 'A': 'Horticulturalist')
-# 'calling_codes': a dictionary mapping characters to callings (e.g. 'A': 'Apostle')
-# 'mod_codes': a dictionary mapping two-character strings to mutations (e.g. 'AA': 'Chimera')
-# 'class_bonuses': a dictionary mapping castes+callings to lists of stat bonuses (e.g. 'Horticulturalist': [0, 0, 0, 3, 0, 0] for the 3-point Intelligence bonus)
-# 'class_skills': a dictionary mapping castes+callings to lists of skills (e.g. 'Horticulturalist': ['Meal Preparation', ...]
-# 'mod_bonuses': a dictionary mapping certain mutations to stat bonuses (e.g. 'BE': [2, 0, 0, 0, 0, 0] for the 2-point Strength bonus from Double-muscled)
-
->>> qud_object_root, qindex = root.get_object_tree()
+### Objects (Blueprints)
+```
+qud_object_root, qindex = root.get_object_tree()
 
 # The above gives you two items:
 # - a `qud_object_root` object of type `QudObjectProps` that is the root of the CoQ object hierarchy, allowing you to traverse the entire object tree and retrieve information about the items, characters, tiles, etc.
@@ -104,6 +98,26 @@ game mod to export these textures from within the game.
 # for a PIL library format PNG image. There are other methods for retrieving BytesIO PNG binary data, see
 >>> help(youngivory.tile)
 # for details.
+```
+
+### Character codes
+```python
+gamecodes = root.get_character_codes()
+# A dictionary containing some helpful information used to calculate the results of character builds.
+# `gamecodes` contains the following items:
+# 'class_bonuses': a dictionary mapping castes+callings to lists of stat bonuses
+# 'class_skills': a dictionary mapping castes+callings to lists of skills (e.g. 'Horticulturalist': ['Meal Preparation', ...]
+# 'class_tiles': a dictionary mapping castes+callings to tuples of (tile path, detail color) for that caste/calling's art
+print(hagadias.character_codes.STAT_NAMES)
+print(gamecodes["class_bonuses"]["Horticulturist"])  # 3-point Intelligence bonus
+print(gamecodes["class_skills"]["Horticulturist"])
+print(gamecodes["class_tiles"]["Horticulturist"])
+```
+```
+('Strength', 'Agility', 'Toughness', 'Intelligence', 'Willpower', 'Ego')
+[0, 0, 0, 3, 0, 0]
+['Meal Preparation', 'Harvestry', '(Axe)', '(Bow and Rifle)', 'Wilderness Lore: Jungles']
+('creatures/caste_1.bmp', 'g')
 ```
 
 ## Contributing
