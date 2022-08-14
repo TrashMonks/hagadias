@@ -13,7 +13,10 @@ def test_get_character_codes(gameroot):
     """Test retrieving the character code map.
 
     This may already have been loaded into cache by a pytest fixture."""
-    gameroot.get_character_codes()
+    gamecodes = gameroot.get_character_codes()
+    assert "Horticulturist" in gamecodes["class_bonuses"]
+    assert "Horticulturist" in gamecodes["class_skills"]
+    assert "Horticulturist" in gamecodes["class_tiles"]
 
 
 def test_get_object_tree(gameroot):
