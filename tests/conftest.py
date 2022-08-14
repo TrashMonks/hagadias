@@ -17,7 +17,7 @@ except FileNotFoundError:
     log.error('Tests require a game installation path to be in the file "game_location_for_tests".')
     raise
 
-_root = GameRoot(GAME_ROOT_LOC)
+_root = GameRoot(game_loc)
 _qud_object_root, _qindex = _root.get_object_tree()
 
 
