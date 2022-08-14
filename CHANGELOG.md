@@ -1,4 +1,4 @@
-### 1.1.1
+### 1.1.2
 - Removed old-style character codes, breaking API compatibility
 
 ### 1.1.0
