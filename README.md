@@ -4,7 +4,7 @@ Python package to extract game data from the [Caves of Qud](http://www.cavesofqu
 
 This library forms the base for several projects:
 
-- the Caves of Qud wiki bot that builds and updates the [official Caves of Qud wiki](https://wiki.cavesofqud.com/)
+- the Caves of Qud wiki bot that builds and updates the [Caves of Qud wiki](https://wiki.cavesofqud.com/)
 - the Discord bot that operates on the [Caves of Qud discord server](https://discordapp.com/invite/cavesofqud) (invite
   link)
 
