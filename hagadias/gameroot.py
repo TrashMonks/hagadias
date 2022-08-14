@@ -128,11 +128,11 @@ class GameRoot:
                 pass  # shouldn't happen
             population = QudPopulation(pop_entry)
             if population is None:
-                print("FIXME: unable to load a population entry")
+                log.error("FIXME: unable to load a population entry")
             elif population.name is None or len(population.name) == 0:
-                print("FIXME: tried to load a population that has no Name attribute?")
+                log.error("FIXME: tried to load a population that has no Name attribute?")
             elif population.name in populations and pop_entry.attrib.get("Load") == "Merge":
-                print(f'FIXME: unsupported merge request for population "{population.name}"')
+                log.error("FIXME: unsupported merge request for population %s", population.name)
             else:
                 populations[population.name] = population
         self.populations = populations

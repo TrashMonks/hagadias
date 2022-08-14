@@ -1,5 +1,5 @@
 """Fixtures for pytest."""
-
+import logging
 from pathlib import Path
 
 import pytest
@@ -7,12 +7,14 @@ import pytest
 from hagadias.gameroot import GameRoot
 from hagadias.qudobject import QudObject
 
+log = logging.getLogger(__name__)
+
 try:
     with open("game_location_for_tests") as f:
         game_loc = f.read().strip()
         GAME_ROOT_LOC = Path(game_loc)
 except FileNotFoundError:
-    print('Tests require a game installation path to be in the file "game_location_for_tests".')
+    log.error('Tests require a game installation path to be in the file "game_location_for_tests".')
     raise
 
 _root = GameRoot(GAME_ROOT_LOC)

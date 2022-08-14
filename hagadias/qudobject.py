@@ -241,7 +241,7 @@ class QudObject(NodeMixin):
                 if name not in all_attributes[tag]:
                     if tag == "part" and removes_parts:
                         if name in all_attributes["removepart"]:
-                            # print(f'removed {name} part from {self.name} due to removepart tag')
+                            # remove `name` part from `self.name` due to `removepart` tag
                             continue  # don't inherit part if it's explicitly removed from the child
                     all_attributes[tag][name] = {}
                 elif (
@@ -249,7 +249,7 @@ class QudObject(NodeMixin):
                     and "Value" in all_attributes[tag][name]
                     and all_attributes[tag][name]["Value"] == "*delete"
                 ):
-                    # print(f'removed "{name}" tag from {self.name} due to Value of "*delete"')
+                    # remove `name` tag from `self.name` due to Value of `*delete`
                     del all_attributes[tag][name]
                     continue
                 for attr in inherited[tag][name]:
