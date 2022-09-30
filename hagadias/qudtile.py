@@ -12,7 +12,7 @@ from hagadias.constants import QUD_COLORS
 TILE_COLOR = (0, 0, 0, 255)
 DETAIL_COLOR = (255, 255, 255, 255)
 
-tiles_dir = Path("Textures").resolve(strict=True)
+tiles_dir = Path("Textures").resolve()
 blank_image = Image.new("RGBA", (16, 24), color=(0, 0, 0, 0))
 # index keys are like "creatures/caste_flipped_22.bmp" as in XML
 image_cache = {}
