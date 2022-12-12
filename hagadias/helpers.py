@@ -1,10 +1,10 @@
 """Helper functions for hagadias."""
 
 import itertools
-import os
 import random
 import re
 from math import gcd
+from pathlib import Path
 from typing import Iterator, List, Tuple, Optional
 
 import pefile
@@ -17,9 +17,9 @@ PALETTE.remove("o")  # extradimensional color
 PALETTE.remove("O")  # extradimensional color
 
 # load and store the Code Page 437 to Unicode translation
-CP437_MAP_FILE = os.path.join(os.path.dirname(__file__), "IBMGRAPH.TXT")
+ASSETS = Path(__file__).parent / "assets"
 cp437_conv = {}
-with open(CP437_MAP_FILE) as f:
+with open(ASSETS / "IBMGRAPH.TXT") as f:
     for line in f.readlines():
         if not line.startswith("#"):
             unicode, cp437, *_ = line.split()

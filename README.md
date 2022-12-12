@@ -120,6 +120,14 @@ print(gamecodes["class_tiles"]["Horticulturist"])
 ('creatures/caste_1.bmp', 'g')
 ```
 
+## License
+
+hagadias is licensed under the terms of the GNU Affero General Public License Version 3.
+
+The included font Source Code Pro is used under the terms of the SIL Open Font License 1.1.
+
+The included file `IBMGRAPH.TXT` is provided by the Unicode Consortium under the terms of the license contained therein.
+
 ## Contributing
 
 See `CONTRIBUTING.md`.

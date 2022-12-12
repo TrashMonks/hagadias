@@ -282,7 +282,9 @@ class StandInTiles:
     transparent pixels, suitable to be colored by QudTile, or can return a pre-colored image.
     """
 
-    FONT_SOURCECODEPRO = ImageFont.truetype("helpers/SourceCodePro-Semibold.ttf", 260)
+    ASSETS = Path(__file__).parent / "assets"
+    SOURCECODEPRO_FILE = ASSETS / "SourceCodePro-Semibold.ttf"
+    FONT_SOURCECODEPRO = ImageFont.truetype(str(SOURCECODEPRO_FILE), 260)
 
     _hologram_material_glyph1: Image = None
     _hologram_material_glyph2: Image = None
