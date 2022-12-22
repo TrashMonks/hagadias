@@ -655,7 +655,6 @@ class StyleExaminerUnknown(TileStyle):
                     unkobjname = unkobjname if unkobjname is not None else 'BaseUnknown'
                     if unkobjname != "UnknownMed":
                         # tonics excluded due to random coloring - they have their own style
-                        unknown_obj = self.object.qindex[unkobjname]
                         return 2
         return 0
 

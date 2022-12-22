@@ -2447,7 +2447,7 @@ class QudObjectProps(QudObject):
                 else:
                     unk_obj_name = unk_obj_name if unk_obj_name is not None else 'BaseUnknown'
                     unknown_obj = self.qindex[unk_obj_name]
-                    """Following line ensures we are calling this class's version of title, 
+                    """Following line ensures we are calling this class's version of title,
                     not a derived version. Otherwise, for example, QBE's qudobject_wiki ends up
                     trying to double-encode the display name shader."""
                     unknown_name = QudObjectProps.title.__get__(unknown_obj)
