@@ -2380,6 +2380,10 @@ class QudObjectProps(QudObject):
             name_prefix = self.part_Roboticized_NamePrefix
             name_prefix = "{{c|mechanical}}" if not name_prefix else name_prefix
             val = f"{name_prefix} {val}"
+        if self.part_SizeAdjective is not None:
+            dn_size = self.part_SizeAdjective_Adjective
+            if dn_size is not None:
+                val = f"{dn_size} {val}"
         if self.part_DisplayNameColor is not None:
             dn_color = self.part_DisplayNameColor_Color
             if dn_color is not None:
