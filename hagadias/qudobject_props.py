@@ -2440,7 +2440,10 @@ class QudObjectProps(QudObject):
                 unk_obj_name = self.part_Examiner_Unknown
                 unk_obj_name = unk_obj_name if unk_obj_name is not None else 'BaseUnknown'
                 unknown_obj = self.qindex[unk_obj_name]
-                unknown_name = unknown_obj.title
+                """Following line ensures we are calling this class's version of title, 
+                not a derived version. Otherwise, for example, QBE's qudobject_wiki ends up
+                trying to double-encode the display name shader."""
+                unknown_name = QudObjectProps.title.__get__(unknown_obj)
                 unknown_name = "weird artifact" if unknown_name is None else unknown_name
                 if unknown_name != "*med":
                     return unknown_name
@@ -2455,7 +2458,7 @@ class QudObjectProps(QudObject):
                 alt_obj_name = self.part_Examiner_Alternate
                 alt_obj_name = alt_obj_name if alt_obj_name is not None else 'BaseUnknown'
                 alt_obj = self.qindex[alt_obj_name]
-                alt_name = alt_obj.title
+                alt_name = QudObjectProps.title.__get__(alt_obj)
                 if alt_name is not None and alt_name != "*med":
                     return alt_name
 
