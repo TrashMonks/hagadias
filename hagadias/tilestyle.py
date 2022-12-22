@@ -632,15 +632,18 @@ class StyleExaminerUnknown(TileStyle):
             _painter, _priority=20, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
         )
         self._unknown_tile = None
-        if self.object.part_Examiner is not None and self.object.part_Examiner_KeepTile != 'true':
+        if self.object.part_Examiner is not None and self.object.part_Examiner_KeepTile != "true":
             """KeepTile indicates no special unidentified tile (ex: Furniture)"""
             unkobjname = self.object.part_Examiner_Unknown
-            unkobj = self.object.qindex[unkobjname if unkobjname is not None else 'BaseUnknown']
-            unktile = getattr(unkobj, 'part_Render_Tile', None)
-            unktilecolor = getattr(unkobj, 'part_Render_TileColor', None)
-            unkcolor = unktilecolor if unktilecolor is not None else \
-                getattr(unkobj, 'part_Render_ColorString', None)
-            unkdetail = getattr(unkobj, 'part_Render_DetailColor', None)
+            unkobj = self.object.qindex[unkobjname if unkobjname is not None else "BaseUnknown"]
+            unktile = getattr(unkobj, "part_Render_Tile", None)
+            unktilecolor = getattr(unkobj, "part_Render_TileColor", None)
+            unkcolor = (
+                unktilecolor
+                if unktilecolor is not None
+                else getattr(unkobj, "part_Render_ColorString", None)
+            )
+            unkdetail = getattr(unkobj, "part_Render_DetailColor", None)
             self._unknown_tile = unktile if unktile is not None else "items/sw_gadget.bmp"
             self._unknown_detail = unkdetail if unkdetail is not None else "C"
             self._unknown_color = unkcolor if unkcolor is not None else "&c"
@@ -652,7 +655,7 @@ class StyleExaminerUnknown(TileStyle):
                 understanding = self.object.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
                     unkobjname = self.object.part_Examiner_Unknown
-                    unkobjname = unkobjname if unkobjname is not None else 'BaseUnknown'
+                    unkobjname = unkobjname if unkobjname is not None else "BaseUnknown"
                     if unkobjname != "UnknownMed":
                         # tonics excluded due to random coloring - they have their own style
                         return 2

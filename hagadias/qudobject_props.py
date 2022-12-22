@@ -2443,9 +2443,9 @@ class QudObjectProps(QudObject):
             if understanding is None or int(understanding) < complexity:
                 unk_obj_name = self.part_Examiner_Unknown
                 if unk_obj_name == "UnknownMed":
-                    return 'small *color* tube'
+                    return "small *color* tube"
                 else:
-                    unk_obj_name = unk_obj_name if unk_obj_name is not None else 'BaseUnknown'
+                    unk_obj_name = unk_obj_name if unk_obj_name is not None else "BaseUnknown"
                     unknown_obj = self.qindex[unk_obj_name]
                     """Following line ensures we are calling this class's version of title,
                     not a derived version. Otherwise, for example, QBE's qudobject_wiki ends up
@@ -2463,9 +2463,9 @@ class QudObjectProps(QudObject):
             if understanding is None or int(understanding) < complexity:
                 alt_obj_name = self.part_Examiner_Alternate
                 if alt_obj_name == "UnknownMed":
-                    return 'small *color* tube'
+                    return "small *color* tube"
                 else:
-                    alt_obj_name = alt_obj_name if alt_obj_name is not None else 'BaseUnknown'
+                    alt_obj_name = alt_obj_name if alt_obj_name is not None else "BaseUnknown"
                     alt_obj = self.qindex[alt_obj_name]
                     alt_name = QudObjectProps.title.__get__(alt_obj)
                     return alt_name
