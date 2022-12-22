@@ -653,10 +653,9 @@ class StyleExaminerUnknown(TileStyle):
                 if understanding is None or int(understanding) < complexity:
                     unkobjname = self.object.part_Examiner_Unknown
                     unkobjname = unkobjname if unkobjname is not None else 'BaseUnknown'
-                    unknown_obj = self.object.qindex[unkobjname]
-                    unknown_name = unknown_obj.title
-                    if unknown_name is None or unknown_name != "*med":
+                    if unkobjname != "UnknownMed":
                         # tonics excluded due to random coloring - they have their own style
+                        unknown_obj = self.object.qindex[unkobjname]
                         return 2
         return 0
 
@@ -699,7 +698,7 @@ class StyleRandomTonic(TileStyle):
         )
 
     def _modification_count(self) -> int:
-        return 10 if self.object.part_Examiner_UnknownDisplayName == "*med" else 0
+        return 10 if self.object.part_Examiner_Unknown == "UnknownMed" else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         tonic_name, tonic_color = StyleRandomTonic.NAMES_AND_COLORS[index].split(",")
