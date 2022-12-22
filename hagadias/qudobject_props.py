@@ -2437,10 +2437,13 @@ class QudObjectProps(QudObject):
         if complexity is not None and complexity > 0:
             understanding = self.part_Examiner_Understanding
             if understanding is None or int(understanding) < complexity:
-                unknown_name = self.part_Examiner_UnknownDisplayName
-                unknown_name = "weird artifact" if unknown_name is None else unknown_name
-                if unknown_name != "*med":
-                    return unknown_name
+                unknown_obj_name = self.part_Examiner_Unknown
+                if unknown_obj_name is not None:
+                    unknown_obj = self.qindex[unknown_obj_name]
+                    unknown_name = unknown_obj.title
+                    unknown_name = "weird artifact" if unknown_name is None else unknown_name
+                    if unknown_name != "*med":
+                        return unknown_name
 
     @cached_property
     def unidentifiedaltname(self) -> str | None:
@@ -2449,10 +2452,12 @@ class QudObjectProps(QudObject):
         if complexity is not None and complexity > 0:
             understanding = self.part_Examiner_Understanding
             if understanding is None or int(understanding) < complexity:
-                alt_name = self.part_Examiner_AlternateDisplayName
-                alt_name = "device" if alt_name is None else alt_name
-                if alt_name != "*med":
-                    return alt_name
+                alt_obj_name = self.part_Examiner_Alternate
+                if alt_obj_name is not None:
+                    alt_obj = self.qindex[alt_obj_name]
+                    alt_name = alt_obj.title
+                    if alt_name is not None and alt_name != "*med":
+                        return alt_name
 
     @cached_property
     def unpowereddamage(self) -> str | None:

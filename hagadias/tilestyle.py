@@ -625,22 +625,26 @@ class StyleHologram(TileStyle):
 
 
 class StyleExaminerUnknown(TileStyle):
-    """Styles for the UnknownTile attribute of the Examiner part."""
+    """Styles for the alternate "unknown" tiles of objects that have the Examiner part."""
 
     def __init__(self, _painter):
         super().__init__(
             _painter, _priority=20, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
         )
         self._unknown_tile = None
-        if self.object.part_Examiner is not None:
-            unktile = self.object.part_Examiner_UnknownTile
-            if unktile is None or unktile != "":
-                """Empty string means no special unidentified tile (ex: Furniture)"""
-                unkcolor = self.object.part_Examiner_UnknownTileColor
-                unkdetail = self.object.part_Examiner_UnknownDetailColor
-                self._unknown_tile = unktile if unktile is not None else "items/sw_gadget.bmp"
-                self._unknown_detail = unkdetail if unkdetail is not None else "C"
-                self._unknown_color = unkcolor if unkcolor is not None else "&c"
+        if self.object.part_Examiner_Unknown is not None:
+            if self.object.part_Examiner_KeepTile == 'true':
+                """KeepTile indicates no special unidentified tile (ex: Furniture)"""
+                return
+            unkobj = self.object.qindex[self.object.part_Examiner_Unknown]
+            unktile = getattr(unkobj, 'part_Render_Tile', None)
+            unktilecolor = getattr(unkobj, 'part_Render_TileColor', None)
+            unkcolor = unktilecolor if unktilecolor is not None else \
+                getattr(unkobj, 'part_Render_ColorString', None)
+            unkdetail = getattr(unkobj, 'part_Render_DetailColor', None)
+            self._unknown_tile = unktile if unktile is not None else "items/sw_gadget.bmp"
+            self._unknown_detail = unkdetail if unkdetail is not None else "C"
+            self._unknown_color = unkcolor if unkcolor is not None else "&c"
 
     def _modification_count(self) -> int:
         if self._unknown_tile is not None:
@@ -648,10 +652,13 @@ class StyleExaminerUnknown(TileStyle):
             if complexity is not None and complexity > 0:
                 understanding = self.object.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
-                    unknown_name = self.object.part_Examiner_UnknownDisplayName
-                    if unknown_name is None or unknown_name != "*med":
-                        # tonics excluded due to their random coloring - they have their own style
-                        return 2
+                    unknown_obj_name = self.object.part_Examiner_Unknown
+                    if unknown_obj_name is not None:
+                        unknown_obj = self.object.qindex[unknown_obj_name]
+                        unknown_name = unknown_obj.title
+                        if unknown_name is None or unknown_name != "*med":
+                            # tonics excluded due to random coloring - they have their own style
+                            return 2
         return 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
