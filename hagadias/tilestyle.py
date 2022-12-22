@@ -632,11 +632,10 @@ class StyleExaminerUnknown(TileStyle):
             _painter, _priority=20, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
         )
         self._unknown_tile = None
-        if self.object.part_Examiner_Unknown is not None:
-            if self.object.part_Examiner_KeepTile == 'true':
-                """KeepTile indicates no special unidentified tile (ex: Furniture)"""
-                return
-            unkobj = self.object.qindex[self.object.part_Examiner_Unknown]
+        if self.object.part_Examiner is not None and self.object.part_Examiner_KeepTile != 'true':
+            """KeepTile indicates no special unidentified tile (ex: Furniture)"""
+            unkobjname = self.object.part_Examiner_Unknown
+            unkobj = self.object.qindex[unkobjname if unkobjname is not None else 'BaseUnknown']
             unktile = getattr(unkobj, 'part_Render_Tile', None)
             unktilecolor = getattr(unkobj, 'part_Render_TileColor', None)
             unkcolor = unktilecolor if unktilecolor is not None else \
@@ -652,13 +651,13 @@ class StyleExaminerUnknown(TileStyle):
             if complexity is not None and complexity > 0:
                 understanding = self.object.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
-                    unknown_obj_name = self.object.part_Examiner_Unknown
-                    if unknown_obj_name is not None:
-                        unknown_obj = self.object.qindex[unknown_obj_name]
-                        unknown_name = unknown_obj.title
-                        if unknown_name is None or unknown_name != "*med":
-                            # tonics excluded due to random coloring - they have their own style
-                            return 2
+                    unkobjname = self.object.part_Examiner_Unknown
+                    unkobjname = unkobjname if unkobjname is not None else 'BaseUnknown'
+                    unknown_obj = self.object.qindex[unkobjname]
+                    unknown_name = unknown_obj.title
+                    if unknown_name is None or unknown_name != "*med":
+                        # tonics excluded due to random coloring - they have their own style
+                        return 2
         return 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
