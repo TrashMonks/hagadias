@@ -27,7 +27,10 @@ def fix_filename(filename: str) -> str:
         filename = filename[24:]
         filename = filename.replace("_", "/", 1)
     # repair lowercase first letter for case-sensitive operating systems (Linux)
-    filename = filename[0].upper() + filename[1:]
+    if len(filename) > 1:
+        filename = filename[0].upper() + filename[1:]
+    elif len(filename) == 1:
+        filename = filename[0].upper()
     return filename
 
 
