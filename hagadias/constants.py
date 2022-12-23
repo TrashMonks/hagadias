@@ -244,6 +244,7 @@ LIQUID_COLORS = {
     "slime": "&w^g",
     "sludge": "&Y^w",
     "sunslag": "&Y^W",
+    "warmstatic": "&K^Y",
     "water": "&b^B",
     "wax": "&y^Y",
     "wine": "&m^r",
