@@ -1931,7 +1931,7 @@ class QudObjectProps(QudObject):
         if self.mutation is not None:  # direct reference to <mutation> XML tag - not a property
             for mutation, data in self.mutation.items():
                 postfix = f"{data['GasObject']}" if "GasObject" in data else ""
-                level = int(data["Level"]) if "Level" in data else 0
+                level = int(data["Level"]) if "Level" in data else 1
                 mutations.append((mutation + postfix, level))
         if self.part_Roboticized and self.part_Roboticized_ChanceOneIn == "1":
             # additional mutations added to roboticized things
