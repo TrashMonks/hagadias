@@ -1247,6 +1247,10 @@ class QudObjectProps(QudObject):
         dname = ""
         if self.part_Render_DisplayName is not None:
             dname = self.part_Render_DisplayName
+            if self.part_SizeAdjective is not None:
+                dn_size = self.part_SizeAdjective_Adjective
+                if dn_size is not None:
+                    dname = f"{dn_size} {dname}"
             dname = strip_oldstyle_qud_colors(dname)
             dname = strip_newstyle_qud_colors(dname)
         return dname
