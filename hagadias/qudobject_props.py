@@ -754,8 +754,9 @@ class QudObjectProps(QudObject):
                     .replace("*features*", features)
                 )
             else:
-                # Should be rare because most things without a descrip inherit 'A hideous specimen.'
-                return None
+                # empty description - common for things like natural weapons, which may still
+                # have additional description details about their weapon class / etctera
+                pass
 
         # TODO: Refactor or break into a separate file.
         # Note that the order of description rules below is meaningful - it attempts to do the
@@ -1229,10 +1230,10 @@ class QudObjectProps(QudObject):
 
         # Finalize the description:
         if len(desc_extra) > 0:
-            desc_txt += "\n\n" + "\n".join(desc_extra)
+            desc_txt = (f"{desc_txt}\n\n" if len(desc_txt) > 0 else "") + "\n".join(desc_extra)
         desc_txt = desc_txt.replace("\r\n", "\n")  # currently, only the description for Bear
 
-        return desc_txt
+        return desc_txt if len(desc_txt) > 0 else None
 
     @cached_property
     def destroyonunequip(self) -> bool | None:
