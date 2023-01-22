@@ -1134,6 +1134,15 @@ class QudObjectProps(QudObject):
                     )
                     + "}}"
                 )
+            if self.part_MakersMark is not None:
+                m_color = self.part_MakersMark_Color
+                m_color = m_color if m_color is not None else "R"
+                m_mark = self.part_MakersMark_Mark
+                m_desc = self.part_MakersMark_Desc
+                m_desc = m_desc if m_desc is not None else "This item bears a maker's mark."
+                desc_extra.append(
+                    f"&{m_color}{m_mark}&C: {m_desc}"
+                )
         # signs
         if self.part_Chat_ShowInShortDescription == "true":
             says = self.part_Chat_Says
@@ -2374,6 +2383,7 @@ class QudObjectProps(QudObject):
             "Schemasoft2": "&YSchemasoft [&Wlow-tier&Y]",
             "Schemasoft3": "&YSchemasoft [&Wmid-tier&Y]",
             "Schemasoft4": "&YSchemasoft [&Whigh-tier&Y]",
+            "MasterworkCarbine": "scoped &Ymasterwork &ycarbine",
         }
         if self.name in predefs:
             val = predefs[self.name]
@@ -2393,6 +2403,11 @@ class QudObjectProps(QudObject):
             dn_color = self.part_DisplayNameColor_Color
             if dn_color is not None:
                 val = "{{" + dn_color + "|" + val + "}}"
+        if self.part_MakersMark is not None:
+            m_color = self.part_MakersMark_Color
+            m_color = m_color if m_color is not None else 'R'
+            m_mark = self.part_MakersMark_Mark
+            val = f"&{m_color}{m_mark}&y {val}"
         return val
 
     @cached_property
