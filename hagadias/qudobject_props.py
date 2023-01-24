@@ -224,7 +224,8 @@ class QudObjectProps(QudObject):
             return True
         if self.inherits_from("MeleeWeapon"):
             return True
-        if self.inherits_from("NaturalWeapon") and self.part_MissileWeapon is None:
+        if self.inherits_from("NaturalWeapon") and self.part_MissileWeapon is None \
+                and self.part_Shield is None:
             return True
         if self.inheritingfrom == "BaseForkHornedHelmet":
             # special case that should also get melee weapon stat info
