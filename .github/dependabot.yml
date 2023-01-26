@@ -1,4 +1,3 @@
-# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 version: 2
 updates:
   - package-ecosystem: "pip"
@@ -8,3 +7,8 @@ updates:
       day: "saturday"
       time: "09:00"
       timezone: "America/Toronto"
+    allow:
+      - dependency-type: "direct"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
