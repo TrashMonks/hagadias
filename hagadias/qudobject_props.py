@@ -1690,13 +1690,7 @@ class QudObjectProps(QudObject):
                         chance = pop_item.chance
                         equipped = "no"  # not yet implemented
                         if pop_item.type == "object":  # noinspection PyUnresolvedReferences
-                            if (
-                                pop_item.blueprint == "$CALLBLUEPRINTMETHOD:"
-                                "Qud.API.EncountersAPI.GetAnItemBlueprint"
-                            ):
-                                ret.append(("AnyRandomItemBlueprint", "1", "no", "100", "yes"))
-                            else:
-                                ret.append((pop_item.blueprint, count, equipped, chance, "no"))
+                            ret.append((pop_item.blueprint, count, equipped, chance, "no"))
                         elif pop_item.type == "table":  # noinspection PyUnresolvedReferences
                             ret.append((pop_item.name, count, equipped, chance, "yes"))
                         elif pop_item.type == "group":
