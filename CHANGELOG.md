@@ -1,3 +1,7 @@
+### v1.2.1
+- Add back MOD_BONUSES as these are still needed for newstyle
+character codes
+
 ### v1.2.0
 - Added font assets and moved assets into a directory
 
