@@ -8,6 +8,13 @@ from lxml import etree as et
 
 no_comments_parser = et.XMLParser(remove_comments=True)  # don't read XML comments as elements
 STAT_NAMES = ("Strength", "Agility", "Toughness", "Intelligence", "Willpower", "Ego")
+# these are not available from XML:
+MOD_BONUSES = {
+    "Double-muscled": [2, 0, 0, 0, 0, 0],
+    "Triple-jointed": [0, 2, 0, 0, 0, 0],
+    "Two-hearted": [0, 0, 2, 0, 0, 0],
+    "Beak": [0, 0, 0, 0, 0, 1],
+}
 
 
 def read_gamedata(xmlroot: Path) -> dict:
@@ -37,6 +44,7 @@ def read_gamedata(xmlroot: Path) -> dict:
         "class_bonuses": bonuses,
         "class_skills": skills,
         "class_tiles": tiles,
+        "mod_bonuses": MOD_BONUSES,
     }
 
 
