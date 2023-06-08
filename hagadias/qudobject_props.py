@@ -1264,6 +1264,10 @@ class QudObjectProps(QudObject):
                 dn_size = self.part_SizeAdjective_Adjective
                 if dn_size is not None:
                     dname = f"{dn_size} {dname}"
+            if self.part_Titles is not None:
+                for name_title in [self.part_Titles_Primary, self.part_Titles_Ordinary]:
+                    if name_title is not None:
+                        dname = f"{dname}, {name_title}"
             dname = strip_oldstyle_qud_colors(dname)
             dname = strip_newstyle_qud_colors(dname)
         return dname
@@ -2403,6 +2407,10 @@ class QudObjectProps(QudObject):
             dn_size = self.part_SizeAdjective_Adjective
             if dn_size is not None:
                 val = f"{dn_size} {val}"
+        if self.part_Titles is not None:
+            for name_title in [self.part_Titles_Primary, self.part_Titles_Ordinary]:
+                if name_title is not None:
+                    val = f"{val}, {name_title}"
         if self.part_DisplayNameColor is not None:
             dn_color = self.part_DisplayNameColor_Color
             if dn_color is not None:
