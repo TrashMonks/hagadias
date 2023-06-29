@@ -1,29 +1,35 @@
+"""Does the actual work of rendering tiles once they have had the correct styles applied."""
 import os
-from typing import List, Optional, Tuple, Callable
+from collections.abc import Callable
 
 from PIL import Image, ImageDraw
 
-from hagadias.helpers import extract_foreground_char, extract_background_char
+from hagadias.helpers import extract_background_char, extract_foreground_char
 from hagadias.qudtile import QudTile, StandInTiles
 from hagadias.tilestyle import StyleManager
 
 HOLO_PARTS = ["part_HologramMaterial", "part_HologramWallMaterial", "part_HologramMaterialPrimary"]
 PAINTWALL_EXCEPTIONS = ["part_SultanMural"]  # parts that need custom painting; ignore PaintWall tag
 
+# ruff: noqa: ANN001, ANN201
+# TODO: Annotating the QudObject and TilePainter types in this file causes a circular import.
+
 
 class TilePainter:
-    def __init__(self, obj):
+    """Receives styles to be added to the base tile."""
+
+    def __init__(self, qudobject) -> None:
         """Create a TilePainter instance for this object and calculate the details needed to
         color and render a tile.
 
         Determines the colors and filepath that are required to create the tile. Actual tile
         creation is deferred until the tile property is accessed.
 
-        Parameters:
-            obj: a QudObject
+        Parameters
+        ----------
+            qudobject: a QudObject
         """
-
-        self.obj = obj
+        self.obj = qudobject
         self.color = None
         self.tilecolor = None
         self.detail = None
@@ -35,33 +41,34 @@ class TilePainter:
         self._style_manager = StyleManager(self)
 
         tile_count = self.tile_count()
-        self._tiles: List[Optional[QudTile]] = [None] * tile_count
-        self._tiles_metadata: List[Optional[TilePainterMetadata]] = [None] * tile_count
+        self._tiles: list[QudTile | None] = [None] * tile_count
+        self._tiles_metadata: list[TilePainterMetadata | None] = [None] * tile_count
 
         if tile_count > 0:
             self._apply_primer()
 
             # fence must be prioritized over wall
-            if obj.tag_PaintedFence and obj.tag_PaintedFence_Value != "*delete":
-                self.paintpath = self.parse_paint_path(obj.tag_PaintedFence_Value)
+            if qudobject.tag_PaintedFence and qudobject.tag_PaintedFence_Value != "*delete":
+                self.paintpath = self.parse_paint_path(qudobject.tag_PaintedFence_Value)
                 self._paint_fence()
-            elif obj.tag_PaintedWall and obj.tag_PaintedWall_Value != "*delete":
+            elif qudobject.tag_PaintedWall and qudobject.tag_PaintedWall_Value != "*delete":
                 if any(getattr(self.obj, part, None) is not None for part in PAINTWALL_EXCEPTIONS):
                     pass
                 else:
-                    self.paintpath = self.parse_paint_path(obj.tag_PaintedWall_Value)
+                    self.paintpath = self.parse_paint_path(qudobject.tag_PaintedWall_Value)
                     self._paint_wall()
-            elif obj.part_Walltrap is not None:
+            elif qudobject.part_Walltrap is not None:
                 self._paint_walltrap()
 
             if self.file is None or self.file == "":
-                self.standin = StandInTiles.get_tile_provider_for(obj)
+                self.standin = StandInTiles.get_tile_provider_for(qudobject)
 
-            self.prefab_imitator = TilePrefabImitator.get_fake_prefab_for(obj)
+            self.prefab_imitator = TilePrefabImitator.get_fake_prefab_for(qudobject)
 
     def tile(self, tile_index: int = 0) -> QudTile | None:
         """Retrieves the painted QudTile for this object. If an index is supplied for an object that
-        has multiple tiles, returns the alternate tile at the specified index."""
+        has multiple tiles, returns the alternate tile at the specified index.
+        """
         if tile_index >= len(self._tiles):
             return None
         if self._tiles[tile_index] is not None:
@@ -94,12 +101,13 @@ class TilePainter:
             )
         return self._tiles[tile_index]
 
-    def all_tiles_and_metadata(self) -> Tuple[List[QudTile], List]:
+    def all_tiles_and_metadata(self) -> tuple[list[QudTile], list]:
         """Returns a list of QudTiles representing all the tile variations for this object, as well
-        as a corrsponding list of TilePainterMetadata for each of those tiles."""
-        qud_tiles: List[QudTile] = []
-        metadata: List[TilePainterMetadata] = []
-        for idx, entry in enumerate(self._tiles):
+        as a corresponding list of TilePainterMetadata for each of those tiles.
+        """
+        qud_tiles: list[QudTile] = []
+        metadata: list[TilePainterMetadata] = []
+        for idx, _entry in enumerate(self._tiles):
             qud_tile = self.tile(idx)
             if qud_tile is None:
                 raise  # shouldn't happen
@@ -107,7 +115,7 @@ class TilePainter:
             metadata.append(self._tiles_metadata[idx])
         return qud_tiles, metadata
 
-    def _apply_primer(self):
+    def _apply_primer(self) -> None:
         """Analyzes this object's tile metadata and defines its basic colors and filepaths. Most
         of the time this just uses the values specified in the object's Render part, but we also
         handle various exceptions and unique cases related to coloring the tile during this
@@ -118,8 +126,8 @@ class TilePainter:
         necessarily need to match the final rendered tile, however, because it will also be
         passed through _stylize_tile_variant(). Thus, _apply_primer() is particularly important
         for objects that have no part_Render_Tile defined or that have other special logic but
-        don't define styles in _stylize_tile_variant()."""
-
+        don't define styles in _stylize_tile_variant().
+        """
         # general case
         self.trans = "transparent"  # default transparency
         self.color = self.obj.part_Render_ColorString
@@ -129,8 +137,6 @@ class TilePainter:
         # below uses logic similar to non-overlay UI where default ('k') is
         # essentially invisible/transparent against the default background color ('k')
         # ------------------------------------
-        # _ = self.part_Render_DetailColor
-        # detail = _ if _ else 'transparent'
 
         # determine tile filepath
         self.file = self.obj.part_Render_Tile
@@ -182,23 +188,23 @@ class TilePainter:
             part_color = part_color if part_color is not None else "g"
             self.color = self.tilecolor = f"&{part_color}"
 
-    def _stylize_tile_variant(self, tile_index: int = 0):
+    def _stylize_tile_variant(self, tile_index: int = 0) -> None:
         """Morphs a tile into one of its variants, based on the provided zero-based tile index.
         This function uses the StyleManager to retrieve an object's alternate tile variations
         in a predetermined order, and defines the TilePainterMetadata associated with each tile,
-        storing that metadata in the self._tiles_metadata List."""
-
+        storing that metadata in the self._tiles_metadata List.
+        """
         metadata = self._style_manager.apply_style(tile_index)
 
         if self._tiles_metadata[tile_index] is None:
             painter_postfix = metadata.postfix
-            painter_type = metadata.type
+            painter_type = metadata.metatype
             painter_postfix = None if painter_postfix == "" else painter_postfix
             painter_type = "default" if painter_type == "" else painter_type
             painter_metadata = TilePainterMetadata(self.obj, painter_postfix, painter_type)
             self._tiles_metadata[tile_index] = painter_metadata
 
-    def _paint_fence(self):
+    def _paint_fence(self) -> None:
         """Paints a fence tile for this object. Assumes that tag_PaintedFence exists."""
         if not self.tilecolor:
             self.tilecolor = self.color
@@ -237,7 +243,7 @@ class TilePainter:
                 tilename = tilename + "_1"
         self.file = tileloc + tilename + "_" + "nsew" + tileext
 
-    def _paint_wall(self):
+    def _paint_wall(self) -> None:
         """Paints a wall tile for this object. Assumes that tag_PaintedWall exists."""
         wallcolor = self.tilecolor if self.tilecolor else self.color
         if self.detail and self.detail == "k" and "^" in wallcolor:
@@ -254,9 +260,10 @@ class TilePainter:
         else:
             self.file = tileloc + self.paintpath + "-00000000" + tileext
 
-    def _paint_walltrap(self):
+    def _paint_walltrap(self) -> None:
         """Renders a walltrap tile. These are normally colored in the C# code, so we handle them
-        specially."""
+        specially.
+        """
         self.file = self.obj.part_Render_Tile
         warmcolor = self.obj.part_Walltrap_WarmColor
         fore = extract_foreground_char(warmcolor, "r")
@@ -316,6 +323,7 @@ class TilePainter:
                 self.detail = "m"
 
     def paint_door(self, is_closed: bool = False, double_door_alt: bool = False) -> None:
+        """Draw the style applied to a door."""
         if is_closed:
             closed_tile = self.obj.part_Door_ClosedTile
             self.file = "Tiles/sw_door_basic.bmp" if closed_tile is None else closed_tile
@@ -326,6 +334,7 @@ class TilePainter:
             self._invert_filename_direction()
 
     def paint_enclosing(self, is_closed: bool = False, double_enclosing_alt: bool = False) -> None:
+        """Draw the style applied to an enclosing thing (Regen Tanks etc.)"""
         if is_closed:
             self.color = (
                 self.color
@@ -364,7 +373,7 @@ class TilePainter:
     def _invert_filename_direction(self) -> bool:
         start_dirs = ["_w_", "_w.", "_e_", "_e."]
         transform_dirs = ["_e_", "_e.", "_w_", "_w."]
-        for dir1, dir2 in zip(start_dirs, transform_dirs):
+        for dir1, dir2 in zip(start_dirs, transform_dirs, strict=True):
             if dir1 in self.file:
                 self.file = self.file.replace(dir1, dir2)
                 return True
@@ -374,20 +383,21 @@ class TilePainter:
     def parse_paint_path(path: str) -> str:
         """Accepts a value from part_PaintedFence_Value or part_PaintedWall_Value, and retrieves
         the tile that should be used for that painted fence or wall. Rarely, these parts have a
-        comma delimited list of possible tiles that can be used."""
+        comma delimited list of possible tiles that can be used.
+        """
         return path.split(",")[0]
 
     @staticmethod
-    def is_painted_fence(qud_object) -> bool:
+    def is_painted_fence(qudobject) -> bool:
         """Returns true if this object is a painted fence."""
         return (
-            qud_object.tag_PaintedFence is not None
-            and qud_object.tag_PaintedFence_Value != "*delete"
+            qudobject.tag_PaintedFence is not None and qudobject.tag_PaintedFence_Value != "*delete"
         )
 
     def tile_count(self) -> int:
         """Retrieves the total number of tiles that are available for this object. Some objects have
-        alternate tiles."""
+        alternate tiles.
+        """
         if not self.obj.has_tile():
             return 0
         count = self._style_manager.style_count()
@@ -395,19 +405,21 @@ class TilePainter:
 
 
 class TilePainterMetadata:
-    def __init__(self, qud_object, postfix, tiletype):
-        """Stores basic metadata for a tile, such as the filename that should be used for saving
-        the tile as well as the type of tile, such as 'harvestable' or 'random sprite #7'."""
+    """Stores basic metadata for a tile, such as the filename that should be used for saving
+    the tile as well as the type of tile, such as 'harvestable' or 'random sprite #7'.
+    """
+
+    def __init__(self, qudobject, postfix: str, tiletype: str) -> None:
         self.postfix = postfix
         self.type = tiletype
-        self.obj_id = qud_object.name
-        self._base_filename = qud_object.image
+        self.obj_id = qudobject.name
+        self._base_filename = qudobject.image
         self._file_noex = None
         self._file = None
-        self._has_gif = qud_object.has_gif_tile()
+        self._has_gif = qudobject.has_gif_tile()
 
-    def is_animated(self):
-        """Whether this tile has a corresponding animated GIF"""
+    def is_animated(self) -> bool:
+        """Whether this tile has a corresponding animated GIF."""
         return self._has_gif
 
     @property
@@ -427,7 +439,7 @@ class TilePainterMetadata:
         if self._file_noex is None:
             if self._base_filename is None or self._base_filename == "none":
                 raise Exception(f'Error: tile for "{self.obj_id}" does not have a filename.')
-            self._base_filename = os.path.splitext(self._base_filename)[0]
+            self._base_filename = os.path.splitext(self._base_filename)[0]  # noqa PTH122
             if self.postfix is None:
                 self._file_noex = self._base_filename
             else:
@@ -436,19 +448,21 @@ class TilePainterMetadata:
 
 
 class TilePrefabImitator:
+    """Container for functions that imitate Unity prefabs."""
+
     @staticmethod
-    def get_fake_prefab_for(qud_object) -> Optional[Callable]:
-        """Returns a method that can draw a fake colored Unity prefab overlay on top of a 160x240
+    def get_fake_prefab_for(qudobject) -> Callable | None:
+        """Returns a function that can draw a fake colored Unity prefab overlay on top of a 160x240
         size PIL image. Enables creating more realistic tiles for things like campfire and
         torch sconce, since they always appear with animated Unity prefab imposters in game. We
-        wont try to animate these due to complexity, but we can at least add something to the
+        won't try to animate these due to complexity, but we can at least add something to the
         static tile that looks good.
         """
-        prefab: Optional[str] = qud_object.part_UnityPrefabImposter_PrefabID
+        prefab: str | None = qudobject.part_UnityPrefabImposter_PrefabID
         if prefab is not None:
             if prefab == "Prefabs/Particles/CampfireFlames":
                 return TilePrefabImitator.add_campfire_flames
-            elif prefab == "Prefabs/Particles/TorchpostFlames":
+            if prefab == "Prefabs/Particles/TorchpostFlames":
                 return TilePrefabImitator.add_torchpost_flames
         return None
 
@@ -467,6 +481,7 @@ class TilePrefabImitator:
         """Draws a fake unity prefab overlay onto flaming tiles, like campfires and torch sconces.
 
         Args:
+        ----
             big_image: A PIL image object with dimensions 160x240 (large tile size)
             y_offset: An offset for the flame prefab overlay. Coordinates are based on the campfire
                     object, but can be offset so that this prefab also works for torch sconces
@@ -497,10 +512,10 @@ class TilePrefabImitator:
             [(127, 20, 142, 35)],
         ]
         canvas = ImageDraw.Draw(big_image)
-        for fire_color, fire_shape_list in zip(fire_colors, fire_rects):
+        for fire_color, fire_shape_list in zip(fire_colors, fire_rects, strict=True):
             for fire_shape in fire_shape_list:
                 x1 = fire_shape[0]
                 y1 = fire_shape[1] + y_offset
                 x2 = fire_shape[2]
                 y2 = fire_shape[3] + y_offset
-                canvas.rectangle([x1, y1, x2, y2], fire_color, fire_color)
+                canvas.rectangle((x1, y1, x2, y2), fire_color, fire_color)

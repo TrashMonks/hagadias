@@ -1,19 +1,19 @@
 """Classes to represent population data from PopulationTables.xml."""
-from typing import List
 
 from lxml import etree as et
 from lxml.etree import ElementBase
 
 
 class QudPopList:
-    def __init__(self, pop_elem: ElementBase):
+    def __init__(self, pop_elem: ElementBase) -> None:
         """Abstract class to represent a population item that has sub-nodes. In practice,
         this corresponds both to <population> and <group> nodes in PopulationTables.xml.
 
         Args:
+        ----
             pop_elem: etree object which represents the population item.
         """
-        self._items: List[QudPopItem] = []
+        self._items: list[QudPopItem] = []
         for item in pop_elem:
             if item.tag == "group":
                 self._items.append(QudPopulationGroup(item))
@@ -28,13 +28,14 @@ class QudPopList:
 
 
 class QudPopItem:
-    def __init__(self, pop_elem: ElementBase):
+    def __init__(self, pop_elem: ElementBase) -> None:
         """Abstract class to represent any item contained in a population. In practice,
         this corresponds to <group>, <table>, and <object> nodes in PopulationTables.xml,
         and loosely mirrors the game's own abstract class (PopulationItem) for representing these
         types of data.
 
         Args:
+        ----
             pop_elem: etree object which represents the population item.
         """
         self.weight: int = int(pop_elem.attrib.get("Weight", 1))
@@ -43,18 +44,19 @@ class QudPopItem:
 
     @property
     def displayname(self) -> str:
-        raise NotImplementedError()  # to be implemented by inheriting subclasses
+        raise NotImplementedError  # to be implemented by inheriting subclasses
 
     @property
     def type(self) -> str:
-        raise NotImplementedError()  # to be implemented by inheriting subclasses
+        raise NotImplementedError  # to be implemented by inheriting subclasses
 
 
 class QudPopulation(QudPopList):
-    def __init__(self, pop_elem: ElementBase):
+    def __init__(self, pop_elem: ElementBase) -> None:
         """Represents a single <population> node from PopulationTables.xml.
 
         Args:
+        ----
             pop_elem: etree object which represents the <population> node from PopulationTables.xml
         """
         super().__init__(pop_elem)
@@ -70,7 +72,7 @@ class QudPopulation(QudPopList):
 
     @property
     def style(self) -> str:
-        """Style of the population or its main defining group ('pickone' or 'pickeach')"""
+        """Style of the population or its main defining group ('pickone' or 'pickeach')."""
         if len(self.children) == 1 and self.children[0].type == "group":
             # noinspection PyUnresolvedReferences
             return self.children[0].style
@@ -81,7 +83,8 @@ class QudPopulation(QudPopList):
     @property
     def depth(self) -> int:
         """The maximum nesting depth of this population. 1 represents a simple population table with
-        no nested groups. 2 or higher represents additional levels of nested groups."""
+        no nested groups. 2 or higher represents additional levels of nested groups.
+        """
         if self._depth is None:
             # Populations can have a single group beneath them that holds all items, or they can
             # hold items directly with no encapsulating group, so our logic accounts for that here -
@@ -97,6 +100,7 @@ class QudPopulation(QudPopList):
         """Returns the maximum depth of the pop_group as an integer.
 
         Args:
+        ----
             pop_group: A QudPopList item
             cur_depth: Current calculated population depth
         """
@@ -109,10 +113,11 @@ class QudPopulation(QudPopList):
                     max_depth = child_depth
         return max_depth
 
-    def get_effective_children(self) -> List[QudPopItem]:
+    def get_effective_children(self) -> list[QudPopItem]:
         """Returns the main children of this population. If there is a single enclosing group that
         represents the entire population, returns that group's children instead of the direct
-        children of the population node."""
+        children of the population node.
+        """
         if len(self.children) == 1 and self.children[0].type == "group":
             # noinspection PyUnresolvedReferences
             return self.children[0].children
@@ -120,10 +125,11 @@ class QudPopulation(QudPopList):
 
 
 class QudPopulationObject(QudPopItem):
-    def __init__(self, pop_elem: ElementBase):
+    def __init__(self, pop_elem: ElementBase) -> None:
         """Represents an <object> node from PopulationTables.xml.
 
         Args:
+        ----
             pop_elem: etree object which represents the <object> node from PopulationTables.xml
         """
         super().__init__(pop_elem)
@@ -139,10 +145,11 @@ class QudPopulationObject(QudPopItem):
 
 
 class QudPopulationTable(QudPopItem):
-    def __init__(self, pop_elem: ElementBase):
+    def __init__(self, pop_elem: ElementBase) -> None:
         """Represents a <table> node from PopulationTables.xml.
 
         Args:
+        ----
             pop_elem: etree object which represents the <table> node from PopulationTables.xml
         """
         super().__init__(pop_elem)
@@ -158,10 +165,11 @@ class QudPopulationTable(QudPopItem):
 
 
 class QudPopulationGroup(QudPopList, QudPopItem):
-    def __init__(self, pop_elem: ElementBase):
+    def __init__(self, pop_elem: ElementBase) -> None:
         """Represents a <group> node from PopulationTables.xml.
 
         Args:
+        ----
             pop_elem: etree object which represents the <group> node from PopulationTables.xml
         """
         QudPopItem.__init__(self, pop_elem)

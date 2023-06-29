@@ -158,7 +158,7 @@ FACTION_ID_TO_NAME = {
     "Worms": "worms",
 }
 CYBERNETICS_HARDCODED_INFIXES = {
-    "CyberneticsMedassistModule": "{{c|Current loadout:}}{{y| no injectors}}"
+    "CyberneticsMedassistModule": "{{c|Current loadout:}}{{y| no injectors}}",
 }
 COMPUTE = "Compute power on the local lattice"
 INCREASES = "increases this item's effectiveness"

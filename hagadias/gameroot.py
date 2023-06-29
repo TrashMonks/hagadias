@@ -6,7 +6,7 @@ from pathlib import Path
 from lxml import etree as et
 
 from hagadias.character_codes import read_gamedata
-from hagadias.helpers import get_dll_version_string, repair_invalid_linebreaks, repair_invalid_chars
+from hagadias.helpers import get_dll_version_string, repair_invalid_chars, repair_invalid_linebreaks
 from hagadias.qudobject_props import QudObjectProps
 from hagadias.qudpopulation import QudPopulation
 
@@ -27,12 +27,12 @@ class GameRoot:
     example).
     """
 
-    def __init__(self, root: str):
+    def __init__(self, root: str) -> None:
         """Load the various assets under the given game root and export them as attributes."""
         root_path = Path(root)
         if not Path.exists(root_path / "CoQ_Data"):
             raise FileNotFoundError(
-                f"The given game root {root} does not seem to be a Caves of Qud" " game directory."
+                f"The given game root {root} does not seem to be a Caves of Qud" " game directory.",
             )
         self._root = root_path
         self._xmlroot = root_path / "CoQ_Data" / "StreamingAssets" / "Base"
@@ -55,7 +55,8 @@ class GameRoot:
         """Load and return a dictionary containing all the Qud character code pieces.
 
         Also includes associated data like callings and castes with stat bonuses that are required
-        to calculate complete build codes."""
+        to calculate complete build codes.
+        """
         if self.character_codes is None:
             self.character_codes = read_gamedata(self._xmlroot)
         return self.character_codes
@@ -68,10 +69,9 @@ class GameRoot:
          - a dictionary mapping the string name of each Qud object to the Python object
            representing it.
 
-        Parameters:
-            cls: the QudObject class, or optionally, a subclass of QudObject to represent the game
-            objects. Implemented to allow a tree of QudObjectWiki for the Qud Blueprint Explorer
-            app.
+        :param cls: the QudObject class, or optionally, a subclass of QudObject to represent the game
+                    objects. Implemented to allow a tree of QudObjectWiki for the Qud Blueprint Explorer
+                    app.
         """
         if self.qud_object_root is not None:
             return self.qud_object_root, self.qindex
@@ -106,7 +106,7 @@ class GameRoot:
 
         # second pass - resolve object inheritance
         log.debug("Resolving Qud object hierarchy and adding tiles...")
-        for object_id, qud_object in qindex.items():
+        for _object_id, qud_object in qindex.items():
             qud_object.resolve_inheritance()
 
         qud_object_root = qindex["Object"]
@@ -117,7 +117,8 @@ class GameRoot:
     def get_populations(self) -> dict[str, QudPopulation]:
         """Returns populations.
 
-        Returns a nested dictionary mirroring the XML file structure."""
+        Returns a nested dictionary mirroring the XML file structure.
+        """
         if self.populations is not None:
             return self.populations
         path = self._xmlroot / "PopulationTables.xml"
@@ -204,7 +205,8 @@ class GameRoot:
     def get_genders(self) -> dict:
         """Return the genders.
 
-        Returns a nested dictionary mirroring the XML file structure."""
+        Returns a nested dictionary mirroring the XML file structure.
+        """
         genders = {}
         path = self._xmlroot / "Genders.xml"
         tree = et.parse(path)
@@ -218,7 +220,8 @@ class GameRoot:
     def get_pronouns(self) -> dict:
         """Returns pronouns.
 
-        Returns a nested dictionary mirroring the XML file structure."""
+        Returns a nested dictionary mirroring the XML file structure.
+        """
         pronouns = {}
         path = self._xmlroot / "PronounSets.xml"
         tree = et.parse(path)
@@ -228,7 +231,7 @@ class GameRoot:
                     pronounset.attrib["Subjective"],
                     pronounset.attrib["Objective"],
                     pronounset.attrib["PossessiveAdjective"],
-                ]
+                ],
             )
             pronouns[pronounsetname] = {}
             for attrib, val in pronounset.attrib.items():

@@ -3,9 +3,9 @@
 import itertools
 import random
 import re
+from collections.abc import Iterator
 from math import gcd
 from pathlib import Path
-from typing import Iterator, List, Tuple, Optional
 
 import pefile
 
@@ -54,7 +54,7 @@ def get_dll_version_string(path, throwaway):
                 for entry in pe.FileInfo[idx]:
                     if hasattr(entry, "StringTable"):
                         for st_entry in entry.StringTable:
-                            for str_entry in sorted(list(st_entry.entries.items())):
+                            for str_entry in sorted(st_entry.entries.items()):
                                 key = str_entry[0].decode("utf-8", "backslashreplace")
                                 val = str_entry[1].decode("utf-8", "backslashreplace")
                                 if key == "ProductVersion":
@@ -81,6 +81,7 @@ def int_or_none(value) -> int | None:
         except ValueError:
             return None
         return value
+    return None
 
 
 def float_or_default(value, default=0.0) -> float:
@@ -102,6 +103,7 @@ def float_or_none(value) -> float | None:
         except ValueError:
             return None
         return value
+    return None
 
 
 def str_or_default(value, default) -> str:
@@ -116,7 +118,8 @@ def bool_or_default(value, default=False) -> bool:
     """Returns value if value is a bool.
     Returns true if value is a string equal to 'yes' or 'true' (case insensitive).
     Returns false if value is a string equal to 'no' or 'false' (case insensitive).
-    Otherwise, returns the default."""
+    Otherwise, returns the default.
+    """
     if value is None:
         return default
     if isinstance(value, bool):
@@ -163,7 +166,7 @@ def repair_invalid_chars(contents):
     return contents
 
 
-def parse_qud_colors(phrase: str) -> List[Tuple]:
+def parse_qud_colors(phrase: str) -> list[tuple]:
     """Convert display names from the new color templating format to a list
     of tuples.
 
@@ -246,7 +249,7 @@ def parse_qud_colors(phrase: str) -> List[Tuple]:
     return output
 
 
-def iter_qud_colors(phrase: str, colors) -> Iterator[Tuple]:
+def iter_qud_colors(phrase: str, colors) -> Iterator[tuple]:
     """Builds on parse_qud_colors to return one character with its color code at a time,
     instead of a longer string with its color code. This also interprets shader
     color codes properly.
@@ -345,6 +348,7 @@ def strip_newstyle_qud_colors(phrase: str) -> str:
     """Strip the new-style Qud color templates from a string, returning the plain text only.
 
     Example:
+    -------
         "{{y|raw beetle meat}}"
     becomes
         "raw beetle meat"
@@ -357,6 +361,7 @@ def strip_oldstyle_qud_colors(text: str) -> str:
     """Remove the old-style Qud color codes from a string, returning the plain text only.
 
     Example:
+    -------
         "&Yraw beetle meat"
     becomes
         "raw beetle meat"
@@ -374,25 +379,25 @@ def extract_color(colorstr: str, prefix_symbol: str) -> str | None:
     return c
 
 
-def extract_background_color(colorstr: str, default: Optional[str] = None) -> str | None:
+def extract_background_color(colorstr: str, default: str | None = None) -> str | None:
     """Extracts background (^) color from a colorstring, including both caret and color char."""
     bg = extract_color(colorstr, "^")
     return default if bg is None else bg
 
 
-def extract_background_char(colorstr: str, default: Optional[str] = None) -> str | None:
+def extract_background_char(colorstr: str, default: str | None = None) -> str | None:
     """Extracts background (^) color from a colorstring, returning only the color char."""
     bg = extract_background_color(colorstr)
     return default if bg is None else bg[1]
 
 
-def extract_foreground_color(colorstr: str, default: Optional[str] = None) -> str | None:
+def extract_foreground_color(colorstr: str, default: str | None = None) -> str | None:
     """Extracts foreground (&) color from a colorstring, including both ampersand and color char."""
     fg = extract_color(colorstr, "&")
     return default if fg is None else fg
 
 
-def extract_foreground_char(colorstr: str, default: Optional[str] = None) -> str | None:
+def extract_foreground_char(colorstr: str, default: str | None = None) -> str | None:
     """Extracts foreground (&) color from a colorstring, returning only the color char."""
     fg = extract_foreground_color(colorstr, f"&{default}")
     return None if fg is None else fg[1]
@@ -412,7 +417,8 @@ def lowest_common_multiple(a, b) -> int:
 
 def parse_comma_equals_str_into_dict(values: str, output: dict):
     """Consumes a string in the format '1=baa,2=boo,3=bop' and inserts key/value pairs into the
-    provided dictionary."""
+    provided dictionary.
+    """
     if values is not None and len(values) > 0:
         for entry in values.split(","):
             info = entry.split("=")
@@ -421,7 +427,7 @@ def parse_comma_equals_str_into_dict(values: str, output: dict):
                 output[val] = info[1]
 
 
-def make_list_from_words(wds: List[str]) -> str:
+def make_list_from_words(wds: list[str]) -> str:
     """Converts a python list into a grammatical string list."""
     if wds is None or len(wds) == 0:
         return ""
@@ -434,8 +440,8 @@ def make_list_from_words(wds: List[str]) -> str:
         return f'{", ".join(wds)}, and {last_wd}'
 
 
-def obj_has_any_part(qudobject, parts: List[str]) -> bool:
-    """Returns True if the QudObject has any of the specified parts"""
+def obj_has_any_part(qudobject, parts: list[str]) -> bool:
+    """Returns True if the QudObject has any of the specified parts."""
     if parts is not None and len(parts) > 0:
         for part in parts:
             if getattr(qudobject, f"part_{part}", None) is not None:

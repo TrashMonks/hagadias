@@ -1,14 +1,14 @@
 import logging
 import random
+from collections.abc import Callable
 from io import BytesIO
-from typing import List, Callable
 
 from PIL import Image, ImageSequence
 
 from hagadias.helpers import (
-    lowest_common_multiple,
-    extract_foreground_char,
     extract_background_char,
+    extract_foreground_char,
+    lowest_common_multiple,
     parse_comma_equals_str_into_dict,
 )
 from hagadias.qudtile import QudTile, StandInTiles, TileProvider
@@ -28,7 +28,7 @@ ANIMATEDMATERIALGENERIC_EXCLUSIONS = ["Telescope", "Full-Scale Recompositer", "P
 
 
 class TileAnimator:
-    def __init__(self, qud_object, qud_tile: QudTile = None):
+    def __init__(self, qud_object, qud_tile: QudTile = None) -> None:
         """Create a new TileAnimator for the specified QudObject and QudTile. The QudTile represents
         which variation of this object you want to animate, since some objects have multiple tiles.
         TileAnimator can create a GIF for the object if it has an animated part that qualifies for
@@ -40,7 +40,8 @@ class TileAnimator:
 
         The creation of a GIF is deferred until the .gif property is accessed. For this reason, you
         can inexpensively instantiate a TileAnimator simply to check the .has_gif() property for a
-        particular QudObject."""
+        particular QudObject.
+        """
         self.qud_object = qud_object
         self.qud_tile: QudTile | None = qud_tile
         self._gif_image = None
@@ -49,7 +50,8 @@ class TileAnimator:
     def is_valid(self) -> bool:
         """Basic validation check for this TileAnimator's QudObject and QudTile. True if the tile is
         valid or if no tile was specified (the latter should only be the case if you don't plan on
-        generating a GIF)."""
+        generating a GIF).
+        """
         if not self.qud_object.has_tile():
             return False
         if self.qud_tile is not None and self.qud_tile.hasproblems:
@@ -69,21 +71,22 @@ class TileAnimator:
         Note that a PIL Image object is really only a single frame of the GIF. PIL exposes an
         iterator that you can use to walk the GIF frames if you need to (ImageSequence.Iterator).
         If you want to save this GIF to a file or bytestream, you should call GifHelper.save() to
-        ensure that all frames and animation delays are properly preserved."""
-        if self._gif_image is None:
-            if self.qud_tile is not None:
-                for animation_applicator in self.get_animators():
-                    animation_applicator()
+        ensure that all frames and animation delays are properly preserved.
+        """
+        if self._gif_image is None and self.qud_tile is not None:
+            for animation_applicator in self.get_animators():
+                animation_applicator()
         return self._gif_image
 
-    def get_animators(self) -> List[Callable]:
+    def get_animators(self) -> list[Callable]:
         """Returns all of the animation methods that are relevant to this object.
 
         A note about GIF rendering: if you are trying to make a frame play as fast as possible, set
         the frame duration to 20. Anything lower will result in slower frames than expected, due to
         some weird historical issues with how the GIF format has been interpreted by browsers and
         gif players. There's some more context here if you're interested:
-        https://stackoverflow.com/q/64473278/3541707"""
+        https://stackoverflow.com/q/64473278/3541707
+        """
         animators = []
         if not self.is_valid:
             return animators
@@ -93,10 +96,9 @@ class TileAnimator:
         if (
             obj.part_AnimatedMaterialGeneric is not None
             or obj.part_AnimatedMaterialGenericAlternate is not None
-        ):
-            if obj.part_CatacombsExitTeleporter is None:  # manually excluded parts
-                if obj.name not in ANIMATEDMATERIALGENERIC_EXCLUSIONS:  # manually excluded objects
-                    animators.append(self.apply_animated_material_generic)
+        ) and obj.part_CatacombsExitTeleporter is None:  # manually excluded parts
+            if obj.name not in ANIMATEDMATERIALGENERIC_EXCLUSIONS:  # manually excluded objects
+                animators.append(self.apply_animated_material_generic)
         if obj.part_AnimatedMaterialForcefield is not None:
             animators.append(self.apply_animated_material_forcefield)
         if obj.part_AnimatedMaterialLuminous is not None:
@@ -137,10 +139,20 @@ class TileAnimator:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialElectric part."""
         tile = self.qud_tile
         frame1and2 = QudTile(
-            tile.filename, "&W", None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&W",
+            None,
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame3 = QudTile(
-            tile.filename, "&Y", None, tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&Y",
+            None,
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         self._make_gif([frame1and2, frame3], [40, 20])
 
@@ -173,7 +185,8 @@ class TileAnimator:
 
     def apply_animated_material_generic(self) -> None:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialGeneric and
-        AnimatedMaterialGenericAlternate parts."""
+        AnimatedMaterialGenericAlternate parts.
+        """
         source_tile = self.qud_tile
         max_frames = 40  # set an upper limit to animation length to limit .gif size
         anim_parts = []
@@ -217,11 +230,14 @@ class TileAnimator:
             total_duration = lowest_common_multiple(len1, len2)
 
         # extract frames from each animation
-        tileframes: List[dict] = [{}, {}]
-        colorframes: List[dict] = [{}, {}]
-        detailframes: List[dict] = [{}, {}]
+        tileframes: list[dict] = [{}, {}]
+        colorframes: list[dict] = [{}, {}]
+        detailframes: list[dict] = [{}, {}]
         for part, tframes, cframes, dframes in zip(
-            anim_parts, tileframes, colorframes, detailframes
+            anim_parts,
+            tileframes,
+            colorframes,
+            detailframes,
         ):
             # set first frame to 'default' to absorb object's base render properties
             # using special logic below
@@ -304,7 +320,12 @@ class TileAnimator:
             tile_color = source_tile.raw_tilecolor if animation_color_is_unspecified else color
             # create tile
             qud_tile = QudTile(
-                tile, color, tile_color, detail, source_tile.qudname, source_tile.raw_transparent
+                tile,
+                color,
+                tile_color,
+                detail,
+                source_tile.qudname,
+                source_tile.raw_transparent,
             )
             finalized_tiles.append(qud_tile)
         # generate GIF
@@ -314,10 +335,20 @@ class TileAnimator:
         """Renders a GIF loosely based on the behavior of the AnimatedMaterialLuminous part."""
         tile = self.qud_tile
         frame1and2 = QudTile(
-            tile.filename, "&Y", "&Y", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&Y",
+            "&Y",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame3 = QudTile(
-            tile.filename, "&C", "&C", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&C",
+            "&C",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         self._make_gif([frame1and2, frame3], [40, 20])
 
@@ -332,7 +363,7 @@ class TileAnimator:
             f"{pre}3{post}",
             f"{pre}4{post}",
         )
-        frames: List[QudTile] = [
+        frames: list[QudTile] = [
             QudTile(
                 file1,
                 t.colorstring,
@@ -372,23 +403,23 @@ class TileAnimator:
         # below is 80 frames and 926KB.
         sequence = []
         durations = []
-        for cycle in range(2):  # Normal forward
+        for _cycle in range(2):  # Normal forward
             for rotation in range(4):
                 sequence.append(frames[rotation])
                 durations.append(500)
-        for cycle in range(12):  # RushingBackward
+        for _cycle in range(12):  # RushingBackward
             for rotation in [2, 1, 0, 3]:
                 sequence.append(frames[rotation])
                 durations.append(20)
-        for cycle in range(1):  # Normal forward
+        for _cycle in range(1):  # Normal forward
             for rotation in range(4):
                 sequence.append(frames[rotation])
                 durations.append(500)
-        for cycle in range(4):  # RushingForward
+        for _cycle in range(4):  # RushingForward
             for rotation in range(4):
                 sequence.append(frames[rotation])
                 durations.append(20)
-        for cycle in range(1):  # Normal forward
+        for _cycle in range(1):  # Normal forward
             for rotation in range(4):
                 sequence.append(frames[rotation])
                 durations.append(500)
@@ -404,8 +435,6 @@ class TileAnimator:
             f"{t_pre}3{t_post}",
             f"{t_pre}4{t_post}",
         ]
-        # tile_colors = ['&y^k', '&K^k', '&Y^y', '&Y^K', '&y^k']
-        # tile_details = ['k', 'k', 'y', 'K', 'k']
         tile_colors = ["&y", "&K", "&Y^y", "&Y^K", "&y"]
         tile_details = [None, None, "y", "K", None]
         color_tick_idxs = [0, 2000, 7000, 12000, 16000]
@@ -420,14 +449,14 @@ class TileAnimator:
                 path_idx = (tick // 2400) % 4
                 update_frame = True
             if (tick % 18000) in color_tick_idxs:
-                color_idx = color_tick_idxs.index((tick % 18000))
+                color_idx = color_tick_idxs.index(tick % 18000)
                 update_frame = True
             if update_frame is True:
                 path = tile_paths[path_idx]
                 color = tile_colors[color_idx]
                 detail = tile_details[color_idx]
                 frames.append(
-                    QudTile(path, color, color, detail, tile.qudname, tile.raw_transparent)
+                    QudTile(path, color, color, detail, tile.qudname, tile.raw_transparent),
                 )
                 if prev_tick is not None:
                     duration = tick - prev_tick
@@ -479,7 +508,8 @@ class TileAnimator:
 
         This effect is identical to HologramMaterial except that the tile retains its original
         colors most of the time, instead of having the base hologram colors (&B, b) most of the
-        time."""
+        time.
+        """
         self.apply_hologram_material(is_concealed=True)
 
     def apply_gas_animation(self) -> None:
@@ -528,7 +558,9 @@ class TileAnimator:
         self._make_gif([frame1, frame2, frame3, frame4], [250, 250, 250, 250])
 
     def apply_hologram_material(
-        self, is_concealed: bool = False, random_sequence: bool = False
+        self,
+        is_concealed: bool = False,
+        random_sequence: bool = False,
     ) -> None:
         """Renders a GIF loosely based on the behavior of the HologramMaterial part.
 
@@ -537,7 +569,8 @@ class TileAnimator:
         predictable and we know it'll look halfway decent.
 
         Cryptogull invokes this with the random_sequence parameter, which instead creates a random
-        holographic animation sequence."""
+        holographic animation sequence.
+        """
         tile = self.qud_tile
         glyph1 = TileProvider(StandInTiles.hologram_material_glyph1)
         glyph2 = TileProvider(StandInTiles.hologram_material_glyph2)
@@ -564,7 +597,7 @@ class TileAnimator:
             altframes_rare = [frame8, frame9]
             baseframe = True
             fullflicker_chance = 12
-            for i in range(40):  # frame limit
+            for _i in range(40):  # frame limit
                 if baseframe:
                     frames.append(base)
                     durations.append(random.randint(300, 700) + random.randint(-100, 300))
@@ -600,7 +633,7 @@ class TileAnimator:
                     base,
                     frame4,
                     base,
-                ]
+                ],
             )
             durations.extend([550, 40, 200, 40, 1100, 30, 20, 20, 20, 780, 40, 480])
             frames.extend(
@@ -618,7 +651,7 @@ class TileAnimator:
                     base,
                     frame8,
                     base,
-                ]
+                ],
             )
             durations.extend([30, 40, 900, 50, 1100, 40, 850, 40, 500, 50, 1300, 40, 700])
             frames.extend([frame4, base, frame3, base, frame2, base, frame3, base, frame4, base])
@@ -633,7 +666,8 @@ class TileAnimator:
         effect (like the Astral mutation). The only object this currently affects is Astral Tabby.
 
         This is very similar to the holographic animiation but it uses different colors and is
-        designed to animate at half the speed, more or less."""
+        designed to animate at half the speed, more or less.
+        """
         tile = self.qud_tile
         glyph1 = TileProvider(StandInTiles.hologram_material_glyph1)
         glyph2 = TileProvider(StandInTiles.hologram_material_glyph2)
@@ -657,7 +691,7 @@ class TileAnimator:
             altframes_rare = [frame8, frame9]
             baseframe = True
             fullflicker_chance = 12
-            for i in range(40):  # frame limit
+            for _i in range(40):  # frame limit
                 if baseframe:
                     frames.append(base)
                     durations.append(random.randint(600, 1400) + random.randint(-200, 600))
@@ -693,7 +727,7 @@ class TileAnimator:
                     base,
                     frame4,
                     base,
-                ]
+                ],
             )
             durations.extend([1100, 40, 400, 40, 2200, 30, 20, 20, 20, 1560, 40, 960])
             frames.extend(
@@ -711,7 +745,7 @@ class TileAnimator:
                     base,
                     frame8,
                     base,
-                ]
+                ],
             )
             durations.extend([30, 40, 1800, 50, 2200, 40, 1700, 40, 1000, 50, 2600, 40, 1400])
             frames.extend([frame4, base, frame3, base, frame2, base, frame3, base, frame4, base])
@@ -725,16 +759,36 @@ class TileAnimator:
         """Renders a GIF loosely based on the behavior of permanently phased objects."""
         tile = self.qud_tile
         frame1 = QudTile(
-            tile.filename, "&k", "&k", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&k",
+            "&k",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame2 = QudTile(
-            tile.filename, "&K", "&K", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&K",
+            "&K",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame3 = QudTile(
-            tile.filename, "&c", "&c", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&c",
+            "&c",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame4 = QudTile(
-            tile.filename, "&y", "&y", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&y",
+            "&y",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         self._make_gif([frame1, frame2, frame3, frame4], [30, 40, 60, 70])
 
@@ -742,17 +796,37 @@ class TileAnimator:
         """Renders a GIF loosely based on the behavior of the PhaseSticky part."""
         tile = self.qud_tile
         frame1 = QudTile(
-            tile.filename, "&k", "&k", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&k",
+            "&k",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame2 = QudTile(
-            tile.filename, "&K", "&K", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&K",
+            "&K",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame3 = QudTile(
-            tile.filename, "&c", "&c", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&c",
+            "&c",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame4 = tile
         frame5 = QudTile(
-            tile.filename, "&y", "&y", tile.raw_detailcolor, tile.qudname, tile.raw_transparent
+            tile.filename,
+            "&y",
+            "&y",
+            tile.raw_detailcolor,
+            tile.qudname,
+            tile.raw_transparent,
         )
         frame6 = tile
         frames = [frame1, frame2, frame3, frame4, frame5, frame6]
@@ -764,7 +838,8 @@ class TileAnimator:
         TileEffects enabled.
 
         To simplify things, we assume that the object is powered and unbroken, ignoring other
-        potential variations."""
+        potential variations.
+        """
         obj, t = self.qud_object, self.qud_tile
         part, tile_path_start = None, None
         for partname in POWER_TRANSMISSION_PARTS:
@@ -813,7 +888,7 @@ class TileAnimator:
                     t.raw_detailcolor,
                     t.qudname,
                     t.raw_transparent,
-                )
+                ),
             )
             durations.append(frame_duration)
         self._make_gif(frames, durations)
@@ -832,7 +907,12 @@ class TileAnimator:
         trans_color = back
         detail_color = "transparent"
         frame2 = QudTile(
-            tile.filename, color_string, tile_color, detail_color, tile.qudname, trans_color
+            tile.filename,
+            color_string,
+            tile_color,
+            detail_color,
+            tile.qudname,
+            trans_color,
         )  # ReadyColor
         final_frame_duration = turninterval * 1200 - 1600
         final_frame_duration = 20 if final_frame_duration < 20 else final_frame_duration
@@ -844,7 +924,7 @@ class TileAnimator:
         random.seed(self.qud_object.name)
         glyphs = ["§", "φ", "☼", "○"]  # '•'
         colors = ["B", "R", "C", "W", "K"]
-        frames: List[QudTile] = []
+        frames: list[QudTile] = []
         for _ in range(frame_count):
             color = random.choice(colors)
             glyph = random.choice(glyphs) if random.randint(0, 20) != 0 else "•"
@@ -852,11 +932,12 @@ class TileAnimator:
             frames.append(QudTile.from_image_provider(generator, self.qud_object.name))
         self._make_gif(frames, [50] * frame_count)
 
-    def _make_gif(self, qud_tiles: List[QudTile], durations: List[int]) -> Image:
+    def _make_gif(self, qud_tiles: list[QudTile], durations: list[int]) -> Image:
         """Performs the actual GIF Image creation. Resizes the supplied array of QudTile frames, and
         appends them together as a GIF Image with the specified frame durations (in milliseconds).
 
         Args:
+        ----
             qud_tiles: The list of QudTile objects that compose this GIF animation
             durations: The list of durations for each frame in the GIF animation. You should specify
                        durations as milliseconds, but note that they actually only have one tenth of
@@ -864,7 +945,7 @@ class TileAnimator:
                        example, 50 will be internally converted to 5
         """
         frame = qud_tiles[0].get_big_image()
-        next_frames: List[Image] = []
+        next_frames: list[Image] = []
         for img in qud_tiles[1:]:
             next_frames.append(img.get_big_image())
         gif_b = BytesIO()
@@ -875,16 +956,10 @@ class TileAnimator:
         # Image.save() or GifHelper.save() elsewhere in the code to save this GIF instance. For
         # example, we save the GIF in MainWindow.save_selected_tile().
         #   frame.save(gif_b,
-        #              format='GIF',
-        #              save_all=True,
-        #              append_images=next_frames,
-        #              transparency=transparency_palette_index,
-        #              duration=durations,
-        #              disposal=2
         #              loop=0)
 
         # Workaround code for transparent GIF creation:
-        save_transparent_gif([frame] + next_frames, durations, gif_b)
+        save_transparent_gif([frame, *next_frames], durations, gif_b)
 
         gif_b.seek(0)
         self._gif_image = Image.open(gif_b)
@@ -897,6 +972,7 @@ class GifHelper:
         properly preserved.
 
         Args:
+        ----
             gif_image: A GIF PIL Image object
             save_target: A filename (string), pathlib.Path object or file object. (This parameter
                          corresponds and is passed to the PIL.Image.save() method.)
@@ -905,19 +981,24 @@ class GifHelper:
         for frame in ImageSequence.Iterator(gif_image):
             durations.append(frame.info["duration"])
         gif_image.save(
-            save_target, format="GIF", save_all=True, duration=durations, loop=0, disposal=2
+            save_target,
+            format="GIF",
+            save_all=True,
+            duration=durations,
+            loop=0,
+            disposal=2,
         )
 
     @staticmethod
     def get_bytes(gif_image: Image) -> bytes:
-        """Converts a GIF PIL Image object to its bytes representation"""
+        """Converts a GIF PIL Image object to its bytes representation."""
         gif_b = BytesIO()
         GifHelper.save(gif_image, gif_b)
         return gif_b.getvalue()
 
     @staticmethod
     def get_bytesio(gif_image: Image) -> BytesIO:
-        """Converts a GIF PIL Image object to its BytesIO representation"""
+        """Converts a GIF PIL Image object to its BytesIO representation."""
         gif_b = BytesIO()
         GifHelper.save(gif_image, gif_b)
         return gif_b

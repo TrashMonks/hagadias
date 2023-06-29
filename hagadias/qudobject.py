@@ -1,14 +1,16 @@
-"""attr specification:
-QudObject.part_name_attribute"""
+"""The base class representing Qud blueprints.
+
+attr specification:
+QudObject.part_name_attribute
+"""
 from copy import deepcopy
 from functools import cached_property
-from typing import Tuple, List
 
 from anytree import NodeMixin
 from lxml import etree
 
 from hagadias.qudtile import QudTile
-from hagadias.tileanimator import TileAnimator, StandInTiles
+from hagadias.tileanimator import StandInTiles, TileAnimator
 from hagadias.tilepainter import TilePainter
 
 
@@ -44,13 +46,12 @@ class QudObject(NodeMixin):
     by the AnyTree module that provides NodeMixin.
     """
 
-    def __init__(self, blueprint: etree.Element, qindex: dict, gameroot):
+    def __init__(self, blueprint: etree.Element, qindex: dict, gameroot) -> None:
         """Create a new QudObject instance.
 
-        Parameters:
-            blueprint: an XML Element to parse into dictionaries
-            qindex: a dict in which to register this object after creation, keyed by object name
-            gameroot: a reference to the GameRoot instance that spawned this object
+        :param blueprint: an XML Element to parse into dictionaries
+        :param qindex: a dict in which to register this object after creation, keyed by object name
+        :param gameroot: a reference to the GameRoot instance that spawned this object
         """
         self.gameroot = gameroot
         self.source = etree.tostring(blueprint).decode("utf8")
@@ -81,7 +82,8 @@ class QudObject(NodeMixin):
                 # for tag: inventoryobject
                 element_name = element.attrib.pop("Blueprint")
             if element_name in self.attributes[element_tag] and isinstance(
-                self.attributes[element_tag][element_name], dict
+                self.attributes[element_tag][element_name],
+                dict,
             ):
                 # for rare cases like:
                 # <part Name="Brain" Hostile="false" Wanders="false" Factions="Prey-100" />
@@ -99,7 +101,8 @@ class QudObject(NodeMixin):
         'primary' tile for objects that have more than one tile. Use <QudObject>.tiles to
         retrieve the full tile collection.
 
-        Created on-demand to speed load times; cached after first call."""
+        Created on-demand to speed load times; cached after first call.
+        """
         tile = None  # not all objects have tiles
         if self.has_tile():
             painter = self.tile_painter
@@ -115,29 +118,31 @@ class QudObject(NodeMixin):
         return self._tile_painter
 
     @cached_property
-    def tiles(self) -> List[QudTile]:
+    def tiles(self) -> list[QudTile]:
         """Returns all of the QudTiles for this object, including any alternate tiles. If you
         want to first check whether more than one tile exists, you can call
         <QudObject>.number_of_tiles().
 
-        Created on-demand and cached after first call."""
+        Created on-demand and cached after first call.
+        """
         return self.tiles_and_metadata()[0]
 
-    def tiles_and_metadata(self) -> Tuple[List[QudTile], List]:
+    def tiles_and_metadata(self) -> tuple[list[QudTile], list]:
         """Returns all of the QudTiles for this object including any alternate tiles, along with
         a corresponding TilePainterMetadata array with metadata about each tile. If you want to
         first check whether more than one tile exists, you can call <QudObject>.number_of_tiles(
         ). The TilePainterMetadata includes some suggestions for file naming or labeling the
         images when there are more than one.
 
-        Created on-demand and cached in self._alltiles and self._allmetadata after first call."""
+        Created on-demand and cached in self._alltiles and self._allmetadata after first call.
+        """
         if hasattr(self, "_alltiles") and hasattr(self, "_allmetadata"):
             return self._alltiles, self._allmetadata
         alltiles, metadata = [], []
         if self.tile_painter.tile_count() > 0:
             alltiles, metadata = self.tile_painter.all_tiles_and_metadata()
-        self._alltiles: List[QudTile] = alltiles
-        self._allmetadata: List = metadata
+        self._alltiles: list[QudTile] = alltiles
+        self._allmetadata: list = metadata
         return alltiles, metadata
 
     def has_tile(self) -> bool:
@@ -167,7 +172,8 @@ class QudObject(NodeMixin):
         index which corresponds to the object's tile of the same index, if the object has
         multiple tiles. Objects with multiple tiles may also have multiple GIFs.
 
-        Created on demand and then cached in self._tile_gifs after first call."""
+        Created on demand and then cached in self._tile_gifs after first call.
+        """
         if not self.has_gif_tile():
             return None
         if not hasattr(self, "_tile_gifs"):
@@ -182,28 +188,31 @@ class QudObject(NodeMixin):
         """Returns true if this object qualifies for GIF rendering."""
         return TileAnimator(self).has_gif
 
-    def unidentified_tile_and_metadata(self) -> Tuple | None:
-        if self.part_Examiner is not None:
-            if self.number_of_tiles() > 1:
-                tiles, metadata = self.tiles_and_metadata()
-                for tile, meta in zip(tiles, metadata):
-                    if meta.type == "unidentified":
-                        return tile, meta
+    def unidentified_tile_and_metadata(self) -> tuple | None:
+        if self.part_Examiner is not None and self.number_of_tiles() > 1:
+            tiles, metadata = self.tiles_and_metadata()
+            for tile, meta in zip(tiles, metadata):
+                if meta.metatype == "unidentified":
+                    return tile, meta
+            return None
+        return None
 
     def unidentified_tile(self) -> QudTile:
         data = self.unidentified_tile_and_metadata()
         if data is not None:
             return data[0]
+        return None
 
     def unidentified_metadata(self):
         data = self.unidentified_tile_and_metadata()
         if data is not None:
             return data[1]
+        return None
 
     def resolve_inheritance(self) -> None:
         """Compute dictionaries with all inherited tags and attributes. This method should be
         called only after all objects are loaded from XML (in other words, a two-pass load should
-        be performed, which mimics the logic the game uses when loading ObjectBlueprints.xml)
+        be performed, which mimics the logic the game uses when loading ObjectBlueprints.xml).
 
         Resolves two internal object dictionaries. The first contains the computed attributes for
         this QudObject. The second contains the computed attributes for its parent.
@@ -212,6 +221,7 @@ class QudObject(NodeMixin):
         the returned dict. Attributes of tags in children overwrite ancestors.
 
         Example:
+        -------
           <object Name="BaseFarmer" Inherits="NPC">
             <part Name="Render" DisplayName="[farmer]" ...
         with the child object:
@@ -239,10 +249,9 @@ class QudObject(NodeMixin):
                 all_attributes[tag] = {}
             for name in inherited[tag]:
                 if name not in all_attributes[tag]:
-                    if tag == "part" and removes_parts:
-                        if name in all_attributes["removepart"]:
-                            # remove `name` part from `self.name` due to `removepart` tag
-                            continue  # don't inherit part if it's explicitly removed from the child
+                    if tag == "part" and removes_parts and name in all_attributes["removepart"]:
+                        # remove `name` part from `self.name` due to `removepart` tag
+                        continue  # don't inherit part if it's explicitly removed from the child
                     all_attributes[tag][name] = {}
                 elif (
                     tag == "tag"
@@ -296,7 +305,8 @@ class QudObject(NodeMixin):
 
     def is_specified(self, attr) -> bool:
         """Return True if `attr` is specified explicitly for this object,
-        False if it is inherited or does not exist"""
+        False if it is inherited or does not exist.
+        """
         # TODO: doesn't work right
         path = attr.split("_")
         try:

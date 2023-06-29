@@ -1,8 +1,8 @@
 # https://stackoverflow.com/questions/3752476/python-pil-replace-a-single-rgba-color
 import io
 import logging
+from collections.abc import Callable
 from pathlib import Path, PureWindowsPath
-from typing import Callable, Optional, Tuple
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.Image import Image as PILImage
@@ -36,7 +36,7 @@ def fix_filename(filename: str) -> str:
 
 def check_filename(filename: str):
     """Inspect filenames for potential bad input from a network user."""
-    if filename.startswith("/") or filename.startswith("\\") or ".." in filename:
+    if filename.startswith(("/", "\\")) or ".." in filename:
         raise PermissionError
 
 
@@ -85,23 +85,23 @@ class QudTile:
         raw_transparent="transparent",
         image_provider=None,
         prefab_applicator=None,
-    ):
+    ) -> None:
         """Loads and colors a tile, creating the corresponding PIL Image object.
 
-        Args:
-            filename: filename of the tile source image. Set to None if the image_provider parameter
-            is specified.
-            colorstring: the ColorString associated with this tile.
-            raw_tilecolor: the TileColor associated with this tile.
-            raw_detailcolor: the DetailColor associated with this tile.
-            qudname: name of the Qud object. Used only for debug purposes.
-            raw_transparent: an override color to use to fill the transparent pixels of the source.
-            image_provider: a TileProvider that can return a PIL Image object. Can be used instead
-                            of a filename. If specified, QudTile will call Image.copy() on the
-                            provided image to avoid altering it.
-            prefab_applicator: A method that will draw a fake Unity prefab colored overlay on top of
-                         the 160x240 "big" size version of the tile. If specified, QudTile will
-                         invoke this method before returning a big_tile version of this tile.
+        :param filename: the tile source image. Set to None if image_provider is given
+        :param colorstring: the ColorString associated with this tile.
+        :param raw_tilecolor: the TileColor associated with this tile.
+        :param raw_detailcolor: the DetailColor associated with this tile.
+        :param qudname: name of the Qud object. Used only for debug purposes.
+        :param raw_transparent: an override color to use to fill the transparent pixels of the
+                                source
+        :param image_provider: a TileProvider that can return a PIL Image object. Can be used
+                               instead of a filename. If specified, QudTile will call Image.copy()
+                               on the provided image to avoid altering it.
+        :param prefab_applicator: A method that will draw a fake Unity prefab colored overlay on top
+                                  of the 160x240 "big" size version of the tile. If specified,
+                                  QudTile will invoke this method before returning a big_tile
+                                  version of this tile.
         """
         self.hasproblems = False  # set True if problems with tile generation encountered
         self.filename = filename
@@ -172,13 +172,14 @@ class QudTile:
 
     @classmethod
     def from_image_provider(cls, image_provider, qudname: str):
-        """Create a QudTile given only an image provider object. Shorthand alternative to the usual
-        QudTile __init__ constructor.
+        """Create a QudTile given only an image provider object.
+
+        Shorthand alternative to the usual QudTile __init__ constructor.
         """
         return cls(None, None, None, None, qudname, image_provider=image_provider)
 
     def _color_image(self):
-        skip_trans = True if self.transparentcolor == QUD_COLORS["transparent"] else False
+        skip_trans = self.transparentcolor == QUD_COLORS["transparent"]
         alphas = self.image.getdata(3)  # A (alpha channel only)
         pixels = self.image.getdata()  # RGBA (all four channels as a tuple)
         width = self.image.width
@@ -211,7 +212,8 @@ class QudTile:
 
         Used for uploading to the wiki and discord.
         Some applications may require .seek(0) on this before use (discord.py does,
-        mwclient does not.)"""
+        mwclient does not.)
+        """
         png_b = io.BytesIO()
         self.image.save(png_b, format="png")
         return png_b
@@ -223,7 +225,7 @@ class QudTile:
         return bytesio.read()
 
     def get_big_image(self):
-        """Draw the big (10x, 160x240) tile for the wiki or discord."""
+        """Draw the big (10x, 160x240) tile for the wiki or Discord."""
         bigimage = self.image.resize((160, 240), resample=Image.Dither.NONE)
         if self.prefab_applicator is not None:
             self.prefab_applicator(bigimage)
@@ -232,9 +234,10 @@ class QudTile:
     def get_big_bytesio(self):
         """Get a BytesIO representation of a PNG encoding of the big (10x, 160x240) tile.
 
-        Used for uploading to the wiki and discord.
+        Used for uploading to the wiki and Discord.
         Some applications may require .seek(0) on this before use (discord.py does,
-        mwclient does not.)"""
+        mwclient does not.)
+        """
         png_b = io.BytesIO()
         self.get_big_image().save(png_b, format="png")
         return png_b
@@ -247,12 +250,13 @@ class QudTile:
 
 
 class TileProvider:
-    def __init__(self, image_provider: Callable[[], Tuple[PILImage, bool]]):
+    def __init__(self, image_provider: Callable[[], tuple[PILImage, bool]]) -> None:
         """Wrapper class for providing a stand-in tile for objects that do not actually have a
         tile specified in ObjectBlueprints.xml, but for which it makes sense to 'fake' a tile by
         drawing their code page 437 character. The prime example is gases.
 
         Args:
+        ----
             image_provider: A method that can be called to return a Tuple object. The Tuple
                 will contain both of the following:
                     - The stand-in image.
@@ -261,8 +265,8 @@ class TileProvider:
                       specified in ObjectBlueprints.xml
         """
         self._image_provider = image_provider
-        self._image: Optional[PILImage] = None
-        self._needs_color: Optional[bool] = None
+        self._image: PILImage | None = None
+        self._needs_color: bool | None = None
 
     @property
     def image(self) -> PILImage:
@@ -299,17 +303,18 @@ class StandInTiles:
     _spacetime_vortex_glyph1: Image = None
 
     @staticmethod
-    def get_tile_provider_for(qud_object) -> Optional[TileProvider]:
+    def get_tile_provider_for(qud_object) -> TileProvider | None:
         """Returns a TileProvider that can provide a stand-in tile for the specified QudObject, if
         one is available. Enables specifying tiles for things that don't actually have a tile
         specified in ObjectBlueprints.xml, but for which it makes sense to 'fake' a tile by drawing
         their code page 437 character. The prime example is gases.
 
         We could consider loading this from config eventually, but I doubt there will be many things
-        that use it."""
-        if getattr(qud_object, "part_Gas") is not None:
+        that use it.
+        """
+        if qud_object.part_Gas is not None:
             return TileProvider(StandInTiles.gas_glyph1)
-        elif getattr(qud_object, "part_SpaceTimeVortex") is not None:
+        elif qud_object.part_SpaceTimeVortex is not None:
             return TileProvider(StandInTiles.spacetime_vortex_glyph1)
         return None
 
@@ -319,6 +324,7 @@ class StandInTiles:
         example, can create glyphs used by the Space-Time Vortex effect.
 
         Args:
+        ----
             displaychar: single character to render, such as '$'
             color: qud color character for the font, such as 'R'
             trans: Whether to use a transparent background. If false, a background of 'k' will be
@@ -330,22 +336,27 @@ class StandInTiles:
         image = Image.new("RGBA", (160, 240), color=QUD_COLORS["transparent" if trans else "k"])
         draw = ImageDraw.Draw(image)
         draw.text(
-            (0, -60), displaychar, font=StandInTiles.FONT_SOURCECODEPRO, fill=QUD_COLORS[color]
+            (0, -60),
+            displaychar,
+            font=StandInTiles.FONT_SOURCECODEPRO,
+            fill=QUD_COLORS[color],
         )
         return image.resize((16, 24))
 
     @staticmethod
-    def spacetime_vortex_glyph1() -> Tuple[PILImage, bool]:
+    def spacetime_vortex_glyph1() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  §  character, which is used by SpaceTimeVortex
-        animations. Also returns 'False' to indicate no further coloration is needed."""
+        animations. Also returns 'False' to indicate no further coloration is needed.
+        """
         if StandInTiles._spacetime_vortex_glyph1 is None:
             StandInTiles._spacetime_vortex_glyph1 = StandInTiles.make_font_glyph("§", "W", True)
         return StandInTiles._spacetime_vortex_glyph1, False
 
     @staticmethod
-    def hologram_material_glyph1() -> Tuple[PILImage, bool]:
+    def hologram_material_glyph1() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  |  character, which is used by
-        HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors."""
+        HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors.
+        """
         if StandInTiles._hologram_material_glyph1 is None:
             image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
@@ -354,9 +365,10 @@ class StandInTiles:
         return StandInTiles._hologram_material_glyph1, True
 
     @staticmethod
-    def hologram_material_glyph2() -> Tuple[PILImage, bool]:
+    def hologram_material_glyph2() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  _  character, which is used by
-        HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors."""
+        HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors.
+        """
         if StandInTiles._hologram_material_glyph2 is None:
             image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
@@ -365,9 +377,10 @@ class StandInTiles:
         return StandInTiles._hologram_material_glyph2, True
 
     @staticmethod
-    def hologram_material_glyph3() -> Tuple[PILImage, bool]:
+    def hologram_material_glyph3() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  -  character, which is used by
-        HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors."""
+        HologramMaterial animations. Also returns 'True' to indicate QudTile should apply colors.
+        """
         if StandInTiles._hologram_material_glyph3 is None:
             image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
@@ -376,9 +389,10 @@ class StandInTiles:
         return StandInTiles._hologram_material_glyph3, True
 
     @staticmethod
-    def gas_glyph1() -> Tuple[PILImage, bool]:
+    def gas_glyph1() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  ░  character, which is used by Gas
-        animations. Also returns 'True' to indicate QudTile should apply colors."""
+        animations. Also returns 'True' to indicate QudTile should apply colors.
+        """
         if StandInTiles._gas_glyph1 is None:
             image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
@@ -395,9 +409,10 @@ class StandInTiles:
         return StandInTiles._gas_glyph1, True
 
     @staticmethod
-    def gas_glyph2() -> Tuple[PILImage, bool]:
+    def gas_glyph2() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  ▒  character, which is used by Gas
-        animations. Also returns 'True' to indicate QudTile should apply colors."""
+        animations. Also returns 'True' to indicate QudTile should apply colors.
+        """
         if StandInTiles._gas_glyph2 is None:
             image = Image.new("RGBA", (16, 24), color=QUD_COLORS["transparent"])
             draw = ImageDraw.Draw(image)
@@ -411,9 +426,10 @@ class StandInTiles:
         return StandInTiles._gas_glyph2, True
 
     @staticmethod
-    def gas_glyph3() -> Tuple[PILImage, bool]:
+    def gas_glyph3() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  ▓  character, which is used by Gas
-        animations. Also returns 'True' to indicate QudTile should apply colors."""
+        animations. Also returns 'True' to indicate QudTile should apply colors.
+        """
         if StandInTiles._gas_glyph3 is None:
             image = Image.new("RGBA", (16, 24), color=TILE_COLOR)
             draw = ImageDraw.Draw(image)
@@ -430,9 +446,10 @@ class StandInTiles:
         return StandInTiles._gas_glyph3, True
 
     @staticmethod
-    def gas_glyph4() -> Tuple[PILImage, bool]:
+    def gas_glyph4() -> tuple[PILImage, bool]:
         """Creates a PIL Image representation of the  █  character, which is used by Gas
-        animations. Also returns 'True' to indicate QudTile should apply colors."""
+        animations. Also returns 'True' to indicate QudTile should apply colors.
+        """
         if StandInTiles._gas_glyph4 is None:
             image = Image.new("RGBA", (16, 24), color=TILE_COLOR)
             StandInTiles._gas_glyph4 = image

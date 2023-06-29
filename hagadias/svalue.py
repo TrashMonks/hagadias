@@ -6,14 +6,15 @@ class sValue:
     where t = level // 5 + 1
     "7,1d3,(t-1)d2-1"
 
-    Methods:
+    Methods
+    -------
         __iter__: Return self as an iterable
         __next__: To implement min(), max() for value range, and int()
         __int__: Return the mean of the possible range
         __str__: Return the source sValue string
     """
 
-    def __init__(self, svalue: str, level: int = 1):
+    def __init__(self, svalue: str, level: int = 1) -> None:
         self.svalue = svalue
         t = level // 5 + 1
         # substitute creature tier in dice
@@ -47,7 +48,7 @@ class sValue:
     def __iter__(self):
         return self
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.high - self.low + 1
 
     def __next__(self):
@@ -58,15 +59,14 @@ class sValue:
             self.current_iter += 1
             return self.current_iter - 1
 
-    def __int__(self):
+    def __int__(self) -> int:
         return sum(self) // len(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if len(self) == 1:
             return str(self.low)
         else:
-            # return str(self.low) + " - " + str(self.high)
             return str(self.svalstring)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "sValue " + self.svalue

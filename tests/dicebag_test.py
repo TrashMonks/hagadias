@@ -1,15 +1,20 @@
-"""Pytest file for functions in dicebag.py"""
+"""Pytest file for classes in dicebag.py."""
+
+import pytest
 
 from hagadias.dicebag import DiceBag
-from pytest import raises
 
 
-def test_DiceBag():
-    with raises(ValueError):
-        DiceBag("-1001d1")  # too many dice
-        DiceBag("1001d1")  # too many dice
-        DiceBag("3d0")  # die too small
-        DiceBag("1d1001")  # die too large
+def test_input_filtering():
+    """Test range checks on user input."""
+    with pytest.raises(ValueError, match="5001 is too many dice to roll"):
+        DiceBag("-5001d1")  # too many dice
+    with pytest.raises(ValueError, match="5001 is too many dice to roll"):
+        DiceBag("5001d1")  # too many dice
+    with pytest.raises(ValueError, match="0.0 is too low for the number of sides on a die"):
+        DiceBag("3d0")
+    with pytest.raises(ValueError, match="1001.0 is too high for the number of sides on a die"):
+        DiceBag("1d1001")
 
 
 def test_roll_average():

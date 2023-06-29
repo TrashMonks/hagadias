@@ -1,19 +1,22 @@
+"""Support for applying styles to tiles before they are painted."""
 from __future__ import annotations  # allow forward type references
 
 import itertools
 import os
 import random
 from enum import Flag, auto
-from typing import List, Optional, Type, Tuple
 
 from hagadias.constants import LIQUID_COLORS
 from hagadias.dicebag import DiceBag
 from hagadias.helpers import (
-    obj_has_any_part,
+    extract_background_char,
     extract_foreground_char,
     int_or_default,
-    extract_background_char,
+    obj_has_any_part,
 )
+
+# ruff: noqa: ANN001, ANN201
+# TODO: Annotating the QudObject and TilePainter types in this file causes a circular import.
 
 
 class RenderProps(Flag):
@@ -30,11 +33,18 @@ class RenderProps(Flag):
 
 
 class StyleMetadata:
-    def __init__(self, meta_type: str = "", f_postfix: str = None, meta_type_after: bool = False):
-        """A style metadata object that defines the type of tile and recommended file postfix.
+    """A style metadata object that defines the type of tile and recommended file postfix."""
 
+    def __init__(
+        self,
+        meta_type: str = "",
+        f_postfix: str = None,
+        meta_type_after: bool = False,
+    ) -> None:
+        """
         Args:
-            meta_type: The type of of tile (ex: 'random variant #3'). This could be used to display
+        ----
+            meta_type: The type of tile (ex: 'random variant #3'). This could be used to display
                 a label on the tile if this object's tiles are shown in a gallery or similar.
             f_postfix: The recommended file postfix (ex: 'variation 3'). Will be used to construct a
                 filename for the tile in the format '[object name] [postfix].png'. Additional
@@ -52,10 +62,11 @@ class StyleMetadata:
         self.meta_type = meta_type
         self.f_postfix = f_postfix if f_postfix is not None else meta_type
 
-    def merge_with(self, mdata_to_merge: StyleMetadata):
-        """Accepts another StyleMetadata instance and merges it's metadata into this instance.
+    def merge_with(self, mdata_to_merge: StyleMetadata) -> None:
+        """Accepts another StyleMetadata instance and merges its metadata into this instance.
 
         Args:
+        ----
             mdata_to_merge: The StyleMetadata object that will be merged into this one. The
                 instance provided as this argument will not be modified.
         """
@@ -66,8 +77,8 @@ class StyleMetadata:
         self.merged_postfixes.append(mdata_to_merge.f_postfix)
 
     @property
-    def type(self) -> str:
-        """The descriptive metadata label for this tile (example: 'ripe, random sprite #2')"""
+    def metatype(self) -> str:
+        """The descriptive metadata label for this tile (example: 'ripe, random sprite #2')."""
         if len("".join(self.merged_types)) == 0 and len("".join(self.merged_types_after)) == 0:
             if self.meta_type is not None:
                 return self.meta_type.strip()
@@ -89,7 +100,7 @@ class StyleMetadata:
 
     @property
     def postfix(self) -> str:
-        """The recommended filename postfix for this tile (example: ' variation 1 ripe')"""
+        """The recommended filename postfix for this tile (example: ' variation 1 ripe')."""
         if len(self.merged_postfixes) == 0:
             if self.f_postfix is not None and len(self.f_postfix.strip()) > 0:
                 return f" {self.f_postfix.strip()}"
@@ -105,23 +116,25 @@ class StyleMetadata:
 
 
 class TileStyle:
+    """Base tile styling virtual class that should be subclassed by each TileStyle."""
+
     def __init__(
         self,
         _painter,  # Type: TilePainter
         _priority: int = 0,
         _modifies: RenderProps = RenderProps.ALL,
         _allows: RenderProps = RenderProps.ALL,
-    ):
-        """Base tile styling virtual class that should be subclassed by each TileStyle.
-
+    ) -> None:
+        """
         Args:
-            _painter: TilePainter instance that we will style (also holds the underlying QudObject).
-            _priority: The priority of this style. Higher priority styles are applied first and may
-                block lower priority styles if they both attempt to modify the same RenderProps.
-            _modifies: RenderProperty flags representing the render props that this style modifies.
-            _allows: RenderProperty flags representing the render props that will be allowed to
-                accept further modifications after this style has been applied. Properties not
-                specified here can no longer be modified by further styles on the style stack.
+        ----
+        _painter: TilePainter instance that we will style (also holds the underlying QudObject).
+        _priority: The priority of this style. Higher priority styles are applied first and may
+                   block lower priority styles if they both attempt to modify the same RenderProps.
+        _modifies: RenderProps flags representing the render properties that this style modifies.
+        _allows: RenderProps flags representing the render properties that will be allowed to
+                 accept further modifications after this style has been applied. Properties not
+                 specified here can no longer be modified by further styles on the style stack.
         """
         self._painter = _painter
         self._priority = _priority
@@ -129,27 +142,33 @@ class TileStyle:
         self._allows = _allows
 
     @property
-    def object(self):
+    def qudobject(self):
+        """The underlying QudObject for the tile."""
         return self._painter.obj  # Type: QudObject
 
     @property
     def painter(self):
+        """The TilePainter instance that we will style."""
         return self._painter  # Type: TilePainter
 
     @property
     def priority(self) -> int:
+        """The priority of this style."""
         return self._priority
 
     @property
     def modifies(self) -> RenderProps:
+        """The RenderProps flags representing the render props that this style modifies."""
         return self._modifies
 
     @property
     def allows(self) -> RenderProps:
+        """The RenderProps flags representing further modifications allowed after this style."""
         return self._allows
 
     @property
     def is_applicable(self) -> bool:
+        """Whether this style can contribute any permutations to the underlying object's tile."""
         return self._modification_count() > 0
 
     def modifies_within_scope(self, allowed_scope: RenderProps) -> bool:
@@ -158,21 +177,24 @@ class TileStyle:
 
     def modification_count(self) -> int:
         """Number of style permutations this style can contribute to the underlying object.
-        Returns 0 if this style isn't applicable."""
+        Returns 0 if this style isn't applicable.
+        """
         return self._modification_count()
 
     def _modification_count(self) -> int:
         """Returns the number of style permutations that this style can contribute to the
         underlying object. This should return 0 if the style does not apply.
 
-        This method must be implemented by each style."""
-        raise NotImplementedError()
+        This method must be implemented by each style.
+        """
+        raise NotImplementedError
 
     def apply_modification(self, index: int) -> StyleMetadata:
         """Apply this style to the TilePainter. A valid local style modification index must be
         provided; this index must be lower than this style's modification_count().
 
         Args:
+        ----
             index: The zero-based style modification index.
         """
         if index >= self._modification_count():  # retrieve count from child implementation
@@ -185,19 +207,16 @@ class TileStyle:
         This method must be implemented by each style.
 
         Args:
+        ----
             index: The zero-based style modification index, used to determine which tile style
             variant should be applied.
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
-    def style_limit_override(self) -> Optional[int]:
-        """Retrieves the style limit override, or None if the style does not define one."""
-        return self._style_limit_override()
-
-    def _style_limit_override(self) -> Optional[int]:
+    def style_limit_override(self) -> int | None:
         """Optional method - can be implemented to override style limit for particular object(s).
         If multiple styles implement this, only the highest-priority style's value will be used.
-        """
+        Retrieves the style limit override, or None if the style does not define one."""
         return None
 
 
@@ -276,13 +295,16 @@ class StyleSultanMuralWall(TileStyle):
     ]
     MURAL_POSITIONS = ["l", "c", "r"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=90, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=90,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
-        if self.object.part_SultanMural is not None:
+        if self.qudobject.part_SultanMural is not None:
             return len(StyleSultanMuralWall.MURAL_PATHS) * 3
         return 0
 
@@ -292,10 +314,12 @@ class StyleSultanMuralWall(TileStyle):
         mural_pos = StyleSultanMuralWall.MURAL_POSITIONS[index % 3]
         self.painter.file = f"Walls/sw_mural_{mural_type}_{mural_pos}.bmp"
         return StyleMetadata(
-            meta_type=f"{mural_label} {mural_pos.upper()}", f_postfix=f"{mural_type}_{mural_pos}"
+            meta_type=f"{mural_label} {mural_pos.upper()}",
+            f_postfix=f"{mural_type}_{mural_pos}",
         )
 
-    def style_limit_override(self) -> Optional[int]:
+    def style_limit_override(self) -> int | None:
+        """Override the None from base class."""
         return len(StyleSultanMuralWall.MURAL_PATHS) * 3
 
 
@@ -305,13 +329,16 @@ class StyleSultanMuralMedian(TileStyle):
     MURAL_MEDIAN_COLOR = ["C", "m", "M", "r", "c", "K"]
     MURAL_MEDIAN_DETAIL = ["K", "y", "r", "c", "Y", "y"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=90, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
+            _painter,
+            _priority=90,
+            _modifies=RenderProps.ALL,
+            _allows=RenderProps.NONE,
         )
 
     def _modification_count(self) -> int:
-        if self.object.name == "BaseMuralCenter":
+        if self.qudobject.name == "BaseMuralCenter":
             return 6
         return 0
 
@@ -322,7 +349,8 @@ class StyleSultanMuralMedian(TileStyle):
         self.painter.trans = "k"
         self.painter.file = f"Walls/sw_mural_centerpiece_period_{index + 1}.bmp"
         return StyleMetadata(
-            meta_type=f"period {index + 1} sultanate", f_postfix=f"period {index + 1}"
+            meta_type=f"period {index + 1} sultanate",
+            f_postfix=f"period {index + 1}",
         )
 
 
@@ -332,13 +360,16 @@ class StyleSultanMuralEndcap(TileStyle):
     MURAL_ENDCAP_COLOR = ["C", "m", "M", "r", "c", "K"]
     MURAL_ENDCAP_DETAIL = ["K", "y", "r", "c", "Y", "y"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=90, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
+            _painter,
+            _priority=90,
+            _modifies=RenderProps.ALL,
+            _allows=RenderProps.NONE,
         )
 
     def _modification_count(self) -> int:
-        if self.object.name == "BaseMuralLeftend":
+        if self.qudobject.name == "BaseMuralLeftend":
             return 12
         return 0
 
@@ -364,21 +395,24 @@ class StyleRandomColors(TileStyle):
     INDEX_MULTIPLIER = {"Bouquet": 5, "Flower": 6, "Flowers": 5}
     INDEX_OFFSET = {"Bouquet": 0, "Flower": 1, "Flowers": 2}
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=35, _modifies=RenderProps.COLORS, _allows=RenderProps.ALL
+            _painter,
+            _priority=35,
+            _modifies=RenderProps.COLORS,
+            _allows=RenderProps.ALL,
         )
         self._count = 0
-        if self.object.part_RandomColors is not None:
-            maincolors = self.object.part_RandomColors_MainColor
+        if self.qudobject.part_RandomColors is not None:
+            maincolors = self.qudobject.part_RandomColors_MainColor
             maincolors = maincolors if maincolors != "all" else self.RANDOM_COLORS_ALL
-            detailcolors = self.object.part_RandomColors_DetailColor
+            detailcolors = self.qudobject.part_RandomColors_DetailColor
             detailcolors = detailcolors if detailcolors != "all" else self.RANDOM_COLORS_ALL
-            tilecolors = self.object.part_RandomColors_TileColor
+            tilecolors = self.qudobject.part_RandomColors_TileColor
             tilecolors = tilecolors if tilecolors != "all" else self.RANDOM_COLORS_ALL
-            bgcolors = self.object.part_RandomColors_BackgroundColor
+            bgcolors = self.qudobject.part_RandomColors_BackgroundColor
             bgcolors = bgcolors if bgcolors != "all" else self.RANDOM_COLORS_ALL
-            pairmaindetail = self.object.part_RandomColors_PairDetailWithForeground == "true"
+            pairmaindetail = self.qudobject.part_RandomColors_PairDetailWithForeground == "true"
             if pairmaindetail:
                 # Keep all values, even duplicates
                 maincolors = maincolors.split(",")
@@ -392,7 +426,7 @@ class StyleRandomColors(TileStyle):
             tilecolors = [None] if tilecolors is None else list(set(tilecolors.split(",")))
             bgcolors = [None] if bgcolors is None else list(set(bgcolors.split(",")))
             # Sort and then shuffle using Object ID as seed, to always get the same result
-            random.seed(self.object.name)
+            random.seed(self.qudobject.name)
             if not pairmaindetail:
                 maincolors.sort()
                 random.shuffle(maincolors)
@@ -405,11 +439,11 @@ class StyleRandomColors(TileStyle):
             # Generate unique combinations
             if not pairmaindetail:
                 self._combos = list(
-                    itertools.product(*[maincolors, detailcolors, tilecolors, bgcolors])
+                    itertools.product(*[maincolors, detailcolors, tilecolors, bgcolors]),
                 )
             else:
                 self._combos = []
-                for mc, dc in zip(maincolors, detailcolors):
+                for mc, dc in zip(maincolors, detailcolors, strict=True):
                     for tc in tilecolors:
                         for bc in bgcolors:
                             self._combos.append((mc, dc, tc, bc))
@@ -420,13 +454,13 @@ class StyleRandomColors(TileStyle):
         return self._count
 
     def _apply_modification(self, index: int) -> StyleMetadata:
-        if self.object.name in self.INDEX_MULTIPLIER:
+        if self.qudobject.name in self.INDEX_MULTIPLIER:
             # Special indexing for tiles with a lot of variations - this better shows off the color
             # variety of the tile, rather than repeating the same colors many times while we iterate
             # over other styles (like RandomTile)
             colorindex = (
-                index * self.INDEX_MULTIPLIER[self.object.name]
-                + self.INDEX_OFFSET[self.object.name]
+                index * self.INDEX_MULTIPLIER[self.qudobject.name]
+                + self.INDEX_OFFSET[self.qudobject.name]
             )
         else:
             colorindex = index
@@ -445,22 +479,28 @@ class StyleRandomColors(TileStyle):
             self.painter.detail = detailcolor
         pfix = "".join([(c if c is not None else "_") for c in self._combos[colorindex]])
         return StyleMetadata(
-            meta_type=f"color #{index + 1}", f_postfix=f" (colors {pfix})", meta_type_after=True
+            meta_type=f"color #{index + 1}",
+            f_postfix=f" (colors {pfix})",
+            meta_type_after=True,
         )
 
 
 class StyleVillageMonument(TileStyle):
     """Styles for village monuments. This style includes only 30 sample color combinations, randomly
-    seeded from the ObjectBluprint name. In game, these objects have closer to 100 variations."""
+    seeded from the ObjectBluprint name. In game, these objects have closer to 100 variations.
+    """
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=100, _modifies=RenderProps.COLORS, _allows=RenderProps.FILE
+            _painter,
+            _priority=100,
+            _modifies=RenderProps.COLORS,
+            _allows=RenderProps.FILE,
         )
         self._color_combos = []
-        if self.object.inheritingfrom == "Village Monument":
+        if self.qudobject.inheritingfrom == "Village Monument":
             preserved_state = random.getstate()
-            random.seed(self.object.name)
+            random.seed(self.qudobject.name)
             while len(self._color_combos) < 30:
                 vals = random.sample(StyleRandomColors.RANDOM_COLORS_ALL.split(","), 2)
                 colors = f"{vals[0]}{vals[1]}"
@@ -486,15 +526,18 @@ class StyleVillageMonument(TileStyle):
 class StyleRandomTile(TileStyle):
     """Styles for the RandomTile part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=30, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=30,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
-        random_tiles = self.object.part_RandomTile_Tiles
+        random_tiles = self.qudobject.part_RandomTile_Tiles
         self._tiles = [] if random_tiles is None else random_tiles.split(",")
 
     def _modification_count(self) -> int:
-        if len(self._tiles) == 0 or self.object.tag_PaintedLiquid is not None:
+        if len(self._tiles) == 0 or self.qudobject.tag_PaintedLiquid is not None:
             return 0
         return len(self._tiles)
 
@@ -510,13 +553,16 @@ class StyleRandomTile(TileStyle):
 class StyleFracti(TileStyle):
     """Styles for the RandomTile part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=30, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=30,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
-        return 8 if self.object.part_Fracti is not None else 0
+        return 8 if self.qudobject.part_Fracti is not None else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         self.painter.file = f"Terrain/sw_fracti{index + 1}.bmp"
@@ -530,16 +576,19 @@ class StyleFracti(TileStyle):
 class StyleTombstone(TileStyle):
     """Styles for the Tombstone part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=30, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=30,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
         return (
             4
-            if self.object.part_Tombstone is not None
-            or self.object.part_RachelsTombstone is not None
+            if self.qudobject.part_Tombstone is not None
+            or self.qudobject.part_RachelsTombstone is not None
             else 0
         )
 
@@ -558,25 +607,29 @@ class StyleLiquidVolume(TileStyle):
     Due to the complex interaction of RandomTile and PaintedLiquid, we handle liquids' RandomTile
     part within this style, rather than trying to combine this style with StyleRandomTile.
     Technically liquid pools are painted if >= 200 drams, but otherwise use RandomTile. However,
-    we'll include both tile possibilities in this single style."""
+    we'll include both tile possibilities in this single style.
+    """
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=90, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
+            _painter,
+            _priority=90,
+            _modifies=RenderProps.ALL,
+            _allows=RenderProps.NONE,
         )
         self._tiles = []
-        self._liquids: Optional[List[str]] = None
-        if self.object.part_LiquidVolume is not None:
-            if self.object.part_LiquidVolume_MaxVolume == "-1":
-                liquids: str = self.object.part_LiquidVolume_InitialLiquid
+        self._liquids: list[str] | None = None
+        if self.qudobject.part_LiquidVolume is not None:
+            if self.qudobject.part_LiquidVolume_MaxVolume == "-1":
+                liquids: str = self.qudobject.part_LiquidVolume_InitialLiquid
                 if liquids is not None and len(liquids) > 0:
-                    start_volume = self.object.part_LiquidVolume_StartVolume
+                    start_volume = self.qudobject.part_LiquidVolume_StartVolume
                     if start_volume:
                         self._volume = DiceBag(start_volume).maximum()
                     else:
-                        self._volume = int_or_default(self.object.part_LiquidVolume_Volume, 0)
+                        self._volume = int_or_default(self.qudobject.part_LiquidVolume_Volume, 0)
                     self._liquids = liquids.split(",")
-                    random_tiles = self.object.part_RandomTile_Tiles
+                    random_tiles = self.qudobject.part_RandomTile_Tiles
                     self._tiles = [] if random_tiles is None else random_tiles.split(",")
                     self._tiles.insert(0, self.painter.get_painted_liquid_path())
 
@@ -608,7 +661,7 @@ class StyleHologram(TileStyle):
 
     PARTS = ["part_HologramMaterial", "part_HologramWallMaterial", "part_HologramMaterialPrimary"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
             _painter,
             _priority=90,
@@ -617,9 +670,9 @@ class StyleHologram(TileStyle):
         )
 
     def _modification_count(self) -> int:
-        return 1 if any(self.object.is_specified(part) for part in StyleHologram.PARTS) else 0
+        return 1 if any(self.qudobject.is_specified(part) for part in StyleHologram.PARTS) else 0
 
-    def _apply_modification(self, index: int) -> StyleMetadata:
+    def _apply_modification(self, index: int) -> StyleMetadata:  # noqa ARG002
         self.painter.color, self.painter.tilecolor, self.painter.detail = "&B", "&B", "b"
         return StyleMetadata(meta_type="")
 
@@ -627,15 +680,21 @@ class StyleHologram(TileStyle):
 class StyleExaminerUnknown(TileStyle):
     """Styles for the alternate "unknown" tiles of objects that have the Examiner part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=20, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
+            _painter,
+            _priority=20,
+            _modifies=RenderProps.ALL,
+            _allows=RenderProps.NONE,
         )
         self._unknown_tile = None
-        if self.object.part_Examiner is not None and self.object.part_Examiner_KeepTile != "true":
+        if (
+            self.qudobject.part_Examiner is not None
+            and self.qudobject.part_Examiner_KeepTile != "true"
+        ):
             """KeepTile indicates no special unidentified tile (ex: Furniture)"""
-            unkobjname = self.object.part_Examiner_Unknown
-            unkobj = self.object.qindex[unkobjname if unkobjname is not None else "BaseUnknown"]
+            unkobjname = self.qudobject.part_Examiner_Unknown
+            unkobj = self.qudobject.qindex[unkobjname if unkobjname is not None else "BaseUnknown"]
             unktile = getattr(unkobj, "part_Render_Tile", None)
             unktilecolor = getattr(unkobj, "part_Render_TileColor", None)
             unkcolor = (
@@ -650,11 +709,11 @@ class StyleExaminerUnknown(TileStyle):
 
     def _modification_count(self) -> int:
         if self._unknown_tile is not None:
-            complexity = self.object.complexity
+            complexity = self.qudobject.complexity
             if complexity is not None and complexity > 0:
-                understanding = self.object.part_Examiner_Understanding
+                understanding = self.qudobject.part_Examiner_Understanding
                 if understanding is None or int(understanding) < complexity:
-                    unkobjname = self.object.part_Examiner_Unknown
+                    unkobjname = self.qudobject.part_Examiner_Unknown
                     unkobjname = unkobjname if unkobjname is not None else "BaseUnknown"
                     if unkobjname != "UnknownMed":
                         # tonics excluded due to random coloring - they have their own style
@@ -691,7 +750,7 @@ class StyleRandomTonic(TileStyle):
         "platinum,&y",
     ]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
             _painter,
             _priority=10,
@@ -700,7 +759,7 @@ class StyleRandomTonic(TileStyle):
         )
 
     def _modification_count(self) -> int:
-        return 10 if self.object.part_Examiner_Unknown == "UnknownMed" else 0
+        return 10 if self.qudobject.part_Examiner_Unknown == "UnknownMed" else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         tonic_name, tonic_color = StyleRandomTonic.NAMES_AND_COLORS[index].split(",")
@@ -715,13 +774,16 @@ class StyleSultanShrine(TileStyle):
     COLORS = ["g", "r", "c", "w", "Y"]
     LABELS = ["under sky", "caves/red", "caves/cerulean", "caves/brown", "caves/white"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=90, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
+            _painter,
+            _priority=90,
+            _modifies=RenderProps.ALL,
+            _allows=RenderProps.NONE,
         )
 
     def _modification_count(self) -> int:
-        return 80 if self.object.part_SultanShrine is not None else 0
+        return 80 if self.qudobject.part_SultanShrine is not None else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         idx = index % 8 + 1
@@ -749,18 +811,22 @@ class StylePistonPress(TileStyle):
     TYPES = ["ready", "extended (base)", "extended (top)"]
     POSTFIXES = ["ready", "extended base", "extended top"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=90, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=90,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
-        return 3 if self.object.part_PistonPressElement is not None else 0
+        return 3 if self.qudobject.part_PistonPressElement is not None else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         self.painter.file = StylePistonPress.PATHS[index]
         return StyleMetadata(
-            meta_type=StylePistonPress.TYPES[index], f_postfix=StylePistonPress.POSTFIXES[index]
+            meta_type=StylePistonPress.TYPES[index],
+            f_postfix=StylePistonPress.POSTFIXES[index],
         )
 
 
@@ -776,7 +842,7 @@ class StyleMachineWallTubing(TileStyle):
         "MachineWallColdTubing": [" cold", " cold glowing", " empty"],
     }
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
             _painter,
             _priority=90,
@@ -785,36 +851,39 @@ class StyleMachineWallTubing(TileStyle):
         )
 
     def _modification_count(self) -> int:
-        return 3 if self.object.name in self.TYPES else 0
+        return 3 if self.qudobject.name in self.TYPES else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         if index == 1:
-            fg = self.object.part_DrawInTheDark_ForegroundTileColor
-            bg = self.object.part_DrawInTheDark_BackgroundTileColor
+            fg = self.qudobject.part_DrawInTheDark_ForegroundTileColor
+            bg = self.qudobject.part_DrawInTheDark_BackgroundTileColor
             if fg is not None and bg is not None:
                 self.painter.color = self.painter.tilecolor = f"&{fg}^{bg}"
         if index == 2:
             self.painter.color = self.painter.tilecolor = "&y^c"  # MachineWallEmptyTubing
         return StyleMetadata(
-            meta_type=self.TYPES[self.object.name][index],
-            f_postfix=self.POSTFIXES[self.object.name][index],
+            meta_type=self.TYPES[self.qudobject.name][index],
+            f_postfix=self.POSTFIXES[self.qudobject.name][index],
         )
 
 
 class StyleHarvestable(TileStyle):
     """Styles for the Harvestable part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=20, _modifies=RenderProps.COLORS, _allows=RenderProps.ALL
+            _painter,
+            _priority=20,
+            _modifies=RenderProps.COLORS,
+            _allows=RenderProps.ALL,
         )
-        self._count: Optional[int] = None
+        self._count: int | None = None
 
     def _modification_count(self) -> int:
         if self._count is None:
             self._count = 0
-            ripe_tilecolor = self.object.part_Harvestable_RipeTileColor
-            unripe_tilecolor = self.object.part_Harvestable_UnripeTileColor
+            ripe_tilecolor = self.qudobject.part_Harvestable_RipeTileColor
+            unripe_tilecolor = self.qudobject.part_Harvestable_UnripeTileColor
             if (
                 ripe_tilecolor is not None
                 and unripe_tilecolor is not None
@@ -822,8 +891,8 @@ class StyleHarvestable(TileStyle):
             ):
                 self._count = 2
             else:
-                unripe_detail = self.object.part_Harvestable_UnripeDetailColor
-                ripe_detail = self.object.part_Harvestable_RipeDetailColor
+                unripe_detail = self.qudobject.part_Harvestable_UnripeDetailColor
+                ripe_detail = self.qudobject.part_Harvestable_RipeDetailColor
                 if (
                     ripe_detail is not None
                     and unripe_detail is not None
@@ -836,7 +905,7 @@ class StyleHarvestable(TileStyle):
         is_ripe = index == 0
         self.painter.paint_harvestable(is_ripe=is_ripe)
         ripe_string = "ripe" if is_ripe else "not ripe"
-        if self.object.name == "PhaseWeb":  # override 'ripe' language when it doesn't make sense
+        if self.qudobject.name == "PhaseWeb":  # override 'ripe' language when it doesn't make sense
             ripe_string = "harvestable" if is_ripe else "not harvestable"
         return StyleMetadata(meta_type=ripe_string, f_postfix="ripe" if is_ripe else "unripe")
 
@@ -845,19 +914,23 @@ class StyleArspliceHyphae(TileStyle):
     """Styles for Arsplice Hyphae. Similar to Harvestable, except for a few unique things:
     Has two objects (Arsplice Hyphae A and Arsplice Hyphae B) which each contain a subset of the
     sprites, and also includes variable tiles (all other Harvestables permute colors only). This
-    also supercedes the RandomTile part on Arsplice Hyphae to avoid additional complexity."""
+    also supercedes the RandomTile part on Arsplice Hyphae to avoid additional complexity.
+    """
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=100, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
+            _painter,
+            _priority=100,
+            _modifies=RenderProps.ALL,
+            _allows=RenderProps.NONE,
         )
         self._count: int = 0
-        if self.object.inherits_from("Arsplice Hyphae"):
-            self._ripe_tiles: List[str] = []
-            self._unripe_tiles: List[str] = []
+        if self.qudobject.inherits_from("Arsplice Hyphae"):
+            self._ripe_tiles: list[str] = []
+            self._unripe_tiles: list[str] = []
             for objkey in ["Arsplice Hyphae A", "Arsplice Hyphae B"]:
-                if objkey in self.object.qindex:
-                    obj = self.object.qindex[objkey]
+                if objkey in self.qudobject.qindex:
+                    obj = self.qudobject.qindex[objkey]
                     self._ripe_color = obj.part_Harvestable_RipeColor
                     self._unripe_color = obj.part_Harvestable_UnripeColor
                     self._ripe_detail = obj.part_Harvestable_RipeDetailColor
@@ -896,7 +969,7 @@ class StyleAloes(TileStyle):
 
     PARTS = ["DischargeOnStep", "CrossFlameOnStep", "FugueOnStep"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
             _painter,
             _priority=20,
@@ -905,7 +978,7 @@ class StyleAloes(TileStyle):
         )
 
     def _modification_count(self) -> int:
-        return 2 if obj_has_any_part(self.object, StyleAloes.PARTS) else 0
+        return 2 if obj_has_any_part(self.qudobject, StyleAloes.PARTS) else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         is_ready = index == 0
@@ -917,22 +990,25 @@ class StyleAloes(TileStyle):
 class StyleDoor(TileStyle):
     """Styles for the Door part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=50, _modifies=RenderProps.FILE, _allows=RenderProps.ALL
+            _painter,
+            _priority=50,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.ALL,
         )
 
     def _modification_count(self) -> int:
-        if self.object.part_Door is None:
+        if self.qudobject.part_Door is None:
             return 0
-        if self.object.inherits_from("Double Door"):
+        if self.qudobject.inherits_from("Double Door"):
             dirs = ["_w_", "_w.", "_e_", "_e."]
             if (
-                self.object.part_Door_ClosedTile is not None
-                and any(d in self.object.part_Door_ClosedTile for d in dirs)
+                self.qudobject.part_Door_ClosedTile is not None
+                and any(d in self.qudobject.part_Door_ClosedTile for d in dirs)
             ) or (
-                self.object.part_Door_OpenTile is not None
-                and any(d in self.object.part_Door_OpenTile for d in dirs)
+                self.qudobject.part_Door_OpenTile is not None
+                and any(d in self.qudobject.part_Door_OpenTile for d in dirs)
             ):
                 return 4
         return 2
@@ -941,7 +1017,7 @@ class StyleDoor(TileStyle):
         is_closed, double_door_alt = index % 2 == 0, index >= 2
         self.painter.paint_door(is_closed=is_closed, double_door_alt=double_door_alt)
         descriptor = "closed" if is_closed else "open"
-        if self.object.inherits_from("Double Door"):
+        if self.qudobject.inherits_from("Double Door"):
             if "_w_" in self.painter.file or "_w." in self.painter.file:
                 descriptor += " (west)"
             elif "_e_" in self.painter.file or "_e." in self.painter.file:
@@ -950,7 +1026,7 @@ class StyleDoor(TileStyle):
 
 
 class StyleEnclosing(TileStyle):
-    """Styles for the Enclosing part."""
+    """Styles for the Enclosing part. Used for Iron Maidens, Regen Tanks, etc."""
 
     ATTRIBUTES = [
         "part_Enclosing_OpenTile",
@@ -961,7 +1037,7 @@ class StyleEnclosing(TileStyle):
         "part_Enclosing_ClosedTileColor",
     ]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
             _painter,
             _priority=40,
@@ -970,16 +1046,16 @@ class StyleEnclosing(TileStyle):
         )
 
     def _modification_count(self) -> int:
-        if self.object.part_Enclosing is not None:
-            if any(getattr(self.object, att) is not None for att in StyleEnclosing.ATTRIBUTES):
-                return 4 if self.object.part_DoubleEnclosing is not None else 2
+        if self.qudobject.part_Enclosing is not None:
+            if any(getattr(self.qudobject, att) is not None for att in StyleEnclosing.ATTRIBUTES):
+                return 4 if self.qudobject.part_DoubleEnclosing is not None else 2
         return 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         is_closed, double_enclosing_alt = index % 2 == 0, index >= 2
         self.painter.paint_enclosing(is_closed=is_closed, double_enclosing_alt=double_enclosing_alt)
         descriptor = "closed" if is_closed else "open"
-        if self.object.part_DoubleEnclosing is not None:
+        if self.qudobject.part_DoubleEnclosing is not None:
             if "_w." in self.painter.file:
                 descriptor += " (west)"
             elif "_e." in self.painter.file:
@@ -990,13 +1066,16 @@ class StyleEnclosing(TileStyle):
 class StyleDoubleContainer(TileStyle):
     """Styles for the DoubleContainer part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=40, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=40,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
-        return 2 if self.object.part_DoubleContainer is not None else 0
+        return 2 if self.qudobject.part_DoubleContainer is not None else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         if "_w." in self.painter.file and index == 1:
@@ -1010,7 +1089,7 @@ class StyleDoubleContainer(TileStyle):
         else:
             raise ValueError(
                 "Unsupported format for DoubleContainer tile filepath in object"
-                + f" {self.object.name}."
+                f" {self.qudobject.name}.",
             )
         return StyleMetadata(meta_type=descriptor)
 
@@ -1018,19 +1097,23 @@ class StyleDoubleContainer(TileStyle):
 class StyleHangable(TileStyle):
     """Styles for the Hangable part."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=40, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=40,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
-        return 2 if self.object.part_Hangable_HangingTile is not None else 0
+        return 2 if self.qudobject.part_Hangable_HangingTile is not None else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         is_hanging = index % 2 == 0
-        self.painter.file = (
-            self.object.part_Hangable_HangingTile if is_hanging else self.object.part_Render_Tile
-        )
+        if is_hanging:
+            self.painter.file = self.qudobject.part_Hangable_HangingTile
+        else:
+            self.painter.file = self.qudobject.part_Render_Tile
         descriptor = "hanging" if is_hanging else "unhung"
         return StyleMetadata(meta_type=descriptor)
 
@@ -1038,17 +1121,20 @@ class StyleHangable(TileStyle):
 class StyleSofa(TileStyle):
     """Styles for the Sofa object."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=40, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=40,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
-        return 3 if self.object.name == "Sofa" or self.object.inheritingfrom == "Sofa" else 0
+        return 3 if self.qudobject.name == "Sofa" or self.qudobject.inheritingfrom == "Sofa" else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         suffix, descriptor = [("l", "left"), ("c", "center"), ("r", "right")][index]
-        filename, fileext = os.path.splitext(self.object.part_Render_Tile)
+        filename, fileext = os.path.splitext(self.qudobject.part_Render_Tile)  # noqa PTH122
         self.painter.file = filename[:-1] + suffix + fileext
         return StyleMetadata(meta_type=descriptor)
 
@@ -1056,21 +1142,24 @@ class StyleSofa(TileStyle):
 class StyleOrnatePottedPlant(TileStyle):
     """Styles for the Ornate Potted Plant 1-4 objects."""
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=40, _modifies=RenderProps.ALL, _allows=RenderProps.NONE
+            _painter,
+            _priority=40,
+            _modifies=RenderProps.ALL,
+            _allows=RenderProps.NONE,
         )
 
     def _modification_count(self) -> int:
-        return 4 if self.object.name.startswith("Ornate Potted Plant ") else 0
+        return 4 if self.qudobject.name.startswith("Ornate Potted Plant ") else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         objkey = f"Ornate Potted Plant {index + 1}"
-        if objkey in self.object.qindex:
-            self.painter.color = self.object.qindex[objkey].part_Render_ColorString
-            self.painter.tilecolor = self.object.qindex[objkey].part_Render_TileColor
-            self.painter.detail = self.object.qindex[objkey].part_Render_DetailColor
-            self.painter.file = self.object.qindex[objkey].part_Render_Tile
+        if objkey in self.qudobject.qindex:
+            self.painter.color = self.qudobject.qindex[objkey].part_Render_ColorString
+            self.painter.tilecolor = self.qudobject.qindex[objkey].part_Render_TileColor
+            self.painter.detail = self.qudobject.qindex[objkey].part_Render_DetailColor
+            self.painter.file = self.qudobject.qindex[objkey].part_Render_Tile
         descriptor = f"sprite #{index + 1}"
         postfix = f" variation {index}" if index > 0 else ""
         return StyleMetadata(meta_type=descriptor, f_postfix=postfix)
@@ -1078,11 +1167,12 @@ class StyleOrnatePottedPlant(TileStyle):
 
 class StyleFixtureWithChildAlternates(TileStyle):
     """Styles for walls and other fixtures that define their own colors, and also have
-    child (inherting) objects with the same display name that define variations of those colors."""
+    child (inherting) objects with the same display name that define variations of those colors.
+    """
 
     PARENT_WALL_OBJECTS = ["FulcreteWithSquareWave", "ColumbariumWall", "GlassHydraulicPipe"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
             _painter,
             _priority=40,
@@ -1091,10 +1181,10 @@ class StyleFixtureWithChildAlternates(TileStyle):
         )
         self._matches = None
         for wallname in self.PARENT_WALL_OBJECTS:
-            if self.object.name == wallname or self.object.inheritingfrom == wallname:
+            if self.qudobject.name == wallname or self.qudobject.inheritingfrom == wallname:
                 self._matches = [
                     obj
-                    for obj in self.object.qindex.values()
+                    for obj in self.qudobject.qindex.values()
                     if (obj.inheritingfrom == wallname or obj.name == wallname)
                 ]
                 if len(self._matches) > 0:
@@ -1136,28 +1226,37 @@ class StyleAsterisk(TileStyle):
     ]
     LABELS = ["three-pointed", "four-pointed", "five-pointed", "many-pointed"]
 
-    def __init__(self, _painter):
+    def __init__(self, _painter) -> None:
         super().__init__(
-            _painter, _priority=90, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
+            _painter,
+            _priority=90,
+            _modifies=RenderProps.FILE,
+            _allows=RenderProps.NONFILE,
         )
 
     def _modification_count(self) -> int:
-        return 4 if self.object.part_PointedAsteriskBuilder is not None else 0
+        return 4 if self.qudobject.part_PointedAsteriskBuilder is not None else 0
 
     def _apply_modification(self, index: int) -> StyleMetadata:
         self.painter.file = StyleAsterisk.TILES[index]
         return StyleMetadata(
-            meta_type=StyleAsterisk.LABELS[index], f_postfix=f"({StyleAsterisk.LABELS[index]})"
+            meta_type=StyleAsterisk.LABELS[index],
+            f_postfix=f"({StyleAsterisk.LABELS[index]})",
         )
 
 
 class StyleManager:
+    """The StyleManager is a high-level abstraction over various TileStyle implementations.
+    It handles sorting styles by priority, indexing styles, merging metadata when multiple
+    styles are applied to a TilePainter, and generally simplifying the tile styling process.
+    """
+
     # TODO: support grabbing a random style (for cryptogull)
 
     STYLE_LIMIT: int = 80
     """max limit for generated images for a single object ('flowers' has like 484 variants...)"""
 
-    Styles: List[Type[TileStyle]] = [
+    Styles: list[type[TileStyle]] = [
         StyleAloes,
         StyleArspliceHyphae,
         StyleAsterisk,
@@ -1187,15 +1286,11 @@ class StyleManager:
     ]
     """A list of all TileStyle classes as type objects. The order of this list does not matter."""
 
-    def __init__(self, painter):
-        """Accepts a TilePainter object and determines which styles are applicable to it.
-
-        The StyleManager is a high-level abstraction over various TileStyle implementations. It
-        handles sorting styles by priority, indexing styles, merging metadata when multiple
-        styles are applied to a TilePainter, and generally simplifying the tile styling process."""
+    def __init__(self, painter) -> None:
+        """Accepts a TilePainter object and determines which styles are applicable to it."""
         self._painter = painter
-        self._applicable_styles: List[TileStyle] = []
-        self._index_combinations: List[Tuple[int, ...]] = []
+        self._applicable_styles: list[TileStyle] = []
+        self._index_combinations: list[tuple[int, ...]] = []
         for style_class in StyleManager.Styles:
             style = style_class(painter)
             if style.is_applicable:
@@ -1205,22 +1300,24 @@ class StyleManager:
             self._flatten_styles()
             self._make_combinations()
 
-        self._style_limit: Optional[int] = None
+        self._style_limit: int | None = None
         for style in self._applicable_styles:
             if self._style_limit is None:
                 self._style_limit = style.style_limit_override()
         if self._style_limit is None:
             self._style_limit = StyleManager.STYLE_LIMIT
 
-    def _sort_styles(self):
+    def _sort_styles(self) -> None:
         """Sorts the applicable styles by priority (high to low)."""
         self._applicable_styles.sort(
-            key=lambda style_instance: style_instance.priority, reverse=True
+            key=lambda style_instance: style_instance.priority,
+            reverse=True,
         )
 
-    def _flatten_styles(self):
+    def _flatten_styles(self) -> None:
         """Pre-processes the style stack and removes styles that are not applicable (generally
-        because other styles with higher priority don't allow their type of modifications)."""
+        because other styles with higher priority don't allow their type of modifications).
+        """
         i = 0
         remaining = RenderProps.ALL
         while i < len(self._applicable_styles):
@@ -1231,20 +1328,18 @@ class StyleManager:
                 i += 1
             else:
                 # log.warning(
-                #     'StyleManager discarded %s while flattening styles for object "%s"',
-                #     type(self._applicable_styles[i]),
                 #     self._painter.obj,
-                # )
                 # remove style because it's not within remaining allowed style scope
                 del self._applicable_styles[i]
 
-    def _make_combinations(self):
+    def _make_combinations(self) -> None:
         """Generates all the possible indexing combinations for this set of styles.
 
         For example, if there is a 4-count style, a 2-count style, and a 3-count style which are
         applicable to this TilePainter, generates a 24-member list of Tuples like the following:
-        [(1,1,1), (1,1,2), (1,1,3), (1,2,1), (1,2,2), (1,2,3), (2,1,1), ..., (4,2,2), (4,2,3)]"""
-        index_arrays: List[List[int]] = []
+        [(1,1,1), (1,1,2), (1,1,3), (1,2,1), (1,2,2), (1,2,3), (2,1,1), ..., (4,2,2), (4,2,3)]
+        """
+        index_arrays: list[list[int]] = []
         for style in self._applicable_styles:
             index_arrays.append(list(range(style.modification_count())))
         self._index_combinations = list(itertools.product(*index_arrays))
@@ -1252,7 +1347,8 @@ class StyleManager:
     def style_count(self) -> int:
         """Returns the global count of style combinations for this TilePainter. For example,
         Grave Moss has 5 RandomTile variants and a ripe/unripe Harvestable color variation. It will
-        return 10 (5 * 2)."""
+        return 10 (5 * 2).
+        """
         if len(self._applicable_styles) <= 0:
             return 0
         count = 1
@@ -1263,15 +1359,16 @@ class StyleManager:
     def apply_style(self, global_index: int) -> StyleMetadata:
         """Applies all applicable styles for this TilePainter, for the unique style permuation
         associated with the specified global style index. The indices used for each applicable style
-        included in this permuation will vary (determined by _make_combinations() when this
+        included in this permutation will vary (determined by _make_combinations() when this
         StyleManager was constructed).
 
         The general idea is to call style_count() to check the total number of merged global styles,
-        and then call apply_style() in a loop or for a specific index less than that style count."""
-        style_metadata: Optional[StyleMetadata] = None
+        and then call apply_style() in a loop or for a specific index less than that style count.
+        """
+        style_metadata: StyleMetadata | None = None
         if len(self._applicable_styles) > 0:
             style_indices = self._index_combinations[global_index]
-            for style_index, style in zip(style_indices, self._applicable_styles):
+            for style_index, style in zip(style_indices, self._applicable_styles, strict=True):
                 metadata = style.apply_modification(style_index)
                 if style_metadata is None:
                     style_metadata = metadata

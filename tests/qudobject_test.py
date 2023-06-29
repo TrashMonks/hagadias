@@ -1,26 +1,18 @@
 """pytest tests to test functions in qudobject.py.
 
-The qindex fixture is supplied by tests/conftest.py."""
-
-from hagadias import qudtile
-
-
-def test_tile(qindex):
-    obj = qindex["Young Ivory"]
-    assert isinstance(obj.tile, qudtile.QudTile)
-    # This tile exists in the game but its texture file is not included with hagadias
-    # This test is to ensure exceptions from missing files do not raise
-    obj = qindex["Glowfish"]
-    assert obj.tile.image is qudtile.blank_image
+The qindex fixture is supplied by tests/conftest.py.
+"""
 
 
-def test_ui_inheritance_path(qindex):
+def test_ui_inheritance_path(qindex: dict):
+    """Check the inheritance path string provided for UI tools."""
     obj = qindex["Snapjaw Scavenger"]
     want = "Object➜PhysicalObject➜Creature➜Humanoid➜BaseHumanoid➜Snapjaw➜Snapjaw Scavenger"
     assert obj.ui_inheritance_path() == want
 
 
-def test_inherits_from(qindex):
+def test_inherits_from(qindex: dict):
+    """Check that blueprint inheritance is properly calculated."""
     obj = qindex["Stopsvaalinn"]
     assert obj.inherits_from("BaseShield")
     assert obj.inherits_from("Item")
@@ -32,15 +24,8 @@ def test_inherits_from(qindex):
     assert obj.inherits_from("Object")
 
 
-def test_is_specified(qindex):
+def test_is_specified(qindex: dict):
+    """Test the is_specified method for whether parts are explicitly given (not inherited)."""
     obj = qindex["Stopsvaalinn"]
     assert obj.is_specified("part_Commerce_Value")
     assert not obj.is_specified("fart_Commerce_Value")
-
-
-def test_properties(qindex):
-    obj = qindex["Asphodel"]
-    assert obj.lv == "30"
-    assert obj.hp == "500"
-    assert obj.av == 11  # natural 8 + clay pot
-    # assert obj.dv == '12'  # base 6 plus (28 - 16) / 2

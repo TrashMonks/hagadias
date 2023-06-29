@@ -1,14 +1,15 @@
-"""Pytest file for functions in helpers.py"""
-
+"""Pytest file for functions in helpers.py."""
+from hagadias.gameroot import GameRoot
 from hagadias.helpers import (
-    parse_qud_colors,
     iter_qud_colors,
-    strip_oldstyle_qud_colors,
+    parse_qud_colors,
     strip_newstyle_qud_colors,
+    strip_oldstyle_qud_colors,
 )
 
 
 def test_parse_qud_colors():
+    """Test helper that parses {{}}-style color codes into groups."""
     assert parse_qud_colors("test") == [("test", None)]
     assert parse_qud_colors("{{y|raw beetle meat}}") == [("raw beetle meat", "y")]
     assert parse_qud_colors("{{r|La}} {{r-R-R-W-W-w-w sequence|Jeunesse}}") == [
@@ -26,7 +27,8 @@ def test_parse_qud_colors():
     ]
 
 
-def test_iter_qud_colors(gameroot):
+def test_iter_qud_colors(gameroot: GameRoot):
+    """Test helper that generates letter/colorcode pairs from advanced color sequences."""
     colors = gameroot.get_colors()
     i = iter_qud_colors("test", colors)
     assert next(i) == ("t", None)
@@ -62,10 +64,13 @@ def test_iter_qud_colors(gameroot):
 
 
 def test_strip_oldstyle_qud_colors():
+    """Check the ability to remove "&y" style color codes."""
+    assert strip_oldstyle_qud_colors("&yfloating&G &Yglowsphere") == "floating glowsphere"
     assert strip_oldstyle_qud_colors("&Otest &ytest") == "test test"
 
 
 def test_strip_newstyle_qud_colors():
+    """Test ability to get plain text from the newstyle {{}} color codes."""
     assert strip_newstyle_qud_colors("test") == "test"
     assert strip_newstyle_qud_colors("{{y|raw beetle meat}}") == "raw beetle meat"
     assert (

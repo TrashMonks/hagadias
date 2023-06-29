@@ -4,20 +4,18 @@ import re
 class DiceBag:
     """Loads a dice string and provides methods to roll or analyze that string.
 
-    Parameters:
-        dice_string: a dice string, such as '1d4', '3d6+1-2d2', or '17'.
+    :param dice_string: a dice string, such as '1d4', '3d6+1-2d2', or '17'.
     """
 
     class Die:
         """Represents a single segment of a larger dice string. Numeric values are converted to dice
         rolls for simplicity - for example, '7' becomes '7d1'.
 
-        Parameters:
-            quantity: the number of times to roll the die (i.e. '2' if the die string is '2d6')
-            size: the number of sides on the die (i.e. '6' if the die string is '2d6')
+        :param quantity: the number of times to roll the die (i.e. '2' if the die string is '2d6')
+        :param size: the number of sides on the die (i.e. '6' if the die string is '2d6')
         """
 
-        def __init__(self, quantity, size):
+        def __init__(self, quantity, size) -> None:
             # since the DiceBag might be used in e.g. a Discord bot, do some sanity checks on input
             quantity = int(quantity)
             if abs(quantity) > 5000:
@@ -49,18 +47,18 @@ class DiceBag:
     # - and + cannot be clumped together unless cases like 9+-2, else throw value error
     pattern_invalid_op = re.compile(r"\+{2,}|\-[-+]+")
 
-    def __init__(self, dice_string: str):
+    def __init__(self, dice_string: str) -> None:
         if self.pattern_valid_dice.match(dice_string) is None:
             raise ValueError(
                 f"Invalid string for DiceBag ({dice_string})"
-                " - dice string must contain only 0-9, +, -, d, or spaces"
+                " - dice string must contain only 0-9, +, -, d, or spaces",
             )
         self.dice_bag = []
         dice_string = "".join(dice_string.split())  # strip all whitespace from dice_string
         if self.pattern_invalid_op.match(dice_string) is not None:
             raise ValueError(
                 f"Invalid string for DiceBag ({dice_string})"
-                " - dice string cannot have multiple operators in a row"
+                " - dice string cannot have multiple operators in a row",
             )
         dice_iter = self.pattern_dice_segment.finditer(dice_string)
         for die in dice_iter:
@@ -113,10 +111,10 @@ class DiceBag:
             q = int(die.quantity)
             s = int(die.size)
             if q > 0:
-                for i in range(q):
+                for _ in range(q):
                     val += randrange(s) + 1
             elif q < 0:
-                for i in range(abs(q)):
+                for _ in range(abs(q)):
                     val -= randrange(s) + 1
         return val
 
