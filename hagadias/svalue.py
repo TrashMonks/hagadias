@@ -55,9 +55,8 @@ class sValue:
         if self.current_iter > self.high:
             self.current_iter = self.low
             raise StopIteration
-        else:
-            self.current_iter += 1
-            return self.current_iter - 1
+        self.current_iter += 1
+        return self.current_iter - 1
 
     def __int__(self) -> int:
         return sum(self) // len(self)
@@ -65,8 +64,7 @@ class sValue:
     def __str__(self) -> str:
         if len(self) == 1:
             return str(self.low)
-        else:
-            return str(self.svalstring)
+        return str(self.svalstring)
 
     def __repr__(self) -> str:
         return "sValue " + self.svalue

@@ -238,7 +238,7 @@ class QudObject(NodeMixin):
             self.inherited = {}
             self.baked = True
             return
-        elif not self.parent.baked:
+        if not self.parent.baked:
             # if parent appears later in ObjectBlueprints than child, it won't be baked yet
             self.parent.resolve_inheritance()
         inherited = self.parent.all_attributes

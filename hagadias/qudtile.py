@@ -314,7 +314,7 @@ class StandInTiles:
         """
         if qud_object.part_Gas is not None:
             return TileProvider(StandInTiles.gas_glyph1)
-        elif qud_object.part_SpaceTimeVortex is not None:
+        if qud_object.part_SpaceTimeVortex is not None:
             return TileProvider(StandInTiles.spacetime_vortex_glyph1)
         return None
 

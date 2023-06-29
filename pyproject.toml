@@ -56,7 +56,7 @@ select = [
   "ISC",  # flake8-implicit-str-concat: string concatenation
   "PIE",  # flake8-pie: miscellaneous lints
   "PT",   # flake8-pytest-style: Pytest-specific usage
-  # "R",    # flake8-return: common return issues
+  "R",    # flake8-return: common return issues
   # "S",    # flake8-bandit: static security analysis
   # "T10",  # flake8-debugger: debugger invocations and set traces
   # "W",    # pycodestyle: warnings

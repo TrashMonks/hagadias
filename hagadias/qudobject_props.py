@@ -92,16 +92,18 @@ class QudObjectProps(QudObject):
 
     def attribute_boost_factor(self, attr: str) -> float | None:
         """Returns the boost factor which is applied to this stat after it's calculated."""
-        if self.active_or_inactive_character() == ACTIVE_CHAR:
-            boost = int_or_none(getattr(self, f"stat_{attr}_Boost"))
-            if boost is not None:
-                if getattr(self, f"stat_{attr}_sValue"):  # Boost only applied if there's an sValue
-                    if self.role == "Minion" and attr in STAT_NAMES:
-                        boost -= 1
-                    if boost > 0:
-                        return 0.25 * float(boost) + 1.0
-                    else:
-                        return 0.20 * float(boost) + 1.0
+        if self.active_or_inactive_character() != ACTIVE_CHAR:
+            return None
+        boost = int_or_none(getattr(self, f"stat_{attr}_Boost"))
+        if boost is None:
+            return None
+        if not getattr(self, f"stat_{attr}_sValue"):  # Boost only applied if there's an sValue
+            return None
+        if self.role == "Minion" and attr in STAT_NAMES:
+            boost -= 1
+        if boost > 0:
+            return 0.25 * float(boost) + 1.0
+        return 0.20 * float(boost) + 1.0
 
     def attribute_helper_min_max_or_avg(self, attr: str, mode: str) -> int | None:
         """Return the minimum, maximum, or average stat value for the given stat. Specify
@@ -200,11 +202,10 @@ class QudObjectProps(QudObject):
                     item = self.qindex[attr]
                     if part_attr:
                         return getattr(item, part_attr, None)
-                    else:
-                        return item
+                    return item
         return None
 
-    def active_or_inactive_character(self) -> int | None:
+    def active_or_inactive_character(self) -> int:
         """The character type of this object.
         0: NONE 1: ACTIVE_CHARS 2: INACTIVE_CHARS. for ALL_CHARS, do > 0 check.
         TODO: Consider caching this value, as it is used somewhat frequently.
@@ -221,8 +222,7 @@ class QudObjectProps(QudObject):
             # This falls under ALL_CHARS
             if self.part_Combat is not None and self.part_Brain is not None:
                 return 1  # ACTIVE_CHARS
-            else:
-                return 2  # INACTIVE_CHARS
+            return 2  # INACTIVE_CHARS
         return 0
 
     def is_melee_weapon(self) -> bool:
@@ -313,8 +313,9 @@ class QudObjectProps(QudObject):
         attributes = self.projectile_object("part_Projectile_Attributes")
         if attributes is not None:
             return attributes.split()
-        elif self.part_ElectricalDischargeLoader is not None:
+        if self.part_ElectricalDischargeLoader is not None:
             return "Electric Shock".split()
+        return None
 
     @cached_property
     def ammoperaction(self) -> int | None:
@@ -436,16 +437,18 @@ class QudObjectProps(QudObject):
         """Whether the player can tinker up this item."""
         if self.part_TinkerItem_CanBuild == "true":
             return True
-        elif self.part_TinkerItem_CanDisassemble == "true":
+        if self.part_TinkerItem_CanDisassemble == "true":
             return False  # it's interesting if an item can't be built but can be disassembled
+        return None
 
     @cached_property
     def candisassemble(self) -> bool | None:
         """Whether the player can disassemble this item."""
         if self.part_TinkerItem_CanDisassemble == "true":
             return True
-        elif self.part_TinkerItem_CanBuild == "true":
+        if self.part_TinkerItem_CanBuild == "true":
             return False  # it's interesting if an item can't be disassembled but can be built
+        return None
 
     @cached_property
     def capacitorcharge(self) -> str | None:
@@ -490,9 +493,10 @@ class QudObjectProps(QudObject):
         chargeperdram = int_or_none(self.part_LiquidFueledEnergyCell_ChargePerDram)
         if chargeperdram is not None:
             return chargeperdram
-        elif self.part_LiquidFueledPowerPlant is not None:
+        if self.part_LiquidFueledPowerPlant is not None:
             chargeperdram = int_or_default(self.part_LiquidFueledPowerPlant_ChargePerDram, 10000)
             return chargeperdram
+        return None
 
     @cached_property
     def chargeused(self) -> int | None:
@@ -586,10 +590,9 @@ class QudObjectProps(QudObject):
                 detailedfuncs.append(func)
         if len(funcs) == 0:
             return None
-        elif len(funcs) == 1:
+        if len(funcs) == 1:
             return funcs[0]  # if only one function, return the simple name
-        else:
-            return ", ".join(detailedfuncs)  # if multiple, return names with charge amount appended
+        return ", ".join(detailedfuncs)  # if multiple, return names with charge amount appended
 
     @cached_property
     def chargeconsumebroadcast(self) -> int | None:
@@ -1323,13 +1326,14 @@ class QudObjectProps(QudObject):
         """The number of drams of liquid consumed by each shot action."""
         if self.is_specified("part_LiquidAmmoLoader"):
             return 1  # LiquidAmmoLoader always uses 1 dram per action
-        elif self.is_specified("part_BioAmmoLoader"):
+        if self.is_specified("part_BioAmmoLoader"):
             val = int_or_none(self.part_BioAmmoLoader_ConsumeAmount)
             val = 1 if val is None else val
             chance = float_or_none(self.part_BioAmmoLoader_ConsumeChance)
             if chance is not None:
                 return chance / 100.0 * float(val)
             return val
+        return None
 
     @cached_property
     def dv(self) -> int | None:
@@ -1624,8 +1628,9 @@ class QudObjectProps(QudObject):
         if self.active_or_inactive_character() > 0:
             if self.stat_Hitpoints_sValue is not None:
                 return self.stat_Hitpoints_sValue
-            elif self.stat_Hitpoints_Value is not None:
+            if self.stat_Hitpoints_Value is not None:
                 return self.stat_Hitpoints_Value
+        return None
 
     @cached_property
     def hunger(self) -> str | None:
@@ -1645,8 +1650,8 @@ class QudObjectProps(QudObject):
         if self.tag_LivePlant is not None:
             if self.part_Combat is not None and self.tag_GasDamageAsIfInanimate is None:
                 return 1
-            else:
-                return 2
+            return 2
+        return None
 
     @cached_property
     def hurtbyfungicide(self) -> int | None:
@@ -1658,8 +1663,8 @@ class QudObjectProps(QudObject):
         if self.tag_LiveFungus is not None:
             if self.part_Combat is not None and self.tag_GasDamageAsIfInanimate is None:
                 return 1
-            else:
-                return 2
+            return 2
+        return None
 
     @cached_property
     def id(self):  # noqa A003
@@ -1895,7 +1900,7 @@ class QudObjectProps(QudObject):
         """
         if (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
             return None
-        elif char_type == ACTIVE_CHAR:
+        if char_type == ACTIVE_CHAR:
             # MA starts at base 4
             ma = 4
             # Add MA stat value if specified
@@ -1904,15 +1909,15 @@ class QudObjectProps(QudObject):
             # add willpower modifier to MA
             ma += self.attribute_helper_mod("Willpower")
             return ma
-        else:  # items (char_type == 0)
-            return int_or_none(self.attribute_helper("MA"))
+        # items (char_type == 0)
+        return int_or_none(self.attribute_helper("MA"))
 
     @cached_property
     def marange(self) -> str | None:
         """The creature's full range of potential MA values."""
         if (char_type := self.active_or_inactive_character()) == INACTIVE_CHAR:
             return None
-        elif char_type == ACTIVE_CHAR:
+        if char_type == ACTIVE_CHAR:
             ma = 4
             if self.stat_MA_Value:
                 ma += int(self.stat_MA_Value)
@@ -1925,6 +1930,7 @@ class QudObjectProps(QudObject):
             # parse it correctly (it doesn't do well with ranges like -2--1 [fire ant], so we
             # would output this instead as -3+1d2
             return f"{ma + minmod - 1}+1d{maxmod - minmod + 1}"
+        return None
 
     @cached_property
     def maxammo(self) -> int | None:
@@ -2480,9 +2486,8 @@ class QudObjectProps(QudObject):
                 val = self.part_TinkerItem_Bits[-1]
                 if val.isdigit():
                     return int(val)
-                else:
-                    return 0
-            elif self.lv is not None:
+                return 0
+            if self.lv is not None:
                 try:
                     level = int(self.lv)
                 except ValueError:
@@ -2603,15 +2608,15 @@ class QudObjectProps(QudObject):
                 unk_obj_name = self.part_Examiner_Unknown
                 if unk_obj_name == "UnknownMed":
                     return "small *color* tube"
-                else:
-                    unk_obj_name = unk_obj_name if unk_obj_name is not None else "BaseUnknown"
-                    unknown_obj = self.qindex[unk_obj_name]
-                    """Following line ensures we are calling this class's version of title,
-                    not a derived version. Otherwise, for example, QBE's qudobject_wiki ends up
-                    trying to double-encode the display name shader."""
-                    unknown_name = QudObjectProps.title.__get__(unknown_obj)
-                    unknown_name = "weird artifact" if unknown_name is None else unknown_name
-                    return unknown_name
+                unk_obj_name = unk_obj_name if unk_obj_name is not None else "BaseUnknown"
+                unknown_obj = self.qindex[unk_obj_name]
+                """Following line ensures we are calling this class's version of title,
+                not a derived version. Otherwise, for example, QBE's qudobject_wiki ends up
+                trying to double-encode the display name shader."""
+                unknown_name = QudObjectProps.title.__get__(unknown_obj)
+                unknown_name = "weird artifact" if unknown_name is None else unknown_name
+                return unknown_name
+        return None
 
     @cached_property
     def unidentifiedaltname(self) -> str | None:
@@ -2623,11 +2628,10 @@ class QudObjectProps(QudObject):
                 alt_obj_name = self.part_Examiner_Alternate
                 if alt_obj_name == "UnknownMed":
                     return "small *color* tube"
-                else:
-                    alt_obj_name = alt_obj_name if alt_obj_name is not None else "BaseUnknown"
-                    alt_obj = self.qindex[alt_obj_name]
-                    alt_name = QudObjectProps.title.__get__(alt_obj)
-                    return alt_name
+                alt_obj_name = alt_obj_name if alt_obj_name is not None else "BaseUnknown"
+                alt_obj = self.qindex[alt_obj_name]
+                return QudObjectProps.title.__get__(alt_obj)
+        return None
 
     @cached_property
     def unpowereddamage(self) -> str | None:
@@ -2662,13 +2666,14 @@ class QudObjectProps(QudObject):
         # if self.is_specified('part_ThrownWeapon'):
         if self.is_specified("part_GeomagneticDisc"):
             return True
-        elif self.is_specified("part_MissileWeapon"):
+        if self.is_specified("part_MissileWeapon"):
             attributes = self.projectile_object("part_Projectile_Attributes")
             if attributes is not None and "Vorpal" in attributes.split(" "):
                 return True
         elif self.inherits_from("MeleeWeapon") or self.inherits_from("NaturalWeapon"):
             if self.part_VibroWeapon:
                 return True
+        return None
 
     @cached_property
     def waterritualable(self) -> bool | None:

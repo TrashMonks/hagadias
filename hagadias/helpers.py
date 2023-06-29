@@ -227,8 +227,7 @@ def parse_qud_colors(phrase: str) -> list[tuple]:
                 if len(shader_stack) == 1:
                     error = f"Unexpected }} occurred while parsing {phrase}"
                     raise ValueError(error)
-                else:
-                    shader_stack.pop()
+                shader_stack.pop()
             else:
                 coloredchars.append((char, shader_stack[-1]))
     # we've parsed all printable chars:
@@ -435,9 +434,8 @@ def make_list_from_words(wds: list[str]) -> str:
         return wds[0]
     if len(wds) == 2:
         return f"{wds[0]} and {wds[1]}"
-    else:
-        last_wd = wds.pop()
-        return f'{", ".join(wds)}, and {last_wd}'
+    last_wd = wds.pop()
+    return f'{", ".join(wds)}, and {last_wd}'
 
 
 def obj_has_any_part(qudobject, parts: list[str]) -> bool:
