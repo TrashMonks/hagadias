@@ -1658,7 +1658,12 @@ class QudObjectProps(QudObject):
                 return 2
 
     @cached_property
-    def id(self) -> str:
+    def id(self):  # noqa A003
+        """Original name of the attribute, shouldn't use same name as Python builtin id()"""
+        raise DeprecationWarning("Please use id_ instead of id")
+
+    @cached_property
+    def id_(self) -> str:
         """The name of the object in ObjectBlueprints.xml. Should always exist."""
         return self.name
 
@@ -1755,11 +1760,11 @@ class QudObjectProps(QudObject):
                         count = pop_item.number
                         chance = pop_item.chance
                         equipped = "no"  # not yet implemented
-                        if pop_item.type == "object":  # noinspection PyUnresolvedReferences
+                        if pop_item.type_ == "object":  # noinspection PyUnresolvedReferences
                             ret.append((pop_item.blueprint, count, equipped, chance, "no"))
-                        elif pop_item.type == "table":  # noinspection PyUnresolvedReferences
+                        elif pop_item.type_ == "table":  # noinspection PyUnresolvedReferences
                             ret.append((pop_item.name, count, equipped, chance, "yes"))
-                        elif pop_item.type == "group":
+                        elif pop_item.type_ == "group":
                             pass  # shouldn't happen bec. we only evaluate populations with depth 1
         return ret if len(ret) > 0 else None
 

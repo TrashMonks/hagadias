@@ -47,7 +47,7 @@ class QudPopItem:
         raise NotImplementedError  # to be implemented by inheriting subclasses
 
     @property
-    def type(self) -> str:
+    def type_(self) -> str:
         raise NotImplementedError  # to be implemented by inheriting subclasses
 
 
@@ -73,7 +73,7 @@ class QudPopulation(QudPopList):
     @property
     def style(self) -> str:
         """Style of the population or its main defining group ('pickone' or 'pickeach')."""
-        if len(self.children) == 1 and self.children[0].type == "group":
+        if len(self.children) == 1 and self.children[0].type_ == "group":
             # noinspection PyUnresolvedReferences
             return self.children[0].style
         # the following return value based on advice from Armithaig, probably usually true?
@@ -89,7 +89,7 @@ class QudPopulation(QudPopList):
             # Populations can have a single group beneath them that holds all items, or they can
             # hold items directly with no encapsulating group, so our logic accounts for that here -
             # both cases are considered only a single level of depth.
-            if len(self.children) == 1 and self.children[0].type == "group":
+            if len(self.children) == 1 and self.children[0].type_ == "group":
                 # noinspection PyTypeChecker
                 self._depth = self._eval_depth(self.children[0])
             else:
@@ -106,7 +106,7 @@ class QudPopulation(QudPopList):
         """
         max_depth = cur_depth
         for child in pop_group.children:
-            if child.type == "group":
+            if child.type_ == "group":
                 # noinspection PyTypeChecker
                 child_depth = self._eval_depth(child, cur_depth + 1)
                 if child_depth > max_depth:
@@ -118,7 +118,7 @@ class QudPopulation(QudPopList):
         represents the entire population, returns that group's children instead of the direct
         children of the population node.
         """
-        if len(self.children) == 1 and self.children[0].type == "group":
+        if len(self.children) == 1 and self.children[0].type_ == "group":
             # noinspection PyUnresolvedReferences
             return self.children[0].children
         return self.children
@@ -140,7 +140,7 @@ class QudPopulationObject(QudPopItem):
         return self.blueprint
 
     @property
-    def type(self) -> str:
+    def type_(self) -> str:
         return "object"
 
 
@@ -160,7 +160,7 @@ class QudPopulationTable(QudPopItem):
         return self.name
 
     @property
-    def type(self) -> str:
+    def type_(self) -> str:
         return "table"
 
 
@@ -182,5 +182,5 @@ class QudPopulationGroup(QudPopList, QudPopItem):
         return self.name
 
     @property
-    def type(self) -> str:
+    def type_(self) -> str:
         return "group"

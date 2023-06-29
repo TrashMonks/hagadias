@@ -43,7 +43,7 @@ select = [
   # This turns on the various Ruff rules. By default, only "E" and "F" are selected.
   # See: https://beta.ruff.rs/docs/rules/
   # Code quality rules:
-  # "A",    # flake8-builtins
+  "A",    # flake8-builtins
   # "ARG",  # flake8-unused-arguments: unused arguments
   # "B",    # flake8-bugbear: likely bugs and design problems
   # "BLE",  # flake8-blind-except: no blind exceptions
