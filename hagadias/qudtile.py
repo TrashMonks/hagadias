@@ -45,7 +45,7 @@ def check_filepath(filepath: Path) -> Path:
     # eliminate symlinks and '..' components and raise FileNotFoundError if the file does not exist:
     try:
         resolved = filepath.resolve(strict=True)  # FileNotFoundError is raised here
-    except FileNotFoundError:
+    except FileNotFoundError as err:
         # Might be a case insensitive issue due to being on a POSIX-like machine
         parent_dir = filepath.parent.resolve(strict=True)
         tile_name = filepath.name.lower()
@@ -58,7 +58,7 @@ def check_filepath(filepath: Path) -> Path:
         if len(matched) == 1:
             resolved = matched[0]
         else:
-            raise FileNotFoundError
+            raise FileNotFoundError from err
 
     target_in_tiles_dir = False
     for parent in resolved.parents:
