@@ -45,7 +45,7 @@ def cp437_to_unicode(val: int):
 
 
 # From https://stackoverflow.com/questions/580924/python-windows-file-version-attribute:
-def get_dll_version_string(path, throwaway):
+def get_dll_version_string(path):
     """Return the version information from a PE file (exe or dll)."""
     pe = pefile.PE(path)
     if hasattr(pe, "VS_VERSIONINFO"):

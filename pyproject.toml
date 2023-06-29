@@ -44,7 +44,7 @@ select = [
   # See: https://beta.ruff.rs/docs/rules/
   # Code quality rules:
   "A",    # flake8-builtins
-  # "ARG",  # flake8-unused-arguments: unused arguments
+  "ARG",  # flake8-unused-arguments: unused arguments
   # "B",    # flake8-bugbear: likely bugs and design problems
   # "BLE",  # flake8-blind-except: no blind exceptions
   # "C4",   # flake8-comprehensions: comprehension inspections
