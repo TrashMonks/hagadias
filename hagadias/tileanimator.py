@@ -929,7 +929,11 @@ class TileAnimator:
         for _ in range(frame_count):
             color = random.choice(colors)
             glyph = random.choice(glyphs) if random.randint(0, 20) != 0 else "•"
-            generator = TileProvider(lambda: (StandInTiles.make_font_glyph(glyph, color), False))
+            generator = TileProvider(
+                # lambda args 'glyph' and 'color' are unbound,
+                # but that's ok because we consume them immediately
+                lambda: (StandInTiles.make_font_glyph(glyph, color), False)  # noqa B023
+            )
             frames.append(QudTile.from_image_provider(generator, self.qud_object.name))
         self._make_gif(frames, [50] * frame_count)
 
