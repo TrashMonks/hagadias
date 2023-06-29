@@ -191,7 +191,7 @@ class QudObject(NodeMixin):
     def unidentified_tile_and_metadata(self) -> tuple | None:
         if self.part_Examiner is not None and self.number_of_tiles() > 1:
             tiles, metadata = self.tiles_and_metadata()
-            for tile, meta in zip(tiles, metadata):
+            for tile, meta in zip(tiles, metadata, strict=True):
                 if meta.metatype == "unidentified":
                     return tile, meta
             return None

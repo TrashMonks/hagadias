@@ -184,7 +184,7 @@ class QudTile:
         pixels = self.image.getdata()  # RGBA (all four channels as a tuple)
         width = self.image.width
         index = -1
-        for alpha, pixel in zip(alphas, pixels):
+        for alpha, pixel in zip(alphas, pixels, strict=True):
             index += 1
             if alpha == 0 and skip_trans:
                 continue  # skip all pixels that are already transparent
@@ -201,7 +201,7 @@ class QudTile:
                 # custom tinted image: uses R channel of special color from tile
                 final = []
                 detailpercent = pixel[0] / 255  # get opacity from R channel of tricolor
-                for tile, det in zip(self.tilecolor, self.detailcolor):
+                for tile, det in zip(self.tilecolor, self.detailcolor, strict=True):
                     minimum = min(tile, det)
                     final.append(int(abs((tile - det) * detailpercent + minimum)))
                 final.append(255)  # transparency

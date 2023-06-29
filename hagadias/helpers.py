@@ -290,7 +290,7 @@ def iter_qud_colors(phrase: str, colors) -> Iterator[tuple]:
                 sequence = code[:-9].split("-")
             else:
                 sequence = colors["shaders"][code]["colors"].split("-")
-            for char, color in zip(text, itertools.cycle(sequence)):
+            for char, color in zip(text, itertools.cycle(sequence), strict=True):
                 yield char, color
         elif (
             code.endswith(" alternation")

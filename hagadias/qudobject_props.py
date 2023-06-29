@@ -1990,7 +1990,7 @@ class QudObjectProps(QudObject):
                 tiers = [int(tier) for tier in tiers]
             else:
                 tiers = [1] * len(names)
-            mods.extend(zip(names, tiers))
+            mods.extend(zip(names, tiers, strict=True))
         for key in self.part:
             if key.startswith("Mod"):
                 if "Tier" in self.part[key]:

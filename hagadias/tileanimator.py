@@ -177,7 +177,7 @@ class TileAnimator:
         tile_details = tile_details + tile_details
         frames = []
         durations = []
-        for numeral, color, detail in zip(tile_numerals, tile_colors, tile_details):
+        for numeral, color, detail in zip(tile_numerals, tile_colors, tile_details, strict=True):
             f = tile_prefix + numeral + tile_postfix  # construct filename
             frames.append(QudTile(f, color, color, detail, tile.qudname, tile.raw_transparent))
             durations.append(250)
@@ -238,6 +238,7 @@ class TileAnimator:
             tileframes,
             colorframes,
             detailframes,
+            strict=True,
         ):
             # set first frame to 'default' to absorb object's base render properties
             # using special logic below
