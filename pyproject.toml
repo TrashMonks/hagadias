@@ -26,18 +26,57 @@ pefile = "^2022.5.30"
 Pillow = "^9.2.0"
 lxml = "^4.9.1"
 
-[tool.poetry.dev-dependencies]
-flake8 = "^5.0.4"
+[tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
-black = "^22.10.0"
 coverage = "^6.4.2"
 pytest-cov = "^4.0.0"
 pre-commit = "^2.20.0"
-
-[tool.black]
-line-length = 100
-target-version = ['py310']
+ruff = "^0.0.261"
+lxml-stubs = "^0.4.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+select = [
+  # This turns on the various Ruff rules. By default, only "E" and "F" are selected.
+  # See: https://beta.ruff.rs/docs/rules/
+  # Code quality rules:
+  # "A",    # flake8-builtins
+  # "ARG",  # flake8-unused-arguments: unused arguments
+  # "B",    # flake8-bugbear: likely bugs and design problems
+  # "BLE",  # flake8-blind-except: no blind exceptions
+  # "C4",   # flake8-comprehensions: comprehension inspections
+  # "C90",  # mccabe: McCabe cyclomatic complexity
+  # "DTZ",  # flake8-datetimez: usage of datetimes without timezones
+  # "E",    # pycodestyle: errors
+  # "F",    # pyflakes
+  # "G",    # flake8-logging-format: properly format log messages
+  # "ISC",  # flake8-implicit-str-concat: string concatenation
+  # "PIE",  # flake8-pie: miscellaneous lints
+  # "PT",   # flake8-pytest-style: Pytest-specific usage
+  # "R",    # flake8-return: common return issues
+  # "S",    # flake8-bandit: static security analysis
+  # "T10",  # flake8-debugger: debugger invocations and set traces
+  # "W",    # pycodestyle: warnings
+  # "YTT",  # flake8-2020: misuse of sys.version
+  # Code style rules:
+  # "COM",  # flake8-commas: enforce trailing commas
+  # "N",    # pep8-naming: make names align with PEP8
+  # "PTH",  # flake8-use-pathlib: change calls to os.* to use pathlib equivalents
+  # "TID",  # flake8-tidy-imports: correct import aliasing or optionally ban certain imports
+  # "ANN",  # flake8-annotations: enforce usage of type annotations
+  # "D100", "D101", "D102", "D103", "D104", "D106",  # pydocstyle: enforce presence of docstrings
+]
+line-length = 100
+ignore = [
+    "PLR2004",  # QudObjectProps deals heavily in magic numbers, and it would not be helpful to define them as constants
+    "ANN101",   # awful rule
+]
+
+[tool.ruff.per-file-ignores]
+"tests/*.py" = [
+    "S101",    # pytest is OK to use assert
+    "ANN201",  # pytest is OK to not have return type annotations
+]

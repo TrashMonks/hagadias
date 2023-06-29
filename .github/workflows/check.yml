@@ -1,8 +1,6 @@
-name: Check dependencies and lint
+name: Install dependencies and lint
 on:
   push:
-    branches:
-      - main
   pull_request:
 jobs:
   Install-Deps-Lint-Code:
@@ -19,7 +17,8 @@ jobs:
         run: |
           pip install poetry
           poetry install
-      - name: Lint code with flake8
-        run: poetry run flake8
-      - name: Lint code with black
-        run: poetry run black --check --line-length 100 .
+      - name: Lint code with ruff
+        uses: chartboost/ruff-action@v1
+        with:
+          src: "./hagadias"
+          version: 0.0.261
