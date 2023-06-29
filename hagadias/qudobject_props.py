@@ -422,7 +422,11 @@ class QudObjectProps(QudObject):
                 else:
                     outcomes = []
                     for butcherable, info in BUTCHERABLE_POPTABLES[butcher_obj[1:]].items():
-                        outcomes.append({**{"Object": butcherable}, **info})
+                        data = {
+                            "Object": butcherable,
+                            **info
+                        }
+                        outcomes.append(data)
                     return outcomes
             return [{"Object": butcher_obj, "Number": 1, "Weight": 100}]
         return None
