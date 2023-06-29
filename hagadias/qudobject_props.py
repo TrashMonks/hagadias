@@ -525,8 +525,8 @@ class QudObjectProps(QudObject):
                 continue  # parts ignored or handled elsewhere
             if part == "Teleprojector":
                 return (
-                    f"Initiate Domination [{self.part_Teleprojector_InitialChargeUse}], "
-                    + f"Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]"
+                    f"Initiate Domination [{self.part_Teleprojector_InitialChargeUse}],"
+                    f" Maintain Domination [{self.part_Teleprojector_MaintainChargeUse}]"
                 )
             if part == "ForceProjector":
                 basic = str_or_default(self.part_ForceProjector_BaseOperatingCharge, "1")
@@ -1133,7 +1133,7 @@ class QudObjectProps(QudObject):
                     + str(dispersalmod if pos else -dispersalmod)
                     + ("% faster." if pos else "% slower.")
                 )
-                desc_extra.append("{{rules|" + f"{densitystr}\n{dispersalstr}" + "}}")
+                desc_extra.append(f"{{{{rules|{densitystr}\n{dispersalstr}}}}}")
             # thermal amp
             if self.part_ThermalAmp is not None:
                 heatdam = int_or_default(self.part_ThermalAmp_HeatDamage, 0)
@@ -2130,7 +2130,7 @@ class QudObjectProps(QudObject):
             duration = duration if duration is not None else "6-9"
             return (
                 f"{pct}% to poison on hit, toughness save {save}."
-                + f" {dmg} damage for {duration} turns."
+                f" {dmg} damage for {duration} turns."
             )
         return None
 

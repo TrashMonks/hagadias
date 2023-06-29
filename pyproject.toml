@@ -46,14 +46,14 @@ select = [
   "A",    # flake8-builtins
   "ARG",  # flake8-unused-arguments: unused arguments
   "B",    # flake8-bugbear: likely bugs and design problems
-  # "BLE",  # flake8-blind-except: no blind exceptions
-  # "C4",   # flake8-comprehensions: comprehension inspections
+  "BLE",  # flake8-blind-except: no blind exceptions
+  "C4",   # flake8-comprehensions: comprehension inspections
   # "C90",  # mccabe: McCabe cyclomatic complexity
-  # "DTZ",  # flake8-datetimez: usage of datetimes without timezones
-  # "E",    # pycodestyle: errors
-  # "F",    # pyflakes
-  # "G",    # flake8-logging-format: properly format log messages
-  # "ISC",  # flake8-implicit-str-concat: string concatenation
+  "DTZ",  # flake8-datetimez: usage of datetimes without timezones
+  "E",    # pycodestyle: errors
+  "F",    # pyflakes
+  "G",    # flake8-logging-format: properly format log messages
+  "ISC",  # flake8-implicit-str-concat: string concatenation
   # "PIE",  # flake8-pie: miscellaneous lints
   # "PT",   # flake8-pytest-style: Pytest-specific usage
   # "R",    # flake8-return: common return issues

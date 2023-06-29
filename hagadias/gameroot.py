@@ -32,7 +32,7 @@ class GameRoot:
         root_path = Path(root)
         if not Path.exists(root_path / "CoQ_Data"):
             raise FileNotFoundError(
-                f"The given game root {root} does not seem to be a Caves of Qud" " game directory.",
+                f"The given game root {root} does not seem to be a Caves of Qud game directory.",
             )
         self._root = root_path
         self._xmlroot = root_path / "CoQ_Data" / "StreamingAssets" / "Base"
@@ -69,9 +69,9 @@ class GameRoot:
          - a dictionary mapping the string name of each Qud object to the Python object
            representing it.
 
-        :param cls: the QudObject class, or optionally, a subclass of QudObject to represent the game
-                    objects. Implemented to allow a tree of QudObjectWiki for the Qud Blueprint Explorer
-                    app.
+        :param cls: the QudObject class, or optionally, a subclass of QudObject to represent the
+                    game objects. Implemented to allow a tree of QudObjectWiki for the Qud Blueprint
+                    Explorer app.
         """
         if self.qud_object_root is not None:
             return self.qud_object_root, self.qindex

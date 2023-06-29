@@ -37,7 +37,8 @@ ITEM_MOD_PROPS = {
         "complexity": 4,
         "difficulty": 8,
         "ifcomplex": True,
-        "prefix": "&Me&Mx&mt&mr&ya&yd&Yi&Ym&" "Oe&Yn&Ys&yi&y&mo&mn&Ma&Ml&y ",
+        "prefix": "&Me&Mx&mt&mr&ya&yd&Yi&Ym&"
+                  "Oe&Yn&Ys&yi&y&mo&mn&Ma&Ml&y ",
     },
     "ModFlaming": {"complexity": 1, "difficulty": 1, "ifcomplex": False, "prefix": "&Rflaming&y "},
     "ModFreezing": {
