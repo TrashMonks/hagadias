@@ -73,6 +73,7 @@ line-length = 100
 ignore = [
     "PLR2004",  # QudObjectProps deals heavily in magic numbers, and it would not be helpful to define them as constants
     "ANN101",   # awful rule
+    "S311",     # warns against using PRNGs for crypto - not a security issue in this case
 ]
 
 [tool.ruff.per-file-ignores]
