@@ -2215,7 +2215,7 @@ class QudObjectProps(QudObject):
         Example: Programmable Recoiler has "Uncommon"
         Albino ape has "Brute"
         """
-        return self.property_Role_Value
+        return self.tag_Role_Value
 
     @cached_property
     def savemodifier(self) -> str | None:
