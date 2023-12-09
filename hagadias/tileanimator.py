@@ -23,8 +23,13 @@ POWER_TRANSMISSION_PARTS = [
     "HydraulicPowerTransmission",
     "MechanicalPowerTransmission",
 ]
-ANIMATEDMATERIALGENERIC_EXCLUSIONS = ["Telescope", "Full-Scale Recompositer", "PistonPressElement",
-                                      "Chavvah Dense Leaves", "Chavvah Sparse Leaves"]
+ANIMATEDMATERIALGENERIC_EXCLUSIONS = [
+    "Telescope",
+    "Full-Scale Recompositer",
+    "PistonPressElement",
+    "Chavvah Dense Leaves",
+    "Chavvah Sparse Leaves",
+]
 
 
 class TileAnimator:
