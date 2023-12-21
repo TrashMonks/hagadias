@@ -257,7 +257,6 @@ class TilePainter:
     def _paint_walltrap(self):
         """Renders a walltrap tile. These are normally colored in the C# code, so we handle them
         specially."""
-        self.file = self.obj.part_Render_Tile
         warmcolor = self.obj.part_Walltrap_WarmColor
         fore = extract_foreground_char(warmcolor, "r")
         back = extract_background_char(warmcolor, "g")
