@@ -1153,8 +1153,18 @@ class QudObjectProps(QudObject):
                 m_color = self.part_MakersMark_Color
                 m_color = m_color if m_color is not None else "R"
                 m_mark = self.part_MakersMark_Mark
-                m_desc = self.part_MakersMark_Desc
-                m_desc = m_desc if m_desc is not None else "This item bears a maker's mark."
+                m_name = self.part_MakersMark_CrafterName
+                m_itemtype = "item"
+                if self.part_CyberneticsBaseItem is not None:
+                    m_itemtype = "implant"
+                elif self.part_MissileWeapon is not None or self.part_MeleeWeapon is not None or self.part_ThrownWeapon is not None:
+                    m_itemtype = "weapon"
+                elif self.part_Armor is not None:
+                    m_itemtype = "armor"
+                elif self.part_Shield is not None:
+                    m_itemtype = "shield"
+                m_desc = f"This {m_itemtype} bears "
+                m_desc += f"the mark of {m_name}." if m_name is not None else "a maker's mark."
                 desc_extra.append(f"&{m_color}{m_mark}&C: {m_desc}")
         # signs
         if self.part_Chat_ShowInShortDescription == "true":
