@@ -217,9 +217,9 @@ QUD_COLORS = {
     "K": (21, 83, 82),  # dark grey
     "o": (241, 95, 34),
     "O": (233, 159, 16),
-    "transparent": (15, 64, 63, 0),
+    "transparent": (15, 59, 58, 0),
 }
-QUD_VIRIDIAN = (15, 64, 63, 255)
+QUD_VIRIDIAN = (15, 59, 58, 255)  # 0f3b3a
 LIQUID_COLORS = {
     "acid": "&G^g",
     "algae": "&g^C",
