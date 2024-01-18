@@ -2413,11 +2413,12 @@ class QudObjectProps(QudObject):
                     val = f"{val}, {name_title}"
         if self.part_DisplayNameColor is not None:
             dn_color = self.part_DisplayNameColor_Color
+            dn_color = dn_color.strip('&')
             if dn_color is not None:
                 val = "{{" + dn_color + "|" + val + "}}"
         if self.part_MakersMark is not None:
             m_color = self.part_MakersMark_Color
-            m_color = m_color if m_color is not None else "R"
+            m_color = m_color.strip('&') if m_color is not None else "R"
             m_mark = self.part_MakersMark_Mark
             val = f"&{m_color}{m_mark}&y {val}"
         return val
