@@ -1072,8 +1072,17 @@ class QudObjectProps(QudObject):
                     desc_extra.append(
                         "{{rules|Grants you Confusion at level "
                         + str(val)
-                        + ". "
-                        + "If you already have Confusion, its level is increased by "
+                        + ". If you already have Confusion, its level is increased by "
+                        + str(val)
+                        + ".}}"
+                    )
+            if self.part_ModImprovedTemporalFugue is not None:
+                val = int_or_none(self.part_ModImprovedTemporalFugue_Tier)
+                if val is not None and val > 0:
+                    desc_extra.append(
+                        "{{rules|Grants you Temporal Fugue at level "
+                        + str(val)
+                        + ". If you already have Temporal Fugue, its level is increased by "
                         + str(val)
                         + ".}}"
                     )
