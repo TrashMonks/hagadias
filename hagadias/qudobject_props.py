@@ -1066,6 +1066,10 @@ class QudObjectProps(QudObject):
                         + " time needed for this item to generate ammunition.}}"
                     )
             # mutation rules text
+            if self.part_MutationOnEquip is not None:
+                if self.part_MutationOnEquip_CanLevel is None:
+                    if self.part_MutationOnEquip_ClassName == "Telepathy":
+                        desc_extra.append("{{rules|Grants you Telepathy.")
             if self.part_ModImprovedConfusion is not None:
                 val = int_or_none(self.part_ModImprovedConfusion_Tier)
                 if val is not None and val > 0:
