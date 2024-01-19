@@ -16,7 +16,6 @@ from hagadias.constants import (
     CHARGE_USE_REASONS,
     ACTIVE_PARTS,
     STAT_DISPLAY_NAMES,
-    BUTCHERABLE_POPTABLES,
     CHERUBIM_DESC,
     MECHANICAL_CHERUBIM_DESC,
 )
@@ -400,15 +399,26 @@ class QudObjectProps(QudObject):
         """What a corpse item can be butchered into."""
         butcher_obj = self.part_Butcherable_OnSuccess
         if butcher_obj:
-            if butcher_obj[:1] == "@":
-                if butcher_obj[1:] not in BUTCHERABLE_POPTABLES:
-                    log.error("Butcherable poptable %s not recognized.", butcher_obj)
+            if butcher_obj[:1] != "@":
+                return [{"Object": butcher_obj, "Number": 1, "Weight": 100}]
+            pop_name = butcher_obj[1:]
+            pop: QudPopulation = self.gameroot.get_populations().get(pop_name)
+            if pop is not None and len(pop.get_effective_children()) > 0:
+                if (
+                    pop.depth > 1
+                    or pop.style == "pickeach"
+                    or any(item.type != "object" for item in pop.get_effective_children())
+                ):
+                    # complex pop - requires additional logic (butcherables don't currently use)
+                    log.error("Butcherable poptable %s requires complex processing", butcher_obj)
                 else:
                     outcomes = []
-                    for butcherable, info in BUTCHERABLE_POPTABLES[butcher_obj[1:]].items():
-                        outcomes.append({**{"Object": butcherable}, **info})
+                    for pop_item in pop.get_effective_children():
+                        num = pop_item.number
+                        wgt = pop_item.weight
+                        obj = pop_item.blueprint
+                        outcomes.append({"Object": obj, "Number": num, "Weight": wgt})
                     return outcomes
-            return [{"Object": butcher_obj, "Number": 1, "Weight": 100}]
 
     @cached_property
     def canbuild(self) -> bool | None:
