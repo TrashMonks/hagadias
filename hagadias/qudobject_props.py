@@ -1157,7 +1157,11 @@ class QudObjectProps(QudObject):
                 m_itemtype = "item"
                 if self.part_CyberneticsBaseItem is not None:
                     m_itemtype = "implant"
-                elif self.part_MissileWeapon is not None or self.part_MeleeWeapon is not None or self.part_ThrownWeapon is not None:
+                elif (
+                    self.part_MissileWeapon is not None
+                    or self.part_MeleeWeapon is not None
+                    or self.part_ThrownWeapon is not None
+                ):
                     m_itemtype = "weapon"
                 elif self.part_Armor is not None:
                     m_itemtype = "armor"
