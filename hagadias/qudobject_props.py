@@ -1564,6 +1564,18 @@ class QudObjectProps(QudObject):
         return self.projectile_object("part_GasOnHit_Blueprint")
 
     @cached_property
+    def gasimmuneconfusion(self) -> bool | None:
+        """If creature is immune to confusion gas."""
+        if self.part_ImmuneToConfusionGas is not None:
+            return True
+
+    @cached_property
+    def gasimmunesleep(self) -> bool | None:
+        """If creature is immune to sleep gas."""
+        if self.part_ImmuneToSleepGas is not None:
+            return True
+
+    @cached_property
     def gender(self) -> str | None:
         """The gender of the object."""
         if (
