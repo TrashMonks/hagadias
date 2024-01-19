@@ -1069,7 +1069,7 @@ class QudObjectProps(QudObject):
             if self.part_MutationOnEquip is not None:
                 if self.part_MutationOnEquip_CanLevel is None:
                     if self.part_MutationOnEquip_ClassName == "Telepathy":
-                        desc_extra.append("{{rules|Grants you Telepathy.")
+                        desc_extra.append("{{rules|Grants you Telepathy.}}")
             if self.part_ModImprovedConfusion is not None:
                 val = int_or_none(self.part_ModImprovedConfusion_Tier)
                 if val is not None and val > 0:
@@ -1145,6 +1145,14 @@ class QudObjectProps(QudObject):
                     + f"+{activationchance}% chance to slip away from natural melee"
                     + " attacks}}"
                 )
+            if self.part_ArmsOnEquip is not None:
+                # logic is complex for this one, so will likely just support specific item combos
+                if (
+                    self.part_ArmsOnEquip_BaseHands == "Pincers"
+                    and self.part_ArmsOnEquip_Category == "Arthropod"
+                    and self.part_ArmsOnEquip_DefaultHandBehavior == "Nephal_Claw_Circle"
+                ):
+                    desc_extra.append("{{rules|Grants 2 chelipeds with spotted claws}}")
             if self.part_Cursed_RevealInDescription == "true":
                 desc_extra.append(
                     "{{rules|"
