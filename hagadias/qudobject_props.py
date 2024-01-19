@@ -886,6 +886,15 @@ class QudObjectProps(QudObject):
                     if amt is not None:
                         symbol = "+" if amt > 0 else ""
                         desc_extra.append("{{" + f"rules|{symbol}{amt} {stat}" + "}}")
+            # ActiveStatPercent (percentage-based boost)
+            if self.part_ActiveStatPercent is not None:
+                for boostinfo in self.part_ActiveStatPercent_Boosts.split(";"):
+                    stat, amt = boostinfo.split(":")
+                    stat = stat if stat not in STAT_DISPLAY_NAMES else STAT_DISPLAY_NAMES[stat]
+                    amt = int_or_none(amt)
+                    if amt is not None:
+                        symbol = "+" if amt > 0 else ""
+                        desc_extra.append("{{" + f"rules|{symbol}{amt}% {stat}" + "}}")
             # carrybonus
             carry_bonus = self.carrybonus
             if carry_bonus:

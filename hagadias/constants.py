@@ -257,6 +257,10 @@ STAT_DISPLAY_NAMES = {
     "Hitpoints": "hit points",
     "MoveSpeed": "move speed",
     "Speed": "quickness",
+    "AP": "attribute points",
+    "MP": "mutation points",
+    "SP": "skill points",
+    "XP": "experience points",
 }
 # The following includes all parts descending from IActivePart, which defines the IsEMPSensitive and
 # PowerLoadSensitive fields. This holds the hard-coded defaults. These can be overridden in the XML.
