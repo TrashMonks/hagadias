@@ -7,6 +7,7 @@ from math import gcd
 from pathlib import Path
 from typing import Iterator, List, Tuple, Optional
 
+from lxml import etree as et
 import pefile
 
 from hagadias.constants import QUD_COLORS
@@ -133,16 +134,24 @@ def bool_or_default(value, default=False) -> bool:
 def repair_invalid_linebreaks(contents):
     """Return a version of an XML file with invalid line breaks replaced with XML line breaks.
 
-    Used to stitch together lines in ObjectBlueprints.xml.
+    This is needed to preserve line breaks in object descriptions and similar attributes, otherwise
+    the XML parser will convert those line breaks to simple spaces. However, we also need to handle
+    cases where linebreaks are used only for formatting in the XML file (as opposed to within
+    attribute values). In those cases, we don't actually want to "fix" the line breaks. We use a
+    try/except block to identify those cases and avoid changing/breaking them.
     """
-    pat_linebreaks = r"^\s*<[^!][^>]*\n.*?>"
-    match = re.search(pat_linebreaks, contents, re.MULTILINE)
+    pat = re.compile(r"^\s*<[^!][^>]*\n.*?>", re.MULTILINE)
+    match = pat.search(contents)
     while match:
         before = match.string[: match.start()]
-        fixed = match.string[match.start() : match.end()].replace("\n", "&#10;")
+        fix_attempt = match.group(0).replace("\n", "&#10;")
         after = match.string[match.end() :]
-        contents = before + fixed + after
-        match = re.search(pat_linebreaks, contents, re.MULTILINE)
+        try:
+            _ = et.fromstring(fix_attempt)
+            contents = before + fix_attempt + after
+        except et.XMLSyntaxError:
+            pass  # don't make change, because it would break XML formatting
+        match = pat.search(contents, match.end())  # continue search after the current match
     return contents
 
 
