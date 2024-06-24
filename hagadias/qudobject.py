@@ -146,7 +146,7 @@ class QudObject(NodeMixin):
             if self.name in ["ScrapCape", "CatacombWall"]:
                 return True  # special cases, not sure why they're marked as BaseObjects
             return False
-        if self.part_Render_Tile or self.part_RandomTile is not None:
+        if self.part_Render_Tile or self.builder_RandomTile is not None:
             return True
         if self.tag_PaintedFence and self.tag_PaintedFence_Value != "*delete":
             return True

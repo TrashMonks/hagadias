@@ -134,8 +134,8 @@ class TilePainter:
 
         # determine tile filepath
         self.file = self.obj.part_Render_Tile
-        if self.obj.part_RandomTile:
-            self.file = self.obj.part_RandomTile_Tiles.split(",")[0]
+        if self.obj.builder_RandomTile:
+            self.file = self.obj.builder_RandomTile_Tiles.split(",")[0]
 
         # apply special initial tile properties to certain objects and parts
         if (

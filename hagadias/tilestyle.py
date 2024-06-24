@@ -490,7 +490,7 @@ class StyleRandomTile(TileStyle):
         super().__init__(
             _painter, _priority=30, _modifies=RenderProps.FILE, _allows=RenderProps.NONFILE
         )
-        random_tiles = self.object.part_RandomTile_Tiles
+        random_tiles = self.object.builder_RandomTile_Tiles
         self._tiles = [] if random_tiles is None else random_tiles.split(",")
 
     def _modification_count(self) -> int:
@@ -508,7 +508,7 @@ class StyleRandomTile(TileStyle):
 
 
 class StyleFracti(TileStyle):
-    """Styles for the RandomTile part."""
+    """Styles for the RandomTile builder."""
 
     def __init__(self, _painter):
         super().__init__(
@@ -576,7 +576,7 @@ class StyleLiquidVolume(TileStyle):
                     else:
                         self._volume = int_or_default(self.object.part_LiquidVolume_Volume, 0)
                     self._liquids = liquids.split(",")
-                    random_tiles = self.object.part_RandomTile_Tiles
+                    random_tiles = self.object.builder_RandomTile_Tiles
                     self._tiles = [] if random_tiles is None else random_tiles.split(",")
                     self._tiles.insert(0, self.painter.get_painted_liquid_path())
 
@@ -845,7 +845,7 @@ class StyleArspliceHyphae(TileStyle):
     """Styles for Arsplice Hyphae. Similar to Harvestable, except for a few unique things:
     Has two objects (Arsplice Hyphae A and Arsplice Hyphae B) which each contain a subset of the
     sprites, and also includes variable tiles (all other Harvestables permute colors only). This
-    also supercedes the RandomTile part on Arsplice Hyphae to avoid additional complexity."""
+    also supercedes the RandomTile builder on Arsplice Hyphae to avoid additional complexity."""
 
     def __init__(self, _painter):
         super().__init__(
