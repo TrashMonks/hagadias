@@ -234,6 +234,8 @@ class QudObject(NodeMixin):
         inherited = self.parent.all_attributes
         all_attributes = deepcopy(self.attributes)
         removes_parts = "removepart" in all_attributes
+        removes_builders = "removebuilder" in all_attributes
+        removes_invobj = "removeinventoryobject" in all_attributes
         for tag in inherited:
             if tag not in all_attributes:
                 all_attributes[tag] = {}
@@ -243,6 +245,14 @@ class QudObject(NodeMixin):
                         if name in all_attributes["removepart"]:
                             # remove `name` part from `self.name` due to `removepart` tag
                             continue  # don't inherit part if it's explicitly removed from the child
+                    elif tag == "builder" and removes_builders:
+                        if name in all_attributes["removebuilder"]:
+                            # remove `name` builder due to `removebuilder` tag
+                            continue
+                    elif tag == "inventoryobject" and removes_invobj:
+                        if name in all_attributes["removeinventoryobject"]:
+                            # remove `name` inventoryobject due to `removeinventoryobject` tag
+                            continue
                     all_attributes[tag][name] = {}
                 elif (
                     tag == "tag"
