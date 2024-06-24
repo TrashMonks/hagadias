@@ -2565,7 +2565,10 @@ class QudObjectProps(QudObject):
                     return "small *color* tube"
                 else:
                     alt_obj_name = alt_obj_name if alt_obj_name is not None else "BaseUnknown"
-                    alt_obj = self.qindex[alt_obj_name]
+                    try:
+                        alt_obj = self.qindex[alt_obj_name]
+                    except KeyError:
+                        alt_obj = self.qindex["BaseUnknown"]
                     alt_name = QudObjectProps.title.__get__(alt_obj)
                     return alt_name
 
