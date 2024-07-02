@@ -738,11 +738,12 @@ class QudObjectProps(QudObject):
     @cached_property
     def demeanor(self) -> str | None:
         """The demeanor of the creature."""
-        if self.active_or_inactive_character() == ACTIVE_CHAR:
-            if self.part_Brain_Calm is not None:
-                return "docile" if self.part_Brain_Calm.lower() == "true" else "neutral"
-            if self.part_Brain_Hostile is not None:
-                return "aggressive" if self.part_Brain_Hostile.lower() == "true" else "neutral"
+        if self.active_or_inactive_character() == ACTIVE_CHAR or self.part_GivesRep is not None:
+            if self.part_Brain_Calm is not None and self.part_Brain_Calm.lower() == "true":
+                return "docile"
+            if self.part_Brain_Hostile is not None and self.part_Brain_Hostile.lower() == "true":
+                return "aggressive"
+            return "neutral"
 
     @cached_property
     def desc(self) -> str | None:
@@ -1581,7 +1582,9 @@ class QudObjectProps(QudObject):
         if (
             self.tag_Gender_Value is not None
             or (self.tag_RandomGender_Value is not None and "," not in self.tag_RandomGender_Value)
-        ) and self.active_or_inactive_character() == ACTIVE_CHAR:
+        ) and (
+            self.active_or_inactive_character() == ACTIVE_CHAR or self.part_GivesRep is not None
+        ):
             gender = self.tag_Gender_Value
             if gender is None:
                 gender = self.tag_RandomGender_Value
@@ -2140,7 +2143,9 @@ class QudObjectProps(QudObject):
     @cached_property
     def pronouns(self) -> str | None:
         """Return the pronounset of a creature, if [they] have any."""
-        if self.tag_PronounSet_Value is not None and self.inherits_from("Creature"):
+        if self.tag_PronounSet_Value is None:
+            return None
+        if self.active_or_inactive_character() == ACTIVE_CHAR or self.part_GivesRep is not None:
             return self.tag_PronounSet_Value
 
     @cached_property
