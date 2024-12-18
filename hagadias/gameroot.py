@@ -93,7 +93,7 @@ class GameRoot:
             log.debug("Repairing invalid XML line breaks... ")
             contents = repair_invalid_linebreaks(contents)
             log.debug("done in %.2f seconds", time.time() - start)
-            raw = et.fromstring(contents)
+            raw = et.fromstring(bytes(contents, encoding='utf-8'))
             # Objects must receive the qindex and add themselves, rather than doing it here, because
             # they need access to their parent by name lookup during creation for inheritance
             # calculations.
