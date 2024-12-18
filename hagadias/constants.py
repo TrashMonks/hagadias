@@ -203,6 +203,7 @@ QUD_COLORS = {
     "R": (215, 66, 0),  # bright red
     "w": (152, 135, 95),  # brown
     "W": (207, 192, 65),  # yellow
+    "W ": (207, 192, 65),  # yellow HACK HACK HACK
     "c": (64, 164, 185),  # dark cyan
     "C": (119, 191, 207),  # bright cyan
     "b": (0, 72, 189),  # dark blue
@@ -218,6 +219,7 @@ QUD_COLORS = {
     "o": (241, 95, 34),
     "O": (233, 159, 16),
     "transparent": (15, 59, 58, 0),
+    "#": (15, 59, 58, 0), # HACK HACK HACK
 }
 QUD_VIRIDIAN = (15, 59, 58, 255)  # 0f3b3a
 LIQUID_COLORS = {

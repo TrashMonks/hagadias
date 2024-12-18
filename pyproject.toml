@@ -20,7 +20,7 @@ repository = "https://github.com/TrashMonks/hagadias"
 keywords = ["Caves", "Qud"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "3.10.*"
 anytree = "^2.8.0"
 pefile = "^2022.5.30"
 Pillow = "^9.2.0"
