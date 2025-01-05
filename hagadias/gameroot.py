@@ -161,6 +161,8 @@ class GameRoot:
         tag_anatomies = tree.find("anatomies")
         for tag_anatomy in tag_anatomies:
             parts = []
+            if isinstance(tag_anatomy, et._Comment):
+                continue
             name = tag_anatomy.attrib["Name"]
             # .// XPath syntax means select all <part> tags under this element, even if nested
             found_tag_part = tag_anatomy.findall(".//part")
