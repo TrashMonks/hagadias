@@ -1326,10 +1326,14 @@ class QudObjectProps(QudObject):
                     if name_title is not None:
                         dname = f"{dname}, {name_title}"
             if self.part_Honorifics is not None:
-                dname = process_honorifics(dname, self.part_Honorifics_Primary, self.part_Honorifics_Ordinary)
+                dname = process_honorifics(
+                    dname, self.part_Honorifics_Primary, self.part_Honorifics_Ordinary
+                )
             if self.part_Epithets is not None:
-                dname = process_epithets(dname, self.part_Epithets_Primary, self.part_Epithets_Ordinary)
-            
+                dname = process_epithets(
+                    dname, self.part_Epithets_Primary, self.part_Epithets_Ordinary
+                )
+
             dname = strip_oldstyle_qud_colors(dname)
             dname = strip_newstyle_qud_colors(dname)
         return dname

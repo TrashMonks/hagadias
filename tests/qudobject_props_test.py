@@ -56,12 +56,12 @@ def test_displayname(qindex):
         "Shugruith": "Girsh Shug'ruith the Burrower",
         "Erah": "Ciderer Erah",
         "Warden Yrame": "Warden Yrame",
-        "Ehalcodon": "Starformed Ehalcodon"
+        "Ehalcodon": "Starformed Ehalcodon",
     }
 
     for id, expected in testcases.items():
         assert qindex[id].displayname == expected
-    
+
     assert qindex["Cudgel6"].displayname == "crysteel mace"
 
 

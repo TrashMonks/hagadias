@@ -372,22 +372,25 @@ def strip_oldstyle_qud_colors(text: str) -> str:
     """
     return re.sub("&[rRwWcCbBgGmMyYkKoO]", "", text)
 
-def process_honorifics(dname: str, primary: str|None, ordinary: str|None) -> str:
+
+def process_honorifics(dname: str, primary: str | None, ordinary: str | None) -> str:
     for name_title in [primary, ordinary]:
         if name_title is not None:
             dname = f"{name_title} {dname}"
 
     return dname
 
-def process_epithets(dname: str, primary: str|None, ordinary: str|None) -> str:
+
+def process_epithets(dname: str, primary: str | None, ordinary: str | None) -> str:
     if primary is not None:
-        if primary[0] != ',':
+        if primary[0] != ",":
             dname = f"{dname} {primary}"
         else:
             dname = f"{dname}{primary}"
     # Currently no blueprints use the 'ordinary' portion
 
     return dname
+
 
 def extract_color(colorstr: str, prefix_symbol: str) -> str | None:
     """Generic function to extract a color codes and its prefixing symbol."""
