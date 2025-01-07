@@ -385,6 +385,7 @@ def process_epithets(dname: str, primary: str|None, ordinary: str|None) -> str:
             dname = f"{dname} {primary}"
         else:
             dname = f"{dname}{primary}"
+    # Currently no blueprints use the 'ordinary' portion
 
     return dname
 
