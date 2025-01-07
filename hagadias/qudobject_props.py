@@ -23,6 +23,8 @@ from hagadias.dicebag import DiceBag
 from hagadias.helpers import (
     cp437_to_unicode,
     int_or_none,
+    process_epithets,
+    process_honorifics,
     strip_oldstyle_qud_colors,
     strip_newstyle_qud_colors,
     pos_or_neg,
@@ -1323,6 +1325,15 @@ class QudObjectProps(QudObject):
                 for name_title in [self.part_Titles_Primary, self.part_Titles_Ordinary]:
                     if name_title is not None:
                         dname = f"{dname}, {name_title}"
+            if self.part_Honorifics is not None:
+                dname = process_honorifics(
+                    dname, self.part_Honorifics_Primary, self.part_Honorifics_Ordinary
+                )
+            if self.part_Epithets is not None:
+                dname = process_epithets(
+                    dname, self.part_Epithets_Primary, self.part_Epithets_Ordinary
+                )
+
             dname = strip_oldstyle_qud_colors(dname)
             dname = strip_newstyle_qud_colors(dname)
         return dname
