@@ -93,7 +93,7 @@ class GameRoot:
             log.debug("Repairing invalid XML line breaks... ")
             contents = repair_invalid_linebreaks(contents)
             log.debug("done in %.2f seconds", time.time() - start)
-            raw = et.fromstring(bytes(contents, encoding='utf-8'))
+            raw = et.fromstring(bytes(contents, encoding="utf-8"))
             # Objects must receive the qindex and add themselves, rather than doing it here, because
             # they need access to their parent by name lookup during creation for inheritance
             # calculations.
@@ -161,6 +161,8 @@ class GameRoot:
         tag_anatomies = tree.find("anatomies")
         for tag_anatomy in tag_anatomies:
             parts = []
+            if isinstance(tag_anatomy, et._Comment):
+                continue
             name = tag_anatomy.attrib["Name"]
             # .// XPath syntax means select all <part> tags under this element, even if nested
             found_tag_part = tag_anatomy.findall(".//part")
