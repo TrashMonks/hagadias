@@ -102,7 +102,7 @@ class GameRoot:
             for element in raw:
                 if element.tag != "object":
                     continue
-                cls(element, qindex, self)
+                cls(blueprint_file, element, qindex, self)
 
         # second pass - resolve object inheritance
         log.debug("Resolving Qud object hierarchy and adding tiles...")
