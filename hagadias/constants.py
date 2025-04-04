@@ -219,7 +219,7 @@ QUD_COLORS = {
     "o": (241, 95, 34),
     "O": (233, 159, 16),
     "transparent": (15, 59, 58, 0),
-    "#": (15, 59, 58, 0), # HACK HACK HACK
+    "#": (15, 59, 58, 0),  # HACK HACK HACK
 }
 QUD_VIRIDIAN = (15, 59, 58, 255)  # 0f3b3a
 LIQUID_COLORS = {

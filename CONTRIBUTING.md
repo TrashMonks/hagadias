@@ -32,20 +32,23 @@ steps to take to make the virtual environment use your local hagadias folder ins
 Hagadias to for other connected Trash Monk projects is recommended to make sure the outcomes for those projects are
 correct. This assumes that the virtual environment already has hagadias.
 
-Look up how to change your system environment variables. For Windows, this can be done by searching "System environment"
-and select "Edit System environment variables" and then select the "Environment Variables..." in the Advanced Tab.
+Look up how to change your system environment variables. Start a new terminal, enter the virtual environment from the project directory by running `poetry shell`, and run your
+program of choice.
+
+This makes python read the hagadias folder every time you run something. This may cause issues if you are working on
+unrelated projects that use .py files that share the same name as some in hagadias. If this is of concern, be sure to
+remove the PYTHONPATH variable once you're done with hagadias development.
+
+### Windows
+Searching "System environment" and select "Edit System environment variables" and then select the "Environment Variables..." in the Advanced Tab. 
 
 Create a new system variable (or user variable if installed locally) called `PYTHONPATH`
 and set the value to your hagadias directory (Ex.
 `C:\Users\(you)\Documents\github\hagadias\`). This must end in a backslash to read the whole folder instead of just the
 folder itself!
 
-Start a new terminal, enter the virtual environment from the project directory by running `poetry shell`, and run your
-program of choice.
-
-This makes python read the hagadias folder every time you run something. This may cause issues if you are working on
-unrelated projects that use .py files that share the same name as some in hagadias. If this is of concern, be sure to
-remove the PYTHONPATH variable once you're done with hagadias development.
+### Linux
+In Linux (bash), run `export PYTHONPATH=/home/you/path/to/hagadias/`. If using venv, this should be set inside the venv instead of the system.
 
 ## Running tests
 

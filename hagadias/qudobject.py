@@ -44,7 +44,7 @@ class QudObject(NodeMixin):
     by the AnyTree module that provides NodeMixin.
     """
 
-    def __init__(self, blueprint: etree.Element, qindex: dict, gameroot):
+    def __init__(self, source_file: str, blueprint: etree.Element, qindex: dict, gameroot):
         """Create a new QudObject instance.
 
         Parameters:
@@ -52,6 +52,7 @@ class QudObject(NodeMixin):
             qindex: a dict in which to register this object after creation, keyed by object name
             gameroot: a reference to the GameRoot instance that spawned this object
         """
+        self.source_file = source_file
         self.gameroot = gameroot
         self.source = etree.tostring(blueprint).decode("utf8")
         self.qindex = qindex
