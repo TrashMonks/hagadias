@@ -166,6 +166,9 @@ class TileAnimator:
             elif forcefield_palette == "Blue":
                 tile_colors = ["&B", "&b", "&B", "&b"]
                 tile_details = [None, "K", "b", "B"]
+            elif forcefield_palette == "Magenta":
+                tile_colors = ["&M", "&m", "&M", "&m"]
+                tile_details = [None, "m", "m", "m"]
         tile_colors = tile_colors + tile_colors
         tile_details = tile_details + tile_details
         frames = []
