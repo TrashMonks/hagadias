@@ -364,9 +364,7 @@ class QudObjectProps(QudObject):
                     if name[0] in "*#@":
                         # special values like '*Junk 1'
                         continue
-                    if (item := self.qindex.get(name)) is None:
-                        log.error("unknown inventory blueprint %s", name)
-                        continue
+                    item = self.qindex[name]
                     if item.av and (not applied_body_av or item.wornon != "Body"):
                         av += int(item.av)
         return int_or_none(av)
@@ -1384,8 +1382,7 @@ class QudObjectProps(QudObject):
                         if name[0] in "*#@":
                             # special values like '*Junk 1'
                             continue
-                        if (item := self.qindex.get(name)) is None:
-                            log.error("unknown inventory blueprint %s", name)
+                        item = self.qindex[name]
                         if item.dv and (not applied_body_dv or item.wornon != "Body"):
                             dv += item.dv
         return int_or_none(dv)

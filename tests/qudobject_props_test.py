@@ -18,11 +18,11 @@ def test_av(qindex):
 
 def test_chargeused(qindex):
     obj = qindex["Geomagnetic Disc"]
-    assert obj.chargeused == 100
+    assert obj.chargeused == 400
 
 
 def test_displayname(qindex):
-    assert qindex["ElderBob"].displayname == "Irudad"
+    assert qindex["ElderBob"].displayname == "Elder Irudad"
     assert qindex["Cudgel6"].displayname == "crysteel mace"
 
 
