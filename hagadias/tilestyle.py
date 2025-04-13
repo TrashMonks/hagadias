@@ -392,6 +392,7 @@ class StyleRandomColors(TileStyle):
             tilecolors = [None] if tilecolors is None else list(set(tilecolors.split(",")))
             bgcolors = [None] if bgcolors is None else list(set(bgcolors.split(",")))
             # Sort and then shuffle using Object ID as seed, to always get the same result
+            preserved_state = random.getstate()
             random.seed(self.object.name)
             if not pairmaindetail:
                 maincolors.sort()
@@ -402,6 +403,7 @@ class StyleRandomColors(TileStyle):
             random.shuffle(tilecolors)
             bgcolors.sort()
             random.shuffle(bgcolors)
+            random.setstate(preserved_state)
             # Generate unique combinations
             if not pairmaindetail:
                 self._combos = list(
